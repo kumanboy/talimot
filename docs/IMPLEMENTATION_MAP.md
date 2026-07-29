@@ -141,7 +141,7 @@ Every published test and submitted attempt/result retains its immutable scoring-
 | `/esse-tekshirish` | Standalone essay topic, submission, evaluation, history, and human-review status |
 | `/onboarding` | Welcome and the ordered one-question-at-a-time onboarding flow |
 | `/diagnostika` | Versioned free 15-question diagnostic |
-| `/yol-xaritasi` | Preliminary or accurate personalized roadmap |
+| `/yol-xaritasi` | Adaptive roadmap with `Noldan sertifikatgacha` and `Natijani oshirish` modes plus `To‘liq yo‘l`, `Bu hafta`, and `Natijalar` views |
 
 ### Frozen practice, essay, and Tanga contracts
 
@@ -205,6 +205,7 @@ The component names below are implementation labels for the approved Page 03/Pag
 | `ESSAY` | Method card, essay prompt, textarea/editor, word/paragraph counter, draft status, review summary, confirmation dialog |
 | `ESSAY-CHECK` | Topic selector, `ESSAY`, `UPLOAD`, AI-evaluation state, versioned 75-point criterion breakdown, mistakes, recommendations, history, teacher-review status |
 | `ONBOARDING` | Welcome copy and entrance motion/reduced-motion variant, one-question stepper, progress, conditional previous-level step, 1-3 topic multiselect, single-choice controls, branch actions, diagnostic invitation, roadmap status |
+| `ROADMAP` | Mode control, `To‘liq yo‘l` connected map, `Bu hafta` seven-day plan, `Natijalar` score/history view, connected nodes/edges, node status, score, estimated time, action, recommendation reason, pacing and required/recommended/optional labels |
 | `TANGA` | Tanga balance derived from ledger, service-price label, package cards, manual-payment evidence/status, immutable transaction history, insufficient-funds state, atomic reservation/charge confirmation |
 | `UPLOAD` | Camera/file picker, page preview, upload progress, quality warning, rotate/replace/delete/reorder controls plus keyboard alternative, per-page retry |
 | `RESULTS` | Score summary, preliminary/final badge, topic bars with text alternatives, result cards, attempt history, item outcome, explanation sheet, report form |
@@ -282,12 +283,78 @@ Diagnostic-to-roadmap calculation is frozen:
 - the first roadmap version starts with the three weakest topics;
 - completion of a standard 20-question topic quiz replaces the active diagnostic estimate for that topic without changing historical diagnostic data.
 
+### Approved adaptive roadmap contract
+
+Status:
+
+- Product contract: **approved**.
+- Complete Figma redesign: **pending**.
+- Frontend implementation: **pending**.
+- Backend generation and persistence: **pending**.
+
+`/yol-xaritasi` supports two modes:
+
+1. `Noldan sertifikatgacha`;
+2. `Natijani oshirish`.
+
+Both modes expose:
+
+1. `To‘liq yo‘l` — the complete connected learning map;
+2. `Bu hafta` — a personalized seven-day execution plan, not the complete roadmap;
+3. `Natijalar` — topic scores, completion, and progress history.
+
+`Noldan sertifikatgacha` maps these dependencies:
+
+- `Poydevor`: `Fonetika -> Morfemika`;
+- `Grammatika`: `Morfologiya -> Sintaksis`;
+- `Matn va uslub`: `Uslubiyat -> Ilmiy matn` and `Uslubiyat -> Badiiy matn`;
+- `Adabiy tahlil`: `G‘azal` is available after `Grammatika`;
+- `Esse` is available after both `Sintaksis` and `Uslubiyat`;
+- `Mustahkamlash`: topic quizzes, mixed practice, and error review;
+- `Imtihon tayyorgarligi`: `To‘liq mock imtihon`, `Xatolar tahlili`, `Zaif mavzu va ko‘nikmalar ustida ishlash`, `Esse tekshiruvi`, and `Yakuniy to‘liq mock imtihon`.
+
+`Natijani oshirish`:
+
+- establishes a baseline from a previous result, diagnostic, or full mock and compares current result with target;
+- splits into an objective-score branch with the three weakest topics, targeted review, quiz, and error analysis;
+- splits into an essay-score branch with weak rubric criteria, structure, argumentation, literacy, and essay checking;
+- joins into `To‘liq mock imtihon`, `Xatolar tahlili`, `Zaif mavzu va ko‘nikmalar ustida ishlash`, `Esse tekshiruvi`, and `Yakuniy to‘liq mock imtihon`;
+- may skip mastered topics while keeping them optionally available.
+
+Roadmap node statuses are exactly `Locked`, `Available`, `In progress`, `Takrorlash kerak`, `Yaxshi`, `O‘zlashtirilgan`, `Optional`, and `Skipped because already mastered`.
+
+Progression:
+
+- below `60%` is `Takrorlash kerak` and automatically returns the topic or skill to `Bu hafta`;
+- `60-79%` is `Yaxshi`;
+- `80-100%` is `O‘zlashtirilgan`;
+- below `60%` never permanently blocks later topics;
+- completing at least one required activity unlocks progression;
+- paid attempts and teacher checking never gate roadmap unlocking;
+- AI essay checking is sufficient, and teacher checking is optional.
+
+Pacing maps `Less than 1 month -> Intensive`, `1-2 months -> Accelerated`, `3-4 months -> Balanced`, `5+ months -> Foundation-focused`, and `No exam date -> Flexible rolling plan`.
+
+The complete roadmap remains visible at every pace. Timing changes priority, weekly workload, required/recommended/optional labels, and estimated completion. `Bu hafta` uses available days, daily study time, the three highest-priority weaknesses, incomplete prerequisites, and essay/mock requirements.
+
+The existing three-weakest-topics rule drives initial priority and `Bu hafta`; it does not hide the remaining `To‘liq yo‘l` graph or replace its dependencies.
+
+Recalculate after a diagnostic, topic quiz, essay check, mock result, or exam-date change. Exact exam date is optional; otherwise use the selected time range. Roadmap versions and prior progress are immutable.
+
+Responsive presentation:
+
+- mobile: vertical connected roadmap;
+- desktop: branched interactive map inspired by roadmap-style learning maps, using the `TA’LIMOT` visual system and not copying roadmap.sh;
+- every node: status, topic, score, estimated time, action, and recommendation reason.
+
+The earlier Figma `Roadmap — Approved Flow` section (`292:1980`) and `Preliminary Roadmap — First-Time` frame (`292:1981`) are superseded design history. The simple preliminary-summary and seven-day-only presentation is **not approved for implementation**.
+
 | Figma frames | UI route | Role | Components | Loading / empty / error / offline | Backend domain and PDF API requirements | Database entities | Auth and permission |
 |---|---|---|---|---|---|---|---|
 | 05.01.01 | `/` launch state; authenticated redirect to intended page, active attempt, or `/dashboard` | Public -> student | `M-SHELL`, auth progress | Loading shown; auth error routes to 05.01.05; offline launch requires network and states that saved active-attempt data is safe | Auth: `POST /api/auth/telegram`, then `GET /api/me`, `GET /api/dashboard`; validate signature, `auth_date`, account status, constant-time comparison, create own platform session | User, Profile, AuthIdentity, Session, UserRole, AccountRestriction | Telegram data is untrusted until backend validation; blocked/deleted policy enforced |
 | Approved onboarding flow nodes listed in the onboarding Figma contract above | `/onboarding` | Student | `M-SHELL`, `ONBOARDING`; approved `TA’LIMOT` component `210:40`; `Onboarding/Option Card` `229:663`; `Onboarding/Multi-select Card` `248:1037`; `Onboarding/Path Choice Card` `263:1653`; exact welcome copy, `Boshlash`, and frozen one-question-at-a-time options above; fill-width wrapper capped at `342px` with at least `24px` margins | Approved `360 x 800`, `390 x 844`, and `430 x 932`; accessible text token `#376FB5`; `56px` button; `24-28px` bottom spacing; `350ms` welcome delay then Smart Animate/Ease Out over `500ms`; representative question transitions use `200ms`; reduced motion uses immediate state changes; step loading; conditional branching; selection-limit validation; safe-input preservation; offline submission unavailable; incomplete/resume state | Onboarding: persist the 11 ordered responses and branch safely; validate every answer against the versioned approved option set; exact API path is an implementation contract, not a product blocker | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer | Authenticated account owns responses; client cannot submit unapproved option values |
 | Missing high-fidelity diagnostic screens | `/diagnostika` | Student | `M-SHELL`, `EXAM`, diagnostic intro/progress/result | Loading; unavailable blueprint; durable autosave/offline queue; completion/error; resume | Diagnostics: deliver exactly 15 frozen items with topic distribution `1/1/1/2/2/2/3/3`; started attempts bind an immutable diagnostic version | DiagnosticBlueprint, DiagnosticVersion, DiagnosticVersionTopic, DiagnosticVersionItem, DiagnosticAttempt, DiagnosticAnswer/Version, DiagnosticResult | Own diagnostic only; admin edits draft topics, but published versions and active attempts are immutable |
-| Missing high-fidelity roadmap screens | `/yol-xaritasi` | Student | `M-SHELL`, `ONBOARDING`, readiness badge distinct from certificate grade, prioritized topic list, preliminary/accurate badge | Loading; no source responses; generating; error; cached read with freshness | Roadmaps: calculate equal-value diagnostic percentage/readiness; combine incorrect topics with self-selected weaknesses; begin with three weakest topics; on a completed 20-question topic quiz create a new roadmap version whose active estimate for that topic uses the quiz result. Keep historical estimates/results immutable | Roadmap, RoadmapVersion, RoadmapTopicPriority with source/estimate/version, OnboardingSession snapshot, DiagnosticResult/TopicResult, TopicPracticeResult | Own roadmap only; server controls source type, priority derivation, replacement, and immutable version lineage |
+| Complete Figma redesign pending; earlier nodes `292:1980`/`292:1981` superseded | `/yol-xaritasi` | Student | `M-SHELL`, `ROADMAP`; two modes; three views; responsive connected nodes/edges; status, topic, score, estimated time, action, reason; pacing and required/recommended/optional labels | Loading; no baseline; generating/recalculating; empty weekly plan; stale cached version with freshness; partial source failure; offline immutable cached read only | Roadmaps: generate the frozen dependency graph or baseline-improvement branches; prioritize and schedule without paid gates; recalculate on diagnostic/quiz/essay/mock/exam-date inputs; preserve every roadmap version and prior progress; exact API paths remain pending | Roadmap, RoadmapVersion, RoadmapMode, RoadmapNode, RoadmapEdge, RoadmapNodeStatus/History, RoadmapBaselineSnapshot, RoadmapTopicPriority, WeeklyPlan/Version/Item, RoadmapProgressEvent, PacingProfile; OnboardingSession, DiagnosticResult/TopicResult, TopicPracticeResult, EssayEvaluation, AttemptResult | Own roadmap only; server validates source ownership, generation rules, unlocks, recalculation, and immutable lineage; client cannot forge scores/statuses or bypass prerequisites |
 | 05.01.03 | `/auth/login` | Public | `AUTH` | Submitting, field/form error, rate-limit state, offline unavailable | Auth: `POST /api/auth/login`, password reset endpoints; Argon2id, generic login error, session rotation | User, Credential, AuthIdentity, Session, AccountRestriction | Authenticated users redirect to intended safe route |
 | 05.01.04 | `/auth/register` | Public | `AUTH` | Submitting, verification state, validation error, offline unavailable | Auth: `POST /api/auth/register`; verification code only after a real SMS/email provider is selected; single-use, short-lived, hashed, rate-limited | User, Profile, Credential, AuthIdentity, Session, accepted terms record **TBD entity** | Prevent enumeration and duplicate identity ownership |
 | 05.01.05, 05.06.08 | Current auth route state; no separate route approved | Public/session-expired | `AUTH`, error state | Retry, browser fallback, help; session-expired preserves intended route | Auth endpoints above; revoke/expire session safely | Session, User, AuthIdentity | No protected data rendered after expiry |
@@ -383,7 +450,7 @@ Admin tables always use server pagination/filter/sort, useful URL state, keyboar
 | Auth | Telegram validation, credentials, sessions, linking, MFA/revocation | User, AuthIdentity, Credential, Session, UserRole, AccountRestriction |
 | Users | Profile, preferences, personal sessions, privacy workflows | Profile, Session, Notification/preferences TBD, ExportJob |
 | Content / Question Bank | Taxonomy, stimuli, revisions, keys, review, reports | Subject, Topic, Subtopic, Tag, MediaAsset, Stimulus/Revision, Question/Revision/Option, AnswerKey, QuestionReview/Report |
-| Onboarding / Roadmaps | Exact option-set version; equal-value 15-item diagnostic; readiness bands distinct from grades; incorrect/self-selected weakness priority; first three weakest topics; 20-question topic-quiz estimate replacement with immutable roadmap versions | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer, DiagnosticBlueprint/Version/VersionTopic/VersionItem, DiagnosticAttempt/Answer/Result/TopicResult, Roadmap/Version/TopicPriority, TopicPracticeResult |
+| Onboarding / Roadmaps | Exact onboarding/diagnostic versions; two roadmap modes and three views; dependency graph and baseline-improvement branches; status/progression policy; ungated required activity; pacing and weekly planning; source-triggered recalculation; immutable roadmap/progress versions | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer, DiagnosticBlueprint/Version/VersionTopic/VersionItem, DiagnosticAttempt/Answer/Result/TopicResult, Roadmap/Version/Mode/Node/Edge, RoadmapNodeStatus/History, RoadmapBaselineSnapshot, RoadmapTopicPriority, WeeklyPlan/Version/Item, RoadmapProgressEvent, PacingProfile, TopicPracticeResult, EssayEvaluation, AttemptResult |
 | Topic Practice | Extensible topic modules; fixed standard/readings/g‘azal count and duration rules; version-scoped free/paid limits; equal-value percentage score; best-result band; autosave, explanations, retry, separate analytics | TopicPracticeModule, TopicQuiz/Version/VersionItem, TopicPracticeAttempt, TopicPracticeAnswer/Version, TopicPracticeResult; shared attempt storage is allowed only with an explicit non-mock type |
 | Test Builder | Drafts, immutable published versions, sections, access policy | Test, TestVersion, TestSection, TestVersionItem, TestAccessRule, TestAssignment |
 | Attempts | Start/resume, frozen delivery, timer, answer revisions, flags, submit/expire | Attempt, AttemptItem, AttemptAnswer/Version, AttemptQuestionFlag, AttemptEvent |
@@ -714,12 +781,18 @@ Approved components can be reused, but the following complete screens are not pr
 
 ### Diagnostic and roadmap
 
-The onboarding flow is now present as approved high-fidelity Figma frames. The following related screens remain missing:
+The onboarding flow is now present as approved high-fidelity Figma frames. The roadmap product contract is approved, but its complete Figma redesign, frontend, backend generation, and persistence remain pending.
 
 1. `/diagnostika` free 15-question diagnostic intro, runner, completion, and result states with the frozen `1/1/1/2/2/2/3/3` distribution.
-2. `/yol-xaritasi` preliminary roadmap generated after a skipped diagnostic.
-3. `/yol-xaritasi` accurate roadmap with readiness level distinct from certificate grade, three weakest topics, diagnostic/self-selected priority, and topic-quiz estimate replacement.
-4. Admin diagnostic-topic authoring and immutable version publishing.
+2. `/yol-xaritasi` `Noldan sertifikatgacha` and `Natijani oshirish` mode entry/state selection.
+3. `To‘liq yo‘l` mobile vertical connected roadmap and desktop branched interactive map.
+4. `Bu hafta` personalized seven-day execution plan, clearly subordinate to the complete roadmap.
+5. `Natijalar` topic scores, completion, and immutable progress history.
+6. Loading, no-baseline, generation/recalculation, empty-week, cached/offline, and source-error states.
+7. Backend graph generation, baseline comparison, pacing, weekly scheduling, unlock/status calculation, recalculation triggers, and immutable version/progress persistence.
+8. Admin diagnostic-topic authoring and immutable version publishing.
+
+The earlier `Roadmap — Approved Flow` / `Preliminary Roadmap — First-Time` Figma concept (`292:1980`, `292:1981`) is superseded and not approved for implementation because it presents a preliminary summary and seven-day plan without the complete connected roadmap.
 
 Existing Page 06 exam/stimulus/autosave components and Page 07 essay/upload/results/evaluation components should be reused; their full-mock route chrome and old contextual copy must not be carried into the standalone experiences.
 

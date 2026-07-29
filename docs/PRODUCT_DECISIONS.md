@@ -482,6 +482,130 @@ Branching:
 - After a student completes a standard 20-question topic quiz, that quiz result replaces the diagnostic estimate for that topic in subsequent roadmap versions.
 - Earlier diagnostic results remain immutable; replacement changes the active roadmap estimate, not historical diagnostic data.
 
+### Adaptive roadmap system
+
+Status:
+
+- Product contract: **approved**.
+- Complete Figma redesign: **pending**.
+- Frontend implementation: **pending**.
+- Backend generation and persistence: **pending**.
+
+The roadmap has two modes:
+
+1. `Noldan sertifikatgacha`;
+2. `Natijani oshirish`.
+
+Each mode has three views:
+
+1. `To‘liq yo‘l` — the complete connected learning map;
+2. `Bu hafta` — the personalized seven-day execution plan;
+3. `Natijalar` — topic scores, completion, and progress history.
+
+`Bu hafta` is an execution view of the roadmap and is never the complete roadmap.
+
+#### Noldan sertifikatgacha
+
+The complete connected structure is:
+
+- `Poydevor`: `Fonetika -> Morfemika`;
+- `Grammatika`: `Morfologiya -> Sintaksis`;
+- `Matn va uslub`:
+  - `Uslubiyat -> Ilmiy matn`;
+  - `Uslubiyat -> Badiiy matn`;
+- `Adabiy tahlil`: `G‘azal` becomes available after `Grammatika`;
+- `Esse` becomes available after both `Sintaksis` and `Uslubiyat`;
+- `Mustahkamlash`:
+  - topic quizzes;
+  - mixed practice;
+  - error review;
+- `Imtihon tayyorgarligi`:
+  - `To‘liq mock imtihon`;
+  - `Xatolar tahlili`;
+  - `Zaif mavzu va ko‘nikmalar ustida ishlash`;
+  - `Esse tekshiruvi`;
+  - `Yakuniy to‘liq mock imtihon`.
+
+#### Natijani oshirish
+
+- The baseline comes from a previous result, diagnostic, or full mock.
+- The current result is compared with the target.
+- The roadmap then splits into:
+  - an objective-score branch containing the three weakest topics, targeted review, quiz, and error analysis;
+  - an essay-score branch containing weak rubric criteria, structure, argumentation, literacy, and essay checking.
+- The branches join into:
+  - `To‘liq mock imtihon`;
+  - `Xatolar tahlili`;
+  - `Zaif mavzu va ko‘nikmalar ustida ishlash`;
+  - `Esse tekshiruvi`;
+  - `Yakuniy to‘liq mock imtihon`.
+- Mastered topics may be skipped but remain optionally available.
+
+#### Node status and progression policy
+
+Every roadmap node uses one of these statuses:
+
+- `Locked`;
+- `Available`;
+- `In progress`;
+- `Takrorlash kerak`;
+- `Yaxshi`;
+- `O‘zlashtirilgan`;
+- `Optional`;
+- `Skipped because already mastered`.
+
+Progress rules:
+
+- below `60%`: `Takrorlash kerak`; automatically return the topic or skill to `Bu hafta`;
+- `60-79%`: `Yaxshi`;
+- `80-100%`: `O‘zlashtirilgan`;
+- a score below `60%` does not permanently block later topics;
+- completion of at least one required activity unlocks progression;
+- paid attempts and teacher checking must never be required to unlock the roadmap;
+- AI essay checking is sufficient for roadmap progression; teacher checking remains optional.
+
+#### Personalization, pacing, and recalculation
+
+Pacing modes:
+
+| Selected time range | Pacing mode |
+|---|---|
+| Less than 1 month | `Intensive` |
+| 1-2 months | `Accelerated` |
+| 3-4 months | `Balanced` |
+| 5+ months | `Foundation-focused` |
+| No exam date | `Flexible rolling plan` |
+
+The complete roadmap always remains visible. Timing changes priority, weekly workload, required/recommended/optional labels, and estimated completion.
+
+The existing three-weakest-topics rule controls initial priority and weekly-plan selection. It does not hide the rest of `To‘liq yo‘l` or replace the frozen dependency structure.
+
+`Bu hafta` uses:
+
+- available days;
+- daily study time;
+- the three highest-priority weaknesses;
+- incomplete prerequisites;
+- essay and mock requirements.
+
+Recalculate the active roadmap after:
+
+- diagnostic completion;
+- topic-quiz completion;
+- essay checking;
+- a mock result;
+- an exam-date change.
+
+An exact exam date is optional. When absent, use the selected time range. Every roadmap version and all prior progress remain immutable.
+
+#### Responsive presentation and superseded concept
+
+- Mobile uses a vertical connected roadmap.
+- Desktop uses a branched interactive map inspired by roadmap-style learning maps, expressed in the `TA’LIMOT` design system and not copied from roadmap.sh.
+- Every node shows status, topic, score, estimated time, action, and recommendation reason.
+
+The earlier `Roadmap — Approved Flow` section (`292:1980`) and `Preliminary Roadmap — First-Time` frame (`292:1981`) are superseded design history. Their simple preliminary-summary and seven-day-only presentation is **not approved for implementation** and must not be treated as the complete roadmap design.
+
 ## Remaining genuine blockers
 
 No unresolved product-decision blockers remain.
