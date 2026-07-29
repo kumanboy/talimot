@@ -288,9 +288,56 @@ Diagnostic-to-roadmap calculation is frozen:
 Status:
 
 - Product contract: **approved**.
-- Complete Figma redesign: **pending**.
-- Frontend implementation: **pending**.
-- Backend generation and persistence: **pending**.
+- Complete Figma roadmap redesign: **completed and approved**.
+- Frontend roadmap implementation: **not started**.
+- Backend generation and recalculation: **not started**.
+- Persistence and immutable versioning: **not started**.
+- Authentication and API integration: **not started**.
+
+Approved roadmap screens:
+
+| Mode | View | Figma screen | Route |
+|---|---|---:|---|
+| `Noldan sertifikatgacha` | `To‘liq yo‘l` | `303:1991` | `/yol-xaritasi?mode=from-zero&view=full` |
+| `Natijani oshirish` | `To‘liq yo‘l` | `328:977` | `/yol-xaritasi?mode=boost&view=full` |
+| `Noldan sertifikatgacha` | `Bu hafta` | `337:438` | `/yol-xaritasi?mode=from-zero&view=week` |
+| `Natijani oshirish` | `Bu hafta` | `343:404` | `/yol-xaritasi?mode=boost&view=week` |
+| `Noldan sertifikatgacha` | `Natijalar` | `351:563` | `/yol-xaritasi?mode=from-zero&view=results` |
+| `Natijani oshirish` | `Natijalar` | `358:469` | `/yol-xaritasi?mode=boost&view=results` |
+
+Approved `Yo‘l xaritasi/Tugun` component set:
+
+| Variant | Figma node |
+|---|---:|
+| Component set | `302:2089` |
+| `Qulflangan` | `302:1991` |
+| `Mavjud` | `302:2003` |
+| `Jarayonda` | `302:2015` |
+| `Takrorlash kerak` | `302:2027` |
+| `Yaxshi` | `302:2039` |
+| `O‘zlashtirilgan` | `302:2051` |
+| `Ixtiyoriy` | `302:2063` |
+| `O‘tilmaydi` | `302:2075` |
+
+Approved `Yo‘l xaritasi/Haftalik vazifa` component set:
+
+| Variant | Figma node |
+|---|---:|
+| Component set | `337:437` |
+| `Bugun` | `337:377` |
+| `Rejalashtirilgan` | `337:389` |
+| `Bajarildi` | `337:401` |
+| `Takrorlash kerak` | `337:413` |
+| `Ko‘chirildi` | `337:425` |
+
+All six approved roadmap screens passed:
+
+- content and Uzbek-language QA;
+- responsive QA at `360 x 800`, `390 x 844`, and `430 x 932`;
+- vertical scrolling and sticky-action QA;
+- component-attachment QA;
+- WCAG AA contrast and accessibility QA;
+- dynamic-data annotation QA.
 
 `/yol-xaritasi` supports two modes:
 
@@ -354,7 +401,7 @@ The earlier Figma `Roadmap — Approved Flow` section (`292:1980`) and `Prelimin
 | 05.01.01 | `/` launch state; authenticated redirect to intended page, active attempt, or `/dashboard` | Public -> student | `M-SHELL`, auth progress | Loading shown; auth error routes to 05.01.05; offline launch requires network and states that saved active-attempt data is safe | Auth: `POST /api/auth/telegram`, then `GET /api/me`, `GET /api/dashboard`; validate signature, `auth_date`, account status, constant-time comparison, create own platform session | User, Profile, AuthIdentity, Session, UserRole, AccountRestriction | Telegram data is untrusted until backend validation; blocked/deleted policy enforced |
 | Approved onboarding flow nodes listed in the onboarding Figma contract above | `/onboarding` | Student | `M-SHELL`, `ONBOARDING`; approved `TA’LIMOT` component `210:40`; `Onboarding/Option Card` `229:663`; `Onboarding/Multi-select Card` `248:1037`; `Onboarding/Path Choice Card` `263:1653`; exact welcome copy, `Boshlash`, and frozen one-question-at-a-time options above; fill-width wrapper capped at `342px` with at least `24px` margins | Approved `360 x 800`, `390 x 844`, and `430 x 932`; accessible text token `#376FB5`; `56px` button; `24-28px` bottom spacing; `350ms` welcome delay then Smart Animate/Ease Out over `500ms`; representative question transitions use `200ms`; reduced motion uses immediate state changes; step loading; conditional branching; selection-limit validation; safe-input preservation; offline submission unavailable; incomplete/resume state | Onboarding: persist the 11 ordered responses and branch safely; validate every answer against the versioned approved option set; exact API path is an implementation contract, not a product blocker | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer | Authenticated account owns responses; client cannot submit unapproved option values |
 | Missing high-fidelity diagnostic screens | `/diagnostika` | Student | `M-SHELL`, `EXAM`, diagnostic intro/progress/result | Loading; unavailable blueprint; durable autosave/offline queue; completion/error; resume | Diagnostics: deliver exactly 15 frozen items with topic distribution `1/1/1/2/2/2/3/3`; started attempts bind an immutable diagnostic version | DiagnosticBlueprint, DiagnosticVersion, DiagnosticVersionTopic, DiagnosticVersionItem, DiagnosticAttempt, DiagnosticAnswer/Version, DiagnosticResult | Own diagnostic only; admin edits draft topics, but published versions and active attempts are immutable |
-| Complete Figma redesign pending; earlier nodes `292:1980`/`292:1981` superseded | `/yol-xaritasi` | Student | `M-SHELL`, `ROADMAP`; two modes; three views; responsive connected nodes/edges; status, topic, score, estimated time, action, reason; pacing and required/recommended/optional labels | Loading; no baseline; generating/recalculating; empty weekly plan; stale cached version with freshness; partial source failure; offline immutable cached read only | Roadmaps: generate the frozen dependency graph or baseline-improvement branches; prioritize and schedule without paid gates; recalculate on diagnostic/quiz/essay/mock/exam-date inputs; preserve every roadmap version and prior progress; exact API paths remain pending | Roadmap, RoadmapVersion, RoadmapMode, RoadmapNode, RoadmapEdge, RoadmapNodeStatus/History, RoadmapBaselineSnapshot, RoadmapTopicPriority, WeeklyPlan/Version/Item, RoadmapProgressEvent, PacingProfile; OnboardingSession, DiagnosticResult/TopicResult, TopicPracticeResult, EssayEvaluation, AttemptResult | Own roadmap only; server validates source ownership, generation rules, unlocks, recalculation, and immutable lineage; client cannot forge scores/statuses or bypass prerequisites |
+| Approved roadmap screens `303:1991`, `328:977`, `337:438`, `343:404`, `351:563`, and `358:469`; earlier preliminary frame `292:1981` superseded | `/yol-xaritasi?mode={from-zero|boost}&view={full|week|results}` | Student | `M-SHELL`, `ROADMAP`; approved `Yo‘l xaritasi/Tugun` set `302:2089`; approved `Yo‘l xaritasi/Haftalik vazifa` set `337:437`; two modes; three views; responsive connected nodes/edges; status, topic, score, estimated time, action, reason; pacing and required/recommended/optional labels | Loading; no baseline; generating/recalculating; empty weekly plan; stale cached version with freshness; partial source failure; offline immutable cached read only | Roadmaps: generate the frozen dependency graph or baseline-improvement branches; prioritize and schedule without paid gates; recalculate on diagnostic/quiz/essay/mock/exam-date inputs; preserve every roadmap version and prior progress; exact API paths remain pending | Roadmap, RoadmapVersion, RoadmapMode, RoadmapNode, RoadmapEdge, RoadmapNodeStatus/History, RoadmapBaselineSnapshot, RoadmapTopicPriority, WeeklyPlan/Version/Item, RoadmapProgressEvent, PacingProfile; OnboardingSession, DiagnosticResult/TopicResult, TopicPracticeResult, EssayEvaluation, AttemptResult | Own roadmap only; server validates source ownership, generation rules, unlocks, recalculation, and immutable lineage; client cannot forge scores/statuses or bypass prerequisites |
 | 05.01.03 | `/auth/login` | Public | `AUTH` | Submitting, field/form error, rate-limit state, offline unavailable | Auth: `POST /api/auth/login`, password reset endpoints; Argon2id, generic login error, session rotation | User, Credential, AuthIdentity, Session, AccountRestriction | Authenticated users redirect to intended safe route |
 | 05.01.04 | `/auth/register` | Public | `AUTH` | Submitting, verification state, validation error, offline unavailable | Auth: `POST /api/auth/register`; verification code only after a real SMS/email provider is selected; single-use, short-lived, hashed, rate-limited | User, Profile, Credential, AuthIdentity, Session, accepted terms record **TBD entity** | Prevent enumeration and duplicate identity ownership |
 | 05.01.05, 05.06.08 | Current auth route state; no separate route approved | Public/session-expired | `AUTH`, error state | Retry, browser fallback, help; session-expired preserves intended route | Auth endpoints above; revoke/expire session safely | Session, User, AuthIdentity | No protected data rendered after expiry |
@@ -781,16 +828,16 @@ Approved components can be reused, but the following complete screens are not pr
 
 ### Diagnostic and roadmap
 
-The onboarding flow is now present as approved high-fidelity Figma frames. The roadmap product contract is approved, but its complete Figma redesign, frontend, backend generation, and persistence remain pending.
+The onboarding flow and all six primary roadmap views are present as approved high-fidelity Figma screens. The complete roadmap Figma redesign is completed and approved.
+
+Remaining implementation gaps:
 
 1. `/diagnostika` free 15-question diagnostic intro, runner, completion, and result states with the frozen `1/1/1/2/2/2/3/3` distribution.
-2. `/yol-xaritasi` `Noldan sertifikatgacha` and `Natijani oshirish` mode entry/state selection.
-3. `To‘liq yo‘l` mobile vertical connected roadmap and desktop branched interactive map.
-4. `Bu hafta` personalized seven-day execution plan, clearly subordinate to the complete roadmap.
-5. `Natijalar` topic scores, completion, and immutable progress history.
-6. Loading, no-baseline, generation/recalculation, empty-week, cached/offline, and source-error states.
-7. Backend graph generation, baseline comparison, pacing, weekly scheduling, unlock/status calculation, recalculation triggers, and immutable version/progress persistence.
-8. Admin diagnostic-topic authoring and immutable version publishing.
+2. Frontend implementation of the six approved roadmap screens, their responsive behavior, state handling, and route/query synchronization.
+3. Backend graph generation, baseline comparison, pacing, weekly scheduling, unlock/status calculation, and recalculation triggers.
+4. Persistent roadmap data, immutable roadmap/version lineage, weekly-plan versions, and prior progress history.
+5. Authentication, ownership enforcement, and API integration for roadmap reads, actions, generation, and recalculation.
+6. Admin diagnostic-topic authoring and immutable version publishing.
 
 The earlier `Roadmap — Approved Flow` / `Preliminary Roadmap — First-Time` Figma concept (`292:1980`, `292:1981`) is superseded and not approved for implementation because it presents a preliminary summary and seven-day plan without the complete connected roadmap.
 
