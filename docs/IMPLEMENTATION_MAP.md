@@ -12,6 +12,38 @@ Status: implementation handoff derived from the approved Figma file and the “O
 4. A Figma screen does not override a PDF security or business rule. Where the two differ, this map records the conflict instead of silently choosing a new rule.
 5. Figma’s developer-handoff page explicitly labels its routes and API contracts as conceptual. PDF API paths are therefore used where the PDF defines them; unresolved UI routes remain `TBD`.
 
+### Frozen brand identity and onboarding welcome
+
+Brand contract:
+
+- Official product name: `TA’LIMOT`.
+- Tagline: `Milliy sertifikatlar platformasi`.
+- Approved direction: `Concept A — Kitob va koshin` (`204:7`), an open-book `T` with a negative-space koshin diamond and no tick/checkmark.
+- Approved colors are primary blue `#5D9CEC`, heritage turquoise `#168C8C`, dark `#1E2229`, and white `#FFFFFF`.
+- The temporary `OT` mark is deprecated.
+
+Approved logo component sets:
+
+| Asset | Component-set node |
+|---|---:|
+| Horizontal with tagline | `210:39` |
+| Horizontal without tagline | `210:64` |
+| Stacked | `210:89` |
+| Default mark | `210:106` |
+| Small optical mark | `210:123` |
+| App icon | `210:140` |
+
+Approved `/onboarding` welcome design:
+
+- Entry frame `195:646`; Ready frame `195:631`.
+- Logo treatment: `Full color on light`, component `210:40`, from `Brand/Logo — Horizontal without tagline`.
+- Responsive wrapper: fill container, maximum `342px`, and minimum `24px` horizontal margins.
+- Approved viewports: `360 x 800`, `390 x 844`, and `430 x 932`.
+- Supporting text: `#3973BC`; button height: `56px`; bottom spacing: `24-28px`.
+- Motion: `350ms` initial delay, Smart Animate, Ease Out, `500ms`.
+- Reduced motion: render the Ready state immediately.
+- The welcome screen is approved for frontend implementation.
+
 ### Final exam and scoring contract
 
 | Contract | Frozen value |
@@ -201,7 +233,7 @@ Diagnostic-to-roadmap calculation is frozen:
 | Figma frames | UI route | Role | Components | Loading / empty / error / offline | Backend domain and PDF API requirements | Database entities | Auth and permission |
 |---|---|---|---|---|---|---|---|
 | 05.01.01 | `/` launch state; authenticated redirect to intended page, active attempt, or `/dashboard` | Public -> student | `M-SHELL`, auth progress | Loading shown; auth error routes to 05.01.05; offline launch requires network and states that saved active-attempt data is safe | Auth: `POST /api/auth/telegram`, then `GET /api/me`, `GET /api/dashboard`; validate signature, `auth_date`, account status, constant-time comparison, create own platform session | User, Profile, AuthIdentity, Session, UserRole, AccountRestriction | Telegram data is untrusted until backend validation; blocked/deleted policy enforced |
-| 05.01.02 plus missing onboarding screens | `/onboarding` | Student | `M-SHELL`, `ONBOARDING`; exact welcome copy, `Boshlash`, and frozen one-question-at-a-time options above | Welcome motion/reduced-motion; step loading; conditional step 4/11; selection-limit validation; safe-input preservation; offline submission unavailable; incomplete/resume state | Onboarding: persist the 11 ordered responses and branch safely; validate every answer against the versioned approved option set; exact API path is an implementation contract, not a product blocker | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer | Authenticated account owns responses; client cannot submit unapproved option values |
+| `Onboarding Welcome — Entry` (`195:646`), `Onboarding Welcome — Ready` (`195:631`), plus missing question screens | `/onboarding` | Student | `M-SHELL`, `ONBOARDING`; approved `TA’LIMOT` component `210:40`; exact welcome copy, `Boshlash`, and frozen one-question-at-a-time options above; fill-width wrapper capped at `342px` with at least `24px` margins | Approved `360 x 800`, `390 x 844`, and `430 x 932`; supporting text `#3973BC`; `56px` button; `24-28px` bottom spacing; `350ms` delay then Smart Animate/Ease Out over `500ms`; reduced motion renders Ready immediately; step loading; conditional step 4/11; selection-limit validation; safe-input preservation; offline submission unavailable; incomplete/resume state | Onboarding: persist the 11 ordered responses and branch safely; validate every answer against the versioned approved option set; exact API path is an implementation contract, not a product blocker | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer | Authenticated account owns responses; client cannot submit unapproved option values |
 | Missing high-fidelity diagnostic screens | `/diagnostika` | Student | `M-SHELL`, `EXAM`, diagnostic intro/progress/result | Loading; unavailable blueprint; durable autosave/offline queue; completion/error; resume | Diagnostics: deliver exactly 15 frozen items with topic distribution `1/1/1/2/2/2/3/3`; started attempts bind an immutable diagnostic version | DiagnosticBlueprint, DiagnosticVersion, DiagnosticVersionTopic, DiagnosticVersionItem, DiagnosticAttempt, DiagnosticAnswer/Version, DiagnosticResult | Own diagnostic only; admin edits draft topics, but published versions and active attempts are immutable |
 | Missing high-fidelity roadmap screens | `/yol-xaritasi` | Student | `M-SHELL`, `ONBOARDING`, readiness badge distinct from certificate grade, prioritized topic list, preliminary/accurate badge | Loading; no source responses; generating; error; cached read with freshness | Roadmaps: calculate equal-value diagnostic percentage/readiness; combine incorrect topics with self-selected weaknesses; begin with three weakest topics; on a completed 20-question topic quiz create a new roadmap version whose active estimate for that topic uses the quiz result. Keep historical estimates/results immutable | Roadmap, RoadmapVersion, RoadmapTopicPriority with source/estimate/version, OnboardingSession snapshot, DiagnosticResult/TopicResult, TopicPracticeResult | Own roadmap only; server controls source type, priority derivation, replacement, and immutable version lineage |
 | 05.01.03 | `/auth/login` | Public | `AUTH` | Submitting, field/form error, rate-limit state, offline unavailable | Auth: `POST /api/auth/login`, password reset endpoints; Argon2id, generic login error, session rotation | User, Credential, AuthIdentity, Session, AccountRestriction | Authenticated users redirect to intended safe route |
@@ -630,14 +662,13 @@ Approved components can be reused, but the following complete screens are not pr
 
 ### Onboarding, diagnostic, and roadmap
 
-1. `/onboarding` welcome screen with the approved Uzbek copy, `Boshlash`, elegant entrance animation, and reduced-motion equivalent.
-2. One-at-a-time onboarding screens for all 11 ordered questions, including conditional previous level, difficult-topic selection limited to 1-3, and the first-time preparation single-choice step.
-3. Previous-exam-taker branch with `Shaxsiy yo‘l xaritasini olish` and `Mock imtihonni boshlash`.
-4. First-time-user branch with optional diagnostic.
-5. `/diagnostika` free 15-question diagnostic intro, runner, completion, and result states with the frozen `1/1/1/2/2/2/3/3` distribution.
-6. `/yol-xaritasi` preliminary roadmap generated after a skipped diagnostic.
-7. `/yol-xaritasi` accurate roadmap with readiness level distinct from certificate grade, three weakest topics, diagnostic/self-selected priority, and topic-quiz estimate replacement.
-8. Admin diagnostic-topic authoring and immutable version publishing.
+1. One-at-a-time onboarding screens for all 11 ordered questions, including conditional previous level, difficult-topic selection limited to 1-3, and the first-time preparation single-choice step.
+2. Previous-exam-taker branch with `Shaxsiy yo‘l xaritasini olish` and `Mock imtihonni boshlash`.
+3. First-time-user branch with optional diagnostic.
+4. `/diagnostika` free 15-question diagnostic intro, runner, completion, and result states with the frozen `1/1/1/2/2/2/3/3` distribution.
+5. `/yol-xaritasi` preliminary roadmap generated after a skipped diagnostic.
+6. `/yol-xaritasi` accurate roadmap with readiness level distinct from certificate grade, three weakest topics, diagnostic/self-selected priority, and topic-quiz estimate replacement.
+7. Admin diagnostic-topic authoring and immutable version publishing.
 
 Existing Page 06 exam/stimulus/autosave components and Page 07 essay/upload/results/evaluation components should be reused; their full-mock route chrome and old contextual copy must not be carried into the standalone experiences.
 

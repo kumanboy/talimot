@@ -262,6 +262,38 @@ Rules:
 - If a reversal produces a negative Tanga balance, block new purchases until the balance is restored to a non-negative value.
 - The first free AI check is a unique per-account redemption.
 
+## Brand identity
+
+Frozen brand decisions:
+
+- Official product name: `TA’LIMOT`.
+- Tagline: `Milliy sertifikatlar platformasi`.
+- Approved logo direction: `Concept A — Kitob va koshin`.
+- Approved concept node: `204:7`.
+- The identity is an open-book `T` with a negative-space koshin diamond.
+- The identity must not include a tick or checkmark.
+- The temporary `OT` mark is deprecated and must not be used for new implementation.
+
+Approved brand colors:
+
+| Color | Value |
+|---|---|
+| Primary blue | `#5D9CEC` |
+| Heritage turquoise | `#168C8C` |
+| Dark | `#1E2229` |
+| White | `#FFFFFF` |
+
+Approved Figma logo component sets:
+
+| Asset | Component-set node |
+|---|---:|
+| Horizontal with tagline | `210:39` |
+| Horizontal without tagline | `210:64` |
+| Stacked | `210:89` |
+| Default mark | `210:106` |
+| Small optical mark | `210:123` |
+| App icon | `210:140` |
+
 ## Onboarding, diagnostic, and roadmap
 
 Frozen routes:
@@ -278,6 +310,19 @@ Welcome screen:
 > Milliy sertifikat sari ishonchli yo‘lingizni birgalikda boshlashga tayyormisiz?
 
 Button: `Boshlash`. Use a short elegant entrance animation with reduced-motion support.
+
+### Approved onboarding welcome design
+
+- Approved Entry frame: `195:646`.
+- Approved Ready frame: `195:631`.
+- Use the `Full color on light` variant from component `210:40` in the `Brand/Logo — Horizontal without tagline` component set.
+- The responsive content wrapper fills its container, is capped at `342px`, and retains at least `24px` horizontal margins.
+- Approved viewport checks are `360 x 800`, `390 x 844`, and `430 x 932`.
+- Supporting text uses `#3973BC`; primary text remains `#1E2229` and secondary text remains `#5E6872`.
+- The primary button is `56px` high and retains `24-28px` bottom spacing.
+- Entry waits `350ms`, then transitions to Ready with Smart Animate, Ease Out, over `500ms`.
+- Reduced-motion mode displays the Ready state immediately.
+- This welcome screen is approved for frontend implementation.
 
 Questions appear one at a time with these exact option sets:
 
