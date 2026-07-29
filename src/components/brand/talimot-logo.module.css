@@ -1,0 +1,24 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: max-content;
+  color: #1e2229;
+  white-space: nowrap;
+}
+
+.mark {
+  display: block;
+  width: 36.26px;
+  height: 36.26px;
+  flex: none;
+}
+
+.wordmark {
+  font-family: Inter, "Segoe UI", sans-serif;
+  font-size: 20.14px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
