@@ -39,10 +39,55 @@ Approved `/onboarding` welcome design:
 - Logo treatment: `Full color on light`, component `210:40`, from `Brand/Logo — Horizontal without tagline`.
 - Responsive wrapper: fill container, maximum `342px`, and minimum `24px` horizontal margins.
 - Approved viewports: `360 x 800`, `390 x 844`, and `430 x 932`.
-- Supporting text: `#3973BC`; button height: `56px`; bottom spacing: `24-28px`.
+- Supporting text: `Primary/Text Accessible` `#376FB5` (`VariableID:278:2`); welcome contrast: `4.74:1`; recommended badge contrast: `4.62:1`; button height: `56px`; bottom spacing: `24-28px`.
 - Motion: `350ms` initial delay, Smart Animate, Ease Out, `500ms`.
 - Reduced motion: render the Ready state immediately.
 - The welcome screen is approved for frontend implementation.
+
+### Approved onboarding Figma flow contract
+
+Approved screen groups:
+
+| Screen group | Approved Figma nodes |
+|---|---|
+| Welcome | `195:646`, `195:631` |
+| Q1 Category | `230:646`, `230:692` |
+| Q2 Subject Direction | `235:681`, `235:723` |
+| Q3 Previous Exam | `238:710`, `238:748`, `238:799` |
+| Previous Result | `240:754`, `240:827` |
+| Target Level | `242:819`, `242:884`, `242:954`, `242:1011` |
+| Exam Time | `245:925`, `245:986`, `245:1051`, `245:1103` |
+| Weak Topics primary states | `249:1019`, `249:1131`, `249:1223`, `249:1341`, `249:1418`, `249:1506` |
+| Weak Topics removal/exclusive states | `282:1648`, `282:1755`, `282:1862`, `282:1969`, `282:2076`, `282:2183`, `282:2290`, `282:2377` |
+| Daily Time | `254:9190`, `254:9242`, `254:9295`, `254:9347` |
+| Weekly Days | `259:1357`, `259:1408`, `259:1460`, `259:1511` |
+| Essay Level | `260:1439`, `260:1489`, `260:1540`, `260:1590` |
+| Current Preparation | `261:1533`, `261:1584` |
+| Returning Choice | `264:1574`, `264:1630`, `264:1686` |
+| First-Time Complete | `268:1637` |
+
+Approved reusable components:
+
+| Component | Figma node |
+|---|---:|
+| `Onboarding/Option Card` | `229:663` |
+| `Onboarding/Multi-select Card` | `248:1037` |
+| `Onboarding/Path Choice Card` | `263:1653` |
+| Approved `TA’LIMOT` logo | `210:40` |
+
+Implementation interaction contract:
+
+- Figma interactions are representative; annotation `282:2464` records this scope.
+- Every approved option must be interactive and keyboard accessible in the frontend, with exact values, validation, branching, back navigation, and selected states preserved.
+- Weak Topics permits `1-3` selections. At `3/3`, additional choices are blocked while selected topics remain removable.
+- `Hozircha aniq bilmayman` is exclusive and clears all topic selections; selecting another topic clears the exclusive value.
+- Returning Roadmap continues to `/diagnostika`; Returning Mock continues to `/tests`.
+- First-Time Complete primary continues to `/yol-xaritasi`; its optional diagnostic continues to `/diagnostika`.
+- Reduced motion uses immediate state changes.
+- Responsive QA passes at `360 x 800`, `390 x 844`, and `430 x 932`.
+- Complete onboarding Figma design status: approved for frontend implementation.
+- Welcome implementation status: implemented.
+- Question-flow implementation status: not yet implemented.
 
 ### Final exam and scoring contract
 
@@ -233,7 +278,7 @@ Diagnostic-to-roadmap calculation is frozen:
 | Figma frames | UI route | Role | Components | Loading / empty / error / offline | Backend domain and PDF API requirements | Database entities | Auth and permission |
 |---|---|---|---|---|---|---|---|
 | 05.01.01 | `/` launch state; authenticated redirect to intended page, active attempt, or `/dashboard` | Public -> student | `M-SHELL`, auth progress | Loading shown; auth error routes to 05.01.05; offline launch requires network and states that saved active-attempt data is safe | Auth: `POST /api/auth/telegram`, then `GET /api/me`, `GET /api/dashboard`; validate signature, `auth_date`, account status, constant-time comparison, create own platform session | User, Profile, AuthIdentity, Session, UserRole, AccountRestriction | Telegram data is untrusted until backend validation; blocked/deleted policy enforced |
-| `Onboarding Welcome — Entry` (`195:646`), `Onboarding Welcome — Ready` (`195:631`), plus missing question screens | `/onboarding` | Student | `M-SHELL`, `ONBOARDING`; approved `TA’LIMOT` component `210:40`; exact welcome copy, `Boshlash`, and frozen one-question-at-a-time options above; fill-width wrapper capped at `342px` with at least `24px` margins | Approved `360 x 800`, `390 x 844`, and `430 x 932`; supporting text `#3973BC`; `56px` button; `24-28px` bottom spacing; `350ms` delay then Smart Animate/Ease Out over `500ms`; reduced motion renders Ready immediately; step loading; conditional step 4/11; selection-limit validation; safe-input preservation; offline submission unavailable; incomplete/resume state | Onboarding: persist the 11 ordered responses and branch safely; validate every answer against the versioned approved option set; exact API path is an implementation contract, not a product blocker | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer | Authenticated account owns responses; client cannot submit unapproved option values |
+| Approved onboarding flow nodes listed in the onboarding Figma contract above | `/onboarding` | Student | `M-SHELL`, `ONBOARDING`; approved `TA’LIMOT` component `210:40`; `Onboarding/Option Card` `229:663`; `Onboarding/Multi-select Card` `248:1037`; `Onboarding/Path Choice Card` `263:1653`; exact welcome copy, `Boshlash`, and frozen one-question-at-a-time options above; fill-width wrapper capped at `342px` with at least `24px` margins | Approved `360 x 800`, `390 x 844`, and `430 x 932`; accessible text token `#376FB5`; `56px` button; `24-28px` bottom spacing; `350ms` welcome delay then Smart Animate/Ease Out over `500ms`; representative question transitions use `200ms`; reduced motion uses immediate state changes; step loading; conditional branching; selection-limit validation; safe-input preservation; offline submission unavailable; incomplete/resume state | Onboarding: persist the 11 ordered responses and branch safely; validate every answer against the versioned approved option set; exact API path is an implementation contract, not a product blocker | OnboardingSession, OnboardingOptionSetVersion, OnboardingResponse/Answer | Authenticated account owns responses; client cannot submit unapproved option values |
 | Missing high-fidelity diagnostic screens | `/diagnostika` | Student | `M-SHELL`, `EXAM`, diagnostic intro/progress/result | Loading; unavailable blueprint; durable autosave/offline queue; completion/error; resume | Diagnostics: deliver exactly 15 frozen items with topic distribution `1/1/1/2/2/2/3/3`; started attempts bind an immutable diagnostic version | DiagnosticBlueprint, DiagnosticVersion, DiagnosticVersionTopic, DiagnosticVersionItem, DiagnosticAttempt, DiagnosticAnswer/Version, DiagnosticResult | Own diagnostic only; admin edits draft topics, but published versions and active attempts are immutable |
 | Missing high-fidelity roadmap screens | `/yol-xaritasi` | Student | `M-SHELL`, `ONBOARDING`, readiness badge distinct from certificate grade, prioritized topic list, preliminary/accurate badge | Loading; no source responses; generating; error; cached read with freshness | Roadmaps: calculate equal-value diagnostic percentage/readiness; combine incorrect topics with self-selected weaknesses; begin with three weakest topics; on a completed 20-question topic quiz create a new roadmap version whose active estimate for that topic uses the quiz result. Keep historical estimates/results immutable | Roadmap, RoadmapVersion, RoadmapTopicPriority with source/estimate/version, OnboardingSession snapshot, DiagnosticResult/TopicResult, TopicPracticeResult | Own roadmap only; server controls source type, priority derivation, replacement, and immutable version lineage |
 | 05.01.03 | `/auth/login` | Public | `AUTH` | Submitting, field/form error, rate-limit state, offline unavailable | Auth: `POST /api/auth/login`, password reset endpoints; Argon2id, generic login error, session rotation | User, Credential, AuthIdentity, Session, AccountRestriction | Authenticated users redirect to intended safe route |
@@ -660,15 +705,14 @@ Approved components can be reused, but the following complete screens are not pr
 5. Reusable Pending-only cancellation, rejected-as-new-request resubmission, compensating reversal, negative-balance, and purchases-blocked states.
 6. Telegram Mini App wallet/service state that shows usable Tanga but contains no card-transfer purchase, card details, transfer instructions, or receipt upload.
 
-### Onboarding, diagnostic, and roadmap
+### Diagnostic and roadmap
 
-1. One-at-a-time onboarding screens for all 11 ordered questions, including conditional previous level, difficult-topic selection limited to 1-3, and the first-time preparation single-choice step.
-2. Previous-exam-taker branch with `Shaxsiy yo‘l xaritasini olish` and `Mock imtihonni boshlash`.
-3. First-time-user branch with optional diagnostic.
-4. `/diagnostika` free 15-question diagnostic intro, runner, completion, and result states with the frozen `1/1/1/2/2/2/3/3` distribution.
-5. `/yol-xaritasi` preliminary roadmap generated after a skipped diagnostic.
-6. `/yol-xaritasi` accurate roadmap with readiness level distinct from certificate grade, three weakest topics, diagnostic/self-selected priority, and topic-quiz estimate replacement.
-7. Admin diagnostic-topic authoring and immutable version publishing.
+The onboarding flow is now present as approved high-fidelity Figma frames. The following related screens remain missing:
+
+1. `/diagnostika` free 15-question diagnostic intro, runner, completion, and result states with the frozen `1/1/1/2/2/2/3/3` distribution.
+2. `/yol-xaritasi` preliminary roadmap generated after a skipped diagnostic.
+3. `/yol-xaritasi` accurate roadmap with readiness level distinct from certificate grade, three weakest topics, diagnostic/self-selected priority, and topic-quiz estimate replacement.
+4. Admin diagnostic-topic authoring and immutable version publishing.
 
 Existing Page 06 exam/stimulus/autosave components and Page 07 essay/upload/results/evaluation components should be reused; their full-mock route chrome and old contextual copy must not be carried into the standalone experiences.
 

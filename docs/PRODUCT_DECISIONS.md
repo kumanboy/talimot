@@ -318,11 +318,64 @@ Button: `Boshlash`. Use a short elegant entrance animation with reduced-motion s
 - Use the `Full color on light` variant from component `210:40` in the `Brand/Logo — Horizontal without tagline` component set.
 - The responsive content wrapper fills its container, is capped at `342px`, and retains at least `24px` horizontal margins.
 - Approved viewport checks are `360 x 800`, `390 x 844`, and `430 x 932`.
-- Supporting text uses `#3973BC`; primary text remains `#1E2229` and secondary text remains `#5E6872`.
+- Supporting text uses the `Primary/Text Accessible` token `#376FB5` (`VariableID:278:2`); primary text remains `#1E2229` and secondary text remains `#5E6872`.
 - The primary button is `56px` high and retains `24-28px` bottom spacing.
 - Entry waits `350ms`, then transitions to Ready with Smart Animate, Ease Out, over `500ms`.
 - Reduced-motion mode displays the Ready state immediately.
 - This welcome screen is approved for frontend implementation.
+
+### Approved onboarding flow design
+
+Accessible text token:
+
+- `Primary/Text Accessible`: `#376FB5`.
+- Figma variable: `VariableID:278:2`.
+- Welcome supporting-text contrast on `#F4F7F5`: `4.74:1`.
+- Recommended-path badge contrast on `#EDF4FD`: `4.62:1`.
+
+Approved screen groups:
+
+| Screen group | Approved Figma nodes |
+|---|---|
+| Welcome | `195:646`, `195:631` |
+| Q1 Category | `230:646`, `230:692` |
+| Q2 Subject Direction | `235:681`, `235:723` |
+| Q3 Previous Exam | `238:710`, `238:748`, `238:799` |
+| Previous Result | `240:754`, `240:827` |
+| Target Level | `242:819`, `242:884`, `242:954`, `242:1011` |
+| Exam Time | `245:925`, `245:986`, `245:1051`, `245:1103` |
+| Weak Topics primary states | `249:1019`, `249:1131`, `249:1223`, `249:1341`, `249:1418`, `249:1506` |
+| Weak Topics removal/exclusive states | `282:1648`, `282:1755`, `282:1862`, `282:1969`, `282:2076`, `282:2183`, `282:2290`, `282:2377` |
+| Daily Time | `254:9190`, `254:9242`, `254:9295`, `254:9347` |
+| Weekly Days | `259:1357`, `259:1408`, `259:1460`, `259:1511` |
+| Essay Level | `260:1439`, `260:1489`, `260:1540`, `260:1590` |
+| Current Preparation | `261:1533`, `261:1584` |
+| Returning Choice | `264:1574`, `264:1630`, `264:1686` |
+| First-Time Complete | `268:1637` |
+
+Approved reusable components:
+
+| Component | Figma node |
+|---|---:|
+| `Onboarding/Option Card` | `229:663` |
+| `Onboarding/Multi-select Card` | `248:1037` |
+| `Onboarding/Path Choice Card` | `263:1653` |
+| Approved `TA’LIMOT` logo | `210:40` |
+
+Interaction contract:
+
+- The Figma prototype interactions are representative, as recorded by annotation `282:2464`.
+- Frontend implementation must make every approved option interactive and keyboard accessible while preserving the exact option values, validation rules, branching, back navigation, and selected states.
+- Weak Topics permits `1-3` selections.
+- At three selections, additional choices are blocked while selected topics remain removable.
+- `Hozircha aniq bilmayman` is exclusive: selecting it clears other selections, and selecting another topic clears it.
+- Returning users choosing Roadmap continue to `/diagnostika`; choosing Mock continues to `/tests`.
+- First-time users' primary completion action continues to `/yol-xaritasi`; the optional diagnostic action continues to `/diagnostika`.
+- Reduced-motion mode uses immediate state changes.
+- Responsive QA passes at `360 x 800`, `390 x 844`, and `430 x 932`.
+- The complete onboarding Figma design is approved for frontend implementation.
+- Welcome implementation status: implemented.
+- Question-flow implementation status: not yet implemented.
 
 Questions appear one at a time with these exact option sets:
 
