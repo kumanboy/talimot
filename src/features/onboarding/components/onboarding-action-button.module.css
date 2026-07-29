@@ -1,0 +1,42 @@
+.button {
+  width: 100%;
+  height: 56px;
+  flex: none;
+  border: 0;
+  border-radius: 16px;
+  background: #5d9cec;
+  color: #1e2229;
+  cursor: pointer;
+  font-family: Inter, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 17px;
+  transition:
+    background-color 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+
+.button:hover:not(:disabled) {
+  background: #4b87d1;
+}
+
+.button:active:not(:disabled) {
+  background: #376fb5;
+}
+
+.button:focus-visible {
+  outline: 3px solid #1e2229;
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  background: #d6dce2;
+  color: #7a8793;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}
