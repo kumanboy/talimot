@@ -86,8 +86,15 @@ Implementation interaction contract:
 - Reduced motion uses immediate state changes.
 - Responsive QA passes at `360 x 800`, `390 x 844`, and `430 x 932`.
 - Complete onboarding Figma design status: approved for frontend implementation.
-- Welcome implementation status: implemented.
-- Question-flow implementation status: not yet implemented.
+- `/onboarding` welcome and complete question-flow frontend status: implemented.
+- Both returning and first-time branches are implemented.
+- Every approved option is interactive and keyboard accessible.
+- Branch pruning, back navigation, weak-topic limits, exclusive `Hozircha aniq bilmayman` behavior, responsive layouts, focus management, and reduced motion are implemented.
+- The onboarding flow engine has `23` passing tests.
+- Manual UI QA passes at `360 x 800`, `390 x 844`, and `430 x 932`.
+- Current answers are controlled in-memory only and reset after reload or navigation.
+- Server persistence, authentication, API submission, analytics, resume behavior, and the `/diagnostika`, `/tests`, and `/yol-xaritasi` destination implementations remain pending.
+- The complete onboarding backend contract is **not implemented** and must not be treated as complete.
 
 ### Final exam and scoring contract
 
