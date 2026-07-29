@@ -1,6 +1,11 @@
 "use client";
 
-import { useId, type CSSProperties, type ReactNode } from "react";
+import {
+  useId,
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+} from "react";
 
 import { TalimotLogo } from "@/components/brand/talimot-logo";
 
@@ -14,6 +19,7 @@ export type OnboardingQuestionShellProps = {
   onBack: () => void;
   content: ReactNode;
   footerAction: ReactNode;
+  headingRef?: Ref<HTMLHeadingElement>;
 };
 
 export function OnboardingQuestionShell({
@@ -24,6 +30,7 @@ export function OnboardingQuestionShell({
   onBack,
   content,
   footerAction,
+  headingRef,
 }: OnboardingQuestionShellProps) {
   const headingId = useId();
   const instructionId = useId();
@@ -97,7 +104,9 @@ export function OnboardingQuestionShell({
           </div>
 
           <div className={styles.questionCopy}>
-            <h1 id={headingId}>{questionHeading}</h1>
+            <h1 ref={headingRef} id={headingId} tabIndex={-1}>
+              {questionHeading}
+            </h1>
             <p id={instructionId}>{instruction}</p>
           </div>
 

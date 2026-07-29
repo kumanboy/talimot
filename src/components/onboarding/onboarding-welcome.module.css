@@ -1,7 +1,7 @@
 .screen {
   --background: #f4f7f5;
   --primary-text: #1e2229;
-  --supporting-text: #3973bc;
+  --supporting-text: #376fb5;
   --secondary-text: #5e6872;
   --primary: #5d9cec;
   --primary-soft: #e8f1fc;
@@ -157,6 +157,12 @@
 
 .buttonMotion {
   transform: translateY(4px);
+}
+
+.ready .motionItem {
+  animation: none;
+  opacity: 1;
+  transform: none;
 }
 
 @keyframes welcome-reveal {

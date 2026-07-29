@@ -6,11 +6,22 @@ import styles from "./onboarding-welcome.module.css";
 
 type OnboardingWelcomeProps = {
   onStart: () => void;
+  showReadyState?: boolean;
 };
 
-export function OnboardingWelcome({ onStart }: OnboardingWelcomeProps) {
+export function OnboardingWelcome({
+  onStart,
+  showReadyState = false,
+}: OnboardingWelcomeProps) {
+  const screenClasses = [
+    styles.screen,
+    showReadyState ? styles.ready : undefined,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <main className={styles.screen}>
+    <main className={screenClasses}>
       <div
         className={`${styles.decorativeShape} ${styles.topShape}`}
         aria-hidden="true"
