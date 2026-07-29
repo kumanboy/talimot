@@ -1,0 +1,315 @@
+.scrollContent {
+  width: 100%;
+}
+
+:global(div):has(> .scrollContent) {
+  scrollbar-width: none;
+}
+
+:global(div):has(> .scrollContent)::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.summary {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #7a8793;
+  border-radius: 16px;
+  background: #fff;
+  color: #1e2229;
+}
+
+.summary h2,
+.summary dl,
+.summary dt,
+.summary dd {
+  margin: 0;
+}
+
+.summary h2 {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.summary dl {
+  display: grid;
+  gap: 10px;
+}
+
+.summary dl div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  color: #5e6872;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #d9e2e9;
+}
+
+.progressValue {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #376fb5;
+  transition: width 200ms ease-out;
+}
+
+.roadmap {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  padding-top: 20px;
+}
+
+.stage {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stageHeader span {
+  color: #376fb5;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.stageHeader h2,
+.stageHeader p {
+  margin: 0;
+}
+
+.stageHeader h2 {
+  color: #1e2229;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.stageHeader p {
+  color: #5e6872;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.nodeSequence {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  list-style: none;
+}
+
+.nodeSequence li {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nodeSequence li > article {
+  align-self: stretch;
+}
+
+.nodeConnector {
+  display: block;
+  width: 3px;
+  height: 28px;
+  background: #7a8793;
+}
+
+.stageTransition {
+  display: flex;
+  width: 100%;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+}
+
+.stageTransition span {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #376fb5;
+  border-radius: 50%;
+  background: #edf4fd;
+  color: #376fb5;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.dependencyLabel {
+  align-self: center;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid #376fb5;
+  border-radius: 999px;
+  background: #f4f7f5;
+  color: #376fb5;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.parallelBranches {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+
+.parallelBranches > p {
+  z-index: 1;
+  margin: 0 0 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #edf4fd;
+  color: #376fb5;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.splitPoint,
+.mergePoint {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #376fb5;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.splitPoint {
+  margin-top: 2px;
+  margin-bottom: 10px;
+}
+
+.branchList {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 18px;
+  padding-left: 22px;
+}
+
+.branchList::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 7px;
+  border-left: 3px solid #376fb5;
+  content: "";
+}
+
+.branchList section {
+  position: relative;
+}
+
+.branchList section::before {
+  position: absolute;
+  top: 50%;
+  left: -15px;
+  width: 15px;
+  border-top: 3px solid #376fb5;
+  content: "";
+}
+
+.mergePoint {
+  position: relative;
+  margin-top: 12px;
+}
+
+.mergePoint::before {
+  position: absolute;
+  right: 50%;
+  bottom: 100%;
+  height: 12px;
+  border-left: 3px solid #376fb5;
+  content: "";
+}
+
+.policyNote {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 4px solid #376fb5;
+  border-radius: 10px;
+  background: #edf4fd;
+  color: #1e2229;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mergeJunction {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 26px;
+  padding: 14px;
+  border: 1px solid #376fb5;
+  border-radius: 16px;
+  background: #edf4fd;
+}
+
+.mergeJunction h2 {
+  margin: 0;
+  color: #1e2229;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.mergeJunction ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+}
+
+.mergeJunction li {
+  padding: 8px;
+  border-radius: 10px;
+  background: #fff;
+  color: #376fb5;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressValue {
+    transition: none;
+  }
+}
