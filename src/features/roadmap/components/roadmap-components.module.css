@@ -1,0 +1,345 @@
+.navigation {
+  display: flex;
+  width: 100%;
+  flex: none;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modeSelector,
+.viewSelector {
+  display: grid;
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #d8e0e7;
+  border-radius: 14px;
+  background: #fff;
+  gap: 4px;
+}
+
+.modeSelector {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.viewSelector {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.modeButton,
+.viewButton {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #5e6872;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  transition:
+    background-color 160ms ease-out,
+    color 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+
+.modeButton[aria-pressed="true"],
+.viewButton[aria-current="page"] {
+  background: #edf4fd;
+  color: #376fb5;
+  box-shadow: inset 0 0 0 1px #376fb5;
+}
+
+.modeButton:hover,
+.viewButton:hover {
+  background: #edf4fd;
+  color: #1e2229;
+}
+
+.modeButton:focus-visible,
+.viewButton:focus-visible,
+.cardAction:focus-visible,
+.stickyAction button:focus-visible {
+  outline: 3px solid #376fb5;
+  outline-offset: 3px;
+}
+
+.nodeCard,
+.weeklyCard {
+  --card-accent: #5e6872;
+  --card-border: #cdd5dc;
+  --card-background: #fff;
+
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--card-background);
+  color: #1e2229;
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.nodeCard {
+  min-height: 152px;
+  gap: 9px;
+  padding: 14px 16px;
+}
+
+.nodeCard[data-status="available"],
+.nodeCard[data-status="good"] {
+  --card-accent: #376fb5;
+  --card-border: #376fb5;
+}
+
+.nodeCard[data-status="good"] {
+  --card-background: #f7fbfe;
+}
+
+.nodeCard[data-status="in-progress"] {
+  --card-accent: #126f6f;
+  --card-border: #168c8c;
+  --card-background: #f1fafa;
+}
+
+.nodeCard[data-status="review-needed"] {
+  --card-accent: #8a5100;
+  --card-border: #b86b00;
+  --card-background: #fffbf4;
+}
+
+.nodeCard[data-status="mastered"] {
+  --card-accent: #356742;
+  --card-border: #4a7c59;
+  --card-background: #f7fbf8;
+}
+
+.nodeCard[data-status="optional"] {
+  --card-accent: #5f4f91;
+  --card-border: #7a68a8;
+  --card-background: #fbf9fe;
+}
+
+.nodeCard[data-status="skipped"] {
+  --card-accent: #5e6872;
+  --card-border: #7a8793;
+  --card-background: #f7f8f9;
+}
+
+.cardHeading {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardHeading h2,
+.weeklyCard h2 {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: normal;
+  color: #1e2229;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  word-break: normal;
+}
+
+.statusBadge {
+  display: inline-flex;
+  min-height: 24px;
+  flex: none;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f4f7f5;
+  color: var(--card-accent);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.metadata {
+  display: flex;
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  color: #5e6872;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.metadata div {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.metadata dt,
+.metadata dd {
+  margin: 0;
+}
+
+.description {
+  margin: 0;
+  color: #5e6872;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.cardAction {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  align-self: flex-start;
+  justify-content: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 8px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--card-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.cardAction:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--card-accent) 10%, transparent);
+}
+
+.cardAction:disabled {
+  color: #5e6872;
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.weeklyCard {
+  min-height: 184px;
+  gap: 10px;
+  padding: 16px;
+}
+
+.weeklyCard[data-status="today"] {
+  --card-accent: #376fb5;
+  --card-border: #376fb5;
+}
+
+.weeklyCard[data-status="scheduled"],
+.weeklyCard[data-status="moved"] {
+  --card-accent: #5e6872;
+  --card-border: #7a8793;
+}
+
+.weeklyCard[data-status="completed"] {
+  --card-accent: #356742;
+  --card-border: #4a7c59;
+  --card-background: #ebf6ee;
+}
+
+.weeklyCard[data-status="review-needed"] {
+  --card-accent: #8a5100;
+  --card-border: #a65f00;
+  --card-background: #fff7e6;
+}
+
+.weeklyEyebrow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weeklyEyebrow p {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  color: #1e2229;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.weeklyCard h2 {
+  font-size: 17px;
+}
+
+.duration {
+  margin: 0;
+  color: #5e6872;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.stickyAction {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+}
+
+.stickyAction p {
+  margin: 0;
+  color: #5e6872;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.stickyAction button {
+  box-sizing: border-box;
+  width: 100%;
+  height: 56px;
+  border: 1px solid #376fb5;
+  border-radius: 16px;
+  background: #5d9cec;
+  color: #1e2229;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  transition:
+    background-color 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+
+.stickyAction button:hover:not(:disabled) {
+  background: #4b87d1;
+}
+
+.stickyAction button:active:not(:disabled) {
+  background: #376fb5;
+}
+
+.stickyAction button:disabled {
+  border-color: #7a8793;
+  background: #d6dce2;
+  color: #5e6872;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modeButton,
+  .viewButton,
+  .stickyAction button {
+    transition: none;
+  }
+}
