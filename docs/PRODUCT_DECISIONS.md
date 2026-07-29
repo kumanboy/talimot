@@ -487,9 +487,12 @@ Branching:
 Status:
 
 - Product contract: **approved**.
-- Complete Figma redesign: **pending**.
-- Frontend implementation: **pending**.
-- Backend generation and persistence: **pending**.
+- All six adaptive roadmap Figma screens: **completed and approved**.
+- Approved screen and component node registry: `docs/IMPLEMENTATION_MAP.md`.
+- Frontend implementation: **incomplete**.
+- Backend generation and recalculation: **incomplete**.
+- Persistence and immutable versioning: **incomplete**.
+- Authentication and API integration: **incomplete**.
 
 The roadmap has two modes:
 
