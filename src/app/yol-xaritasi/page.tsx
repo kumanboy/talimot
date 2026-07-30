@@ -12,7 +12,7 @@ type RoadmapPageProps = {
 };
 
 function createRouteFromSearchParams(
-  searchParams: Record<string, string | string[] | undefined>,
+    searchParams: Record<string, string | string[] | undefined>,
 ) {
   const query = new URLSearchParams();
 
@@ -27,15 +27,15 @@ function createRouteFromSearchParams(
   const serializedQuery = query.toString();
 
   return serializedQuery
-    ? `${ROADMAP_PATH}?${serializedQuery}`
-    : ROADMAP_PATH;
+      ? `${ROADMAP_PATH}?${serializedQuery}`
+      : ROADMAP_PATH;
 }
 
 export default async function RoadmapPage({
-  searchParams,
-}: RoadmapPageProps) {
+                                            searchParams,
+                                          }: RoadmapPageProps) {
   const routeState = parseRoadmapRoute(
-    createRouteFromSearchParams(await searchParams),
+      createRouteFromSearchParams(await searchParams),
   );
 
   if (routeState.view !== "full") {
@@ -43,8 +43,8 @@ export default async function RoadmapPage({
   }
 
   return routeState.mode === "boost" ? (
-    <BoostFullRoadmap />
+      <BoostFullRoadmap />
   ) : (
-    <FromZeroFullRoadmap />
+      <FromZeroFullRoadmap />
   );
 }

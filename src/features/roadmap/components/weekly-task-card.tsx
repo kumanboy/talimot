@@ -10,84 +10,101 @@ import {
 import styles from "./roadmap-components.module.css";
 
 type WeeklyTaskActionProps =
-  | {
-      actionLabel?: undefined;
-      onAction?: never;
-      disabled?: never;
-    }
-  | {
-      actionLabel: string;
-      onAction: () => void;
-      disabled?: false;
-    }
-  | {
-      actionLabel: string;
-      onAction?: never;
-      disabled: true;
-    };
+    | {
+  actionLabel?: undefined;
+  onAction?: never;
+  disabled?: never;
+}
+    | {
+  actionLabel: string;
+  onAction: () => void;
+  disabled?: false;
+}
+    | {
+  actionLabel: string;
+  onAction?: never;
+  disabled: true;
+};
 
 type WeeklyTaskCardBaseProps = {
   title: string;
   dayLabel: string;
   dateLabel?: string;
   duration: string;
+  resultLabel?: string;
+  activities?: readonly string[];
   supportingDescription?: string;
   status: WeeklyTaskStatus;
 };
 
 export type WeeklyTaskCardProps = WeeklyTaskCardBaseProps &
-  WeeklyTaskActionProps;
+    WeeklyTaskActionProps;
 
 export function WeeklyTaskCard({
-  title,
-  dayLabel,
-  dateLabel,
-  duration,
-  supportingDescription,
-  status,
-  actionLabel,
-  onAction,
-  disabled,
-}: WeeklyTaskCardProps) {
+                                 title,
+                                 dayLabel,
+                                 dateLabel,
+                                 duration,
+                                 resultLabel,
+                                 activities,
+                                 supportingDescription,
+                                 status,
+                                 actionLabel,
+                                 onAction,
+                                 disabled,
+                               }: WeeklyTaskCardProps) {
   const titleId = useId();
   const isActionDisabled =
-    disabled === true || typeof onAction !== "function";
+      disabled === true || typeof onAction !== "function";
 
   return (
-    <article
-      className={styles.weeklyCard}
-      data-status={status}
-      aria-labelledby={titleId}
-    >
-      <div className={styles.weeklyEyebrow}>
-        <p>
-          <span>{dayLabel}</span>
-          {dateLabel ? <span>{dateLabel}</span> : null}
-        </p>
-        <span className={styles.statusBadge}>
+      <article
+          className={styles.weeklyCard}
+          data-status={status}
+          aria-labelledby={titleId}
+      >
+        <div className={styles.weeklyEyebrow}>
+          <p>
+            <span>{dayLabel}</span>
+            {dateLabel ? <span>{dateLabel}</span> : null}
+          </p>
+
+          <span className={styles.statusBadge}>
           {weeklyTaskStatusLabels[status]}
         </span>
-      </div>
+        </div>
 
-      <h2 id={titleId}>{title}</h2>
-      <p className={styles.duration}>Jami: {duration}</p>
+        <h2 id={titleId}>{title}</h2>
 
-      {supportingDescription ? (
-        <p className={styles.description}>{supportingDescription}</p>
-      ) : null}
+        <div className={styles.weeklyMetadata}>
+          {resultLabel ? <span>{resultLabel}</span> : null}
+          <span>Jami: {duration}</span>
+        </div>
 
-      {actionLabel ? (
-        <button
-          className={styles.cardAction}
-          type="button"
-          disabled={isActionDisabled}
-          aria-disabled={isActionDisabled}
-          onClick={isActionDisabled ? undefined : onAction}
-        >
-          <span>{actionLabel}</span>
-          <span aria-hidden="true">→</span>
-        </button>
-      ) : null}
-    </article>
+        {activities && activities.length > 0 ? (
+            <ul className={styles.weeklyActivities}>
+              {activities.map((activity) => (
+                  <li key={activity}>{activity}</li>
+              ))}
+            </ul>
+        ) : null}
+
+        {supportingDescription ? (
+            <p className={styles.description}>{supportingDescription}</p>
+        ) : null}
+
+        {actionLabel ? (
+            <button
+                className={styles.cardAction}
+                type="button"
+                disabled={isActionDisabled}
+                aria-disabled={isActionDisabled}
+                onClick={isActionDisabled ? undefined : onAction}
+            >
+              <span>{actionLabel}</span>
+              <span aria-hidden="true">→</span>
+            </button>
+        ) : null}
+      </article>
   );
 }

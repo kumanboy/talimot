@@ -40,9 +40,9 @@
   font-weight: 600;
   line-height: 1.3;
   transition:
-    background-color 160ms ease-out,
-    color 160ms ease-out,
-    box-shadow 160ms ease-out;
+          background-color 160ms ease-out,
+          color 160ms ease-out,
+          box-shadow 160ms ease-out;
 }
 
 .modeButton[aria-pressed="true"],
@@ -224,6 +224,25 @@
   cursor: not-allowed;
   opacity: 0.78;
 }
+.weeklyCard .cardAction {
+  width: 100%;
+  min-height: 44px;
+  align-self: stretch;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card-accent) 10%, #fff);
+}
+
+.weeklyCard .cardAction:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--card-accent) 16%, #fff);
+}
+
+.weeklyCard .cardAction:disabled {
+  background: #eef1f3;
+  color: #7a8793;
+  opacity: 1;
+}
 
 .weeklyCard {
   min-height: 184px;
@@ -236,7 +255,11 @@
   --card-border: #376fb5;
 }
 
-.weeklyCard[data-status="scheduled"],
+.weeklyCard[data-status="scheduled"] {
+  --card-accent: #5e6872;
+  --card-border: #cdd5dc;
+}
+
 .weeklyCard[data-status="moved"] {
   --card-accent: #5e6872;
   --card-border: #7a8793;
@@ -277,12 +300,46 @@
   font-size: 17px;
 }
 
-.duration {
+.duration,
+.weeklyMetadata {
   margin: 0;
   color: #5e6872;
   font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
+}
+
+.weeklyMetadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.weeklyMetadata span + span::before {
+  margin-right: 8px;
+  content: "•";
+}
+
+.weeklyActivities {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  color: #1e2229;
+  font-size: 12px;
+  line-height: 1.4;
+  list-style: none;
+}
+
+.weeklyActivities li {
+  position: relative;
+  padding-left: 10px;
+}
+
+.weeklyActivities li::before {
+  position: absolute;
+  left: 0;
+  content: "•";
 }
 
 .stickyAction {
@@ -317,8 +374,8 @@
   font-weight: 600;
   line-height: 1.3;
   transition:
-    background-color 160ms ease-out,
-    box-shadow 160ms ease-out;
+          background-color 160ms ease-out,
+          box-shadow 160ms ease-out;
 }
 
 .stickyAction button:hover:not(:disabled) {
