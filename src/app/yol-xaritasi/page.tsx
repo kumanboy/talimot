@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { BoostFullRoadmap } from "@/features/roadmap/components/boost-full-roadmap";
 import { FromZeroFullRoadmap } from "@/features/roadmap/components/from-zero-full-roadmap";
 import {
   parseRoadmapRoute,
@@ -37,9 +38,13 @@ export default async function RoadmapPage({
     createRouteFromSearchParams(await searchParams),
   );
 
-  if (routeState.mode !== "from-zero" || routeState.view !== "full") {
+  if (routeState.view !== "full") {
     notFound();
   }
 
-  return <FromZeroFullRoadmap />;
+  return routeState.mode === "boost" ? (
+    <BoostFullRoadmap />
+  ) : (
+    <FromZeroFullRoadmap />
+  );
 }
