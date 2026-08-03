@@ -4,8 +4,9 @@
   justify-content: center;
   gap: 10px;
   width: max-content;
-  color: #1e2229;
+  color: var(--app-text);
   white-space: nowrap;
+  transition: color 180ms ease;
 }
 
 .mark {
@@ -16,9 +17,18 @@
 }
 
 .wordmark {
-  font-family: Inter, "Segoe UI", sans-serif;
+  font-family:
+          Inter,
+          "Segoe UI",
+          sans-serif;
   font-size: 20.14px;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo {
+    transition: none;
+  }
 }

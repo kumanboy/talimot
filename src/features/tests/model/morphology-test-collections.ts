@@ -1,0 +1,110 @@
+import type {
+    MorphologySubtopicSlug,
+} from "@/features/tests/model/morphology-categories";
+
+export type MorphologyTestDifficulty =
+    | "easy"
+    | "medium"
+    | "hard";
+
+export type MorphologyTestAccess =
+    | "free"
+    | "premium";
+
+export interface MorphologyTestCollection {
+    readonly id: string;
+    readonly slug: string;
+
+    readonly subtopic:
+        MorphologySubtopicSlug;
+
+    readonly title: string;
+    readonly description: string;
+
+    readonly questionCount:
+        number;
+
+    readonly estimatedMinutes:
+        number;
+
+    readonly difficulty:
+        MorphologyTestDifficulty;
+
+    readonly access:
+        MorphologyTestAccess;
+
+    readonly isAvailable:
+        boolean;
+
+    readonly href: string;
+}
+
+export const morphologyTestCollections:
+    readonly MorphologyTestCollection[] =
+    [
+        {
+            id:
+                "morphology-noun-test-1",
+
+            slug:
+                "1",
+
+            subtopic:
+                "ot",
+
+            title:
+                "Ot — 1",
+
+            description:
+                "Otning ma’no turlari, tuzilishi va grammatik shakllariga doir test.",
+
+            questionCount:
+                20,
+
+            estimatedMinutes:
+                25,
+
+            difficulty:
+                "medium",
+
+            access:
+                "free",
+
+            isAvailable:
+                false,
+
+            href:
+                "/tests/grammatika/morfologiya/ot/1",
+        },
+    ];
+
+export function getMorphologyTestsBySubtopic(
+    subtopic:
+    MorphologySubtopicSlug,
+): readonly MorphologyTestCollection[] {
+    return morphologyTestCollections.filter(
+        (
+            test,
+        ) =>
+            test.subtopic ===
+            subtopic,
+    );
+}
+
+export function getMorphologyTest(
+    subtopic:
+    MorphologySubtopicSlug,
+    testSlug: string,
+): MorphologyTestCollection | null {
+    return (
+        morphologyTestCollections.find(
+            (
+                test,
+            ) =>
+                test.subtopic ===
+                subtopic &&
+                test.slug ===
+                testSlug,
+        ) ?? null
+    );
+}

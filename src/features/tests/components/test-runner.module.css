@@ -1,0 +1,1239 @@
+.page {
+    position: relative;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    background:
+            linear-gradient(
+                    180deg,
+                    var(--app-background) 0%,
+                    var(--app-subtle) 100%
+            );
+    color: var(--app-text);
+}
+
+.backgroundGlow {
+    position: absolute;
+    top: -180px;
+    right: -190px;
+    width: 430px;
+    height: 430px;
+    border-radius: 50%;
+    pointer-events: none;
+    background:
+            radial-gradient(
+                    circle,
+                    color-mix(
+                            in srgb,
+                            var(--app-primary) 20%,
+                            transparent
+                    ) 0%,
+                    transparent 72%
+            );
+    filter: blur(14px);
+}
+
+.content,
+.resultContent,
+.confirmContent {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 520px);
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding:
+            calc(
+                    env(safe-area-inset-top) +
+                    14px
+            )
+            16px
+            112px;
+}
+
+.topBar {
+    display: grid;
+    grid-template-columns:
+    42px
+    minmax(0, 1fr)
+    auto;
+    align-items: center;
+    gap: 9px;
+}
+
+.backButton {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 82%,
+                    transparent
+            );
+    border-radius: 14px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+    color: var(--app-text);
+    cursor: pointer;
+}
+
+.backButton svg {
+    width: 20px;
+    height: 20px;
+}
+
+.testIdentity {
+    display: grid;
+    grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    18px;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 10px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 14px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 88%,
+                    transparent
+            );
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.testIdentity span {
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.testIdentity strong {
+    overflow: hidden;
+    color: var(--app-text);
+    font-size: 12px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.testIdentity svg {
+    width: 17px;
+    height: 17px;
+    color: var(--app-text-secondary);
+}
+
+.timerBadge {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px;
+    border-radius: 14px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-warning) 13%,
+                    var(--app-surface)
+            );
+    color: var(--app-warning);
+    font-size: 10px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.timerBadge svg {
+    width: 15px;
+    height: 15px;
+}
+
+.progressSection {
+    margin-top: 16px;
+}
+
+.progressHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 7px;
+    color: var(--app-text-secondary);
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.progressTrack {
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-border) 65%,
+                    transparent
+            );
+}
+
+.progressTrack > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background:
+            linear-gradient(
+                    90deg,
+                    var(--app-primary),
+                    var(--app-focus)
+            );
+    transition:
+            width 220ms ease;
+}
+
+.contextCard {
+    margin-top: 15px;
+    padding: 13px 14px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 25%,
+                    var(--app-border)
+            );
+    border-radius: 17px;
+    background:
+            linear-gradient(
+                    135deg,
+                    color-mix(
+                            in srgb,
+                            var(--app-primary-soft) 72%,
+                            var(--app-surface)
+                    ),
+                    var(--app-surface)
+            );
+}
+
+.contextCard > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.contextCard span {
+    color: var(--app-primary);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.contextCard small {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+.contextCard strong {
+    display: block;
+    margin-top: 7px;
+    color: var(--app-text);
+    font-size: 14px;
+    font-weight: 820;
+}
+
+.contextCard p {
+    margin: 5px 0 0;
+    color: var(--app-text-secondary);
+    font-size: 10px;
+    line-height: 1.45;
+}
+
+.questionArea {
+    margin-top: 19px;
+}
+
+.questionHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.questionHeading > span {
+    color: var(--app-text);
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.questionHeading button {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 85%,
+                    transparent
+            );
+    border-radius: 11px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 82%,
+                    transparent
+            );
+    color: var(--app-text-secondary);
+    font: inherit;
+    font-size: 9px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.questionHeading button svg {
+    width: 15px;
+    height: 15px;
+}
+
+.questionHeading .markedButton {
+    border-color:
+            color-mix(
+                    in srgb,
+                    var(--app-warning) 55%,
+                    transparent
+            );
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-warning) 12%,
+                    transparent
+            );
+    color: var(--app-warning);
+}
+
+.questionArea h1 {
+    margin: 13px 0 0;
+    color: var(--app-text);
+    font-size: clamp(18px, 5vw, 22px);
+    font-weight: 820;
+    line-height: 1.42;
+    letter-spacing: -0.02em;
+}
+
+.options {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.options > button {
+    display: grid;
+    grid-template-columns:
+    36px
+    minmax(0, 1fr)
+    22px;
+    align-items: center;
+    width: 100%;
+    min-height: 64px;
+    padding: 9px 10px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 82%,
+                    transparent
+            );
+    border-radius: 16px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 91%,
+                    transparent
+            );
+    color: inherit;
+    text-align: left;
+    box-shadow:
+            0 8px 20px
+            color-mix(
+                    in srgb,
+                    #000 5%,
+                    transparent
+            );
+    cursor: pointer;
+    transition:
+            transform 150ms ease,
+            border-color 150ms ease,
+            background 150ms ease;
+}
+
+.options > button:active {
+    transform: scale(0.988);
+}
+
+.options .selectedOption {
+    border-color:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 62%,
+                    transparent
+            );
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary-soft) 70%,
+                    var(--app-surface)
+            );
+}
+
+.optionLetter {
+    display: grid;
+    width: 33px;
+    height: 33px;
+    place-items: center;
+    border-radius: 50%;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-border) 58%,
+                    transparent
+            );
+    color: var(--app-text-secondary);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.selectedOption .optionLetter {
+    background: var(--app-primary);
+    color: white;
+}
+
+.optionText {
+    padding: 0 8px;
+    color: var(--app-text);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.optionCheck {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    color: var(--app-primary);
+}
+
+.optionCheck svg {
+    width: 17px;
+    height: 17px;
+}
+
+.questionPosition {
+    height: 4px;
+    margin-top: 18px;
+    overflow: hidden;
+    border-radius: 999px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-border) 55%,
+                    transparent
+            );
+}
+
+.questionPosition span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--app-primary);
+    transition:
+            width 180ms ease;
+}
+
+.navigationActions {
+    position: fixed;
+    z-index: 70;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding:
+            10px
+            16px
+            calc(
+                    env(safe-area-inset-bottom) +
+                    10px
+            );
+    border-top:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 72%,
+                    transparent
+            );
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-background) 86%,
+                    transparent
+            );
+    backdrop-filter: blur(20px);
+}
+
+.navigationActions > div {
+    display: grid;
+    grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1.3fr);
+    gap: 9px;
+    width: min(100%, 488px);
+    margin: 0 auto;
+}
+
+.navigationActions button {
+    display: flex;
+    min-height: 49px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.navigationActions svg {
+    width: 17px;
+    height: 17px;
+}
+
+.previousButton {
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 55%,
+                    transparent
+            );
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+    color: var(--app-primary);
+}
+
+.previousButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.nextButton {
+    border: 0;
+    background:
+            linear-gradient(
+                    135deg,
+                    var(--app-primary),
+                    var(--app-focus)
+            );
+    color: white;
+    box-shadow:
+            0 12px 26px
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 24%,
+                    transparent
+            );
+}
+
+.exitLayer {
+    position: fixed;
+    z-index: 140;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+}
+
+.exitOverlay {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background:
+            color-mix(
+                    in srgb,
+                    #111b22 58%,
+                    transparent
+            );
+    backdrop-filter: blur(5px);
+}
+
+.exitDialog {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 390px);
+    padding: 23px 18px 18px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 24px;
+    background: var(--app-surface);
+    text-align: center;
+    box-shadow:
+            0 22px 60px
+            color-mix(
+                    in srgb,
+                    #000 25%,
+                    transparent
+            );
+}
+
+.exitIcon {
+    display: grid;
+    width: 55px;
+    height: 55px;
+    margin: 0 auto;
+    place-items: center;
+    border-radius: 18px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-error) 12%,
+                    transparent
+            );
+    color: var(--app-error);
+}
+
+.exitIcon svg {
+    width: 27px;
+    height: 27px;
+}
+
+.exitDialog h2 {
+    margin: 14px 0 7px;
+    color: var(--app-text);
+    font-size: 23px;
+    font-weight: 850;
+}
+
+.exitDialog p {
+    margin: 0;
+    color: var(--app-text-secondary);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.exitDialog button {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.exitDialog button:nth-of-type(2) {
+    margin-top: 17px;
+    border: 0;
+    background: var(--app-error);
+    color: white;
+}
+
+.exitDialog button:last-child {
+    margin-top: 8px;
+    border:
+            1px solid
+            var(--app-border);
+    background: transparent;
+    color: var(--app-text);
+}
+
+.confirmContent {
+    display: grid;
+    align-content: start;
+    padding-bottom: 28px;
+}
+
+.confirmBack {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 42px;
+    align-items: center;
+    gap: 6px;
+    border: 0;
+    background: transparent;
+    color: var(--app-text-secondary);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.confirmBack svg {
+    width: 18px;
+    height: 18px;
+}
+
+.confirmCard {
+    margin-top: 31px;
+    padding: 25px 18px 19px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 26px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 93%,
+                    transparent
+            );
+    text-align: center;
+    box-shadow:
+            0 18px 48px
+            color-mix(
+                    in srgb,
+                    #000 10%,
+                    transparent
+            );
+}
+
+.confirmIcon {
+    display: grid;
+    width: 59px;
+    height: 59px;
+    margin: 0 auto 14px;
+    place-items: center;
+    border-radius: 19px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 15%,
+                    transparent
+            );
+    color: var(--app-primary);
+}
+
+.confirmIcon svg {
+    width: 29px;
+    height: 29px;
+}
+
+.confirmEyebrow,
+.resultEyebrow {
+    color: var(--app-primary);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+}
+
+.confirmCard h1 {
+    margin: 11px auto 8px;
+    max-width: 360px;
+    color: var(--app-text);
+    font-size: 27px;
+    font-weight: 850;
+    line-height: 1.16;
+    letter-spacing: -0.035em;
+}
+
+.confirmCard > p {
+    margin: 0 auto;
+    max-width: 370px;
+    color: var(--app-text-secondary);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.confirmStats {
+    display: grid;
+    grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 21px;
+}
+
+.confirmStats div {
+    display: grid;
+    gap: 3px;
+    padding: 13px 5px;
+    border-radius: 15px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-background) 46%,
+                    transparent
+            );
+}
+
+.confirmStats strong {
+    color: var(--app-text);
+    font-size: 21px;
+}
+
+.confirmStats span {
+    overflow: hidden;
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.warningBox,
+.successBox {
+    margin-top: 13px;
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.warningBox {
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-warning) 13%,
+                    transparent
+            );
+    color: var(--app-warning);
+}
+
+.successBox {
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-success) 13%,
+                    transparent
+            );
+    color: var(--app-success);
+}
+
+.submitButton,
+.continueButton {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 15px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.submitButton {
+    margin-top: 17px;
+    border: 0;
+    background: var(--app-primary);
+    color: white;
+}
+
+.continueButton {
+    margin-top: 8px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 85%,
+                    transparent
+            );
+    background: transparent;
+    color: var(--app-text);
+}
+
+.resultContent {
+    padding-bottom:
+            calc(
+                    env(safe-area-inset-bottom) +
+                    34px
+            );
+}
+
+.resultHeader {
+    padding-top: 21px;
+    text-align: center;
+}
+
+.scoreCircle {
+    display: grid;
+    width: 148px;
+    height: 148px;
+    margin: 21px auto 18px;
+    place-content: center;
+    border:
+            9px solid
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 18%,
+                    transparent
+            );
+    border-radius: 50%;
+    background:
+            radial-gradient(
+                    circle,
+                    color-mix(
+                            in srgb,
+                            var(--app-primary-soft) 85%,
+                            var(--app-surface)
+                    ),
+                    var(--app-surface)
+            );
+    box-shadow:
+            0 19px 43px
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 16%,
+                    transparent
+            );
+}
+
+.scoreCircle strong {
+    color: var(--app-primary);
+    font-size: 37px;
+    line-height: 1;
+}
+
+.scoreCircle span {
+    margin-top: 6px;
+    color: var(--app-text-secondary);
+    font-size: 10px;
+    font-weight: 750;
+}
+
+.resultHeader h1 {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 30px;
+    font-weight: 850;
+    letter-spacing: -0.04em;
+}
+
+.resultHeader p {
+    margin: 7px 0 0;
+    color: var(--app-text-secondary);
+    font-size: 12px;
+}
+
+.resultSummary {
+    display: grid;
+    grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 25px;
+}
+
+.resultSummary > div {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    padding: 13px 5px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 78%,
+                    transparent
+            );
+    border-radius: 16px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+}
+
+.resultSummary > div > span {
+    display: grid;
+    width: 29px;
+    height: 29px;
+    place-items: center;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 850;
+}
+
+.resultSummary svg {
+    width: 16px;
+    height: 16px;
+}
+
+.correctIndicator {
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-success) 14%,
+                    transparent
+            );
+    color: var(--app-success);
+}
+
+.incorrectIndicator {
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-error) 14%,
+                    transparent
+            );
+    color: var(--app-error);
+}
+
+.unansweredIndicator {
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-warning) 14%,
+                    transparent
+            );
+    color: var(--app-warning);
+}
+
+.resultSummary strong {
+    margin-top: 6px;
+    color: var(--app-text);
+    font-size: 20px;
+}
+
+.resultSummary small {
+    margin-top: 2px;
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+.reviewSection {
+    margin-top: 33px;
+}
+
+.reviewSection > header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.reviewSection > header > span {
+    display: grid;
+    width: 29px;
+    height: 29px;
+    flex: 0 0 29px;
+    place-items: center;
+    border-radius: 9px;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.reviewSection h2 {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 20px;
+}
+
+.reviewSection header p {
+    margin: 4px 0 0;
+    color: var(--app-text-secondary);
+    font-size: 10px;
+}
+
+.reviewList {
+    display: grid;
+    gap: 10px;
+}
+
+.reviewCard {
+    padding: 14px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 78%,
+                    transparent
+            );
+    border-radius: 18px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+}
+
+.correctReview {
+    border-left:
+            3px solid
+            var(--app-success);
+}
+
+.incorrectReview {
+    border-left:
+            3px solid
+            var(--app-error);
+}
+
+.reviewTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.reviewTop strong {
+    color: var(--app-text);
+    font-size: 11px;
+}
+
+.reviewTop span {
+    color: var(--app-text-secondary);
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.reviewCard > p {
+    margin: 9px 0 0;
+    color: var(--app-text);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.reviewCard dl {
+    display: grid;
+    gap: 9px;
+    margin: 12px 0 0;
+}
+
+.reviewCard dl > div {
+    display: grid;
+    gap: 3px;
+    padding: 9px;
+    border-radius: 11px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-background) 44%,
+                    transparent
+            );
+}
+
+.reviewCard dt {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+.reviewCard dd {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1.4;
+}
+
+.resultActions {
+    display: grid;
+    grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 21px;
+}
+
+.resultActions button {
+    min-height: 46px;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.secondaryAction {
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 85%,
+                    transparent
+            );
+    background: transparent;
+    color: var(--app-text);
+}
+
+.primaryAction {
+    border: 0;
+    background: var(--app-primary);
+    color: white;
+}
+
+@media (max-width: 380px) {
+    .content,
+    .resultContent,
+    .confirmContent {
+        padding-inline: 13px;
+    }
+
+    .topBar {
+        grid-template-columns:
+      40px
+      minmax(0, 1fr)
+      auto;
+        gap: 7px;
+    }
+
+    .backButton {
+        width: 40px;
+        height: 40px;
+    }
+
+    .timerBadge {
+        min-height: 40px;
+        padding-inline: 8px;
+        font-size: 9px;
+    }
+
+    .testIdentity {
+        min-height: 40px;
+        padding-inline: 8px;
+    }
+
+    .testIdentity strong {
+        font-size: 11px;
+    }
+
+    .optionText {
+        font-size: 11px;
+    }
+
+    .confirmStats span {
+        font-size: 7px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .progressTrack > span,
+    .questionPosition span,
+    .options > button {
+        transition: none;
+    }
+}

@@ -1,10 +1,19 @@
-export const roadmapModes = ["from-zero", "boost"] as const;
+export const roadmapModes = [
+  "from-zero",
+  "boost",
+] as const;
 
-export type RoadmapMode = (typeof roadmapModes)[number];
+export type RoadmapMode =
+    (typeof roadmapModes)[number];
 
-export const roadmapViews = ["full", "week", "results"] as const;
+export const roadmapViews = [
+  "full",
+  "week",
+  "results",
+] as const;
 
-export type RoadmapView = (typeof roadmapViews)[number];
+export type RoadmapView =
+    (typeof roadmapViews)[number];
 
 export const roadmapNodeStatuses = [
   "locked",
@@ -17,7 +26,8 @@ export const roadmapNodeStatuses = [
   "skipped",
 ] as const;
 
-export type RoadmapNodeStatus = (typeof roadmapNodeStatuses)[number];
+export type RoadmapNodeStatus =
+    (typeof roadmapNodeStatuses)[number];
 
 export const weeklyTaskStatuses = [
   "today",
@@ -27,35 +37,36 @@ export const weeklyTaskStatuses = [
   "moved",
 ] as const;
 
-export type WeeklyTaskStatus = (typeof weeklyTaskStatuses)[number];
+export type WeeklyTaskStatus =
+    (typeof weeklyTaskStatuses)[number];
 
 export type RoadmapNodeId =
-  | "phonetics"
-  | "morphemics"
-  | "morphology"
-  | "syntax"
-  | "stylistics"
-  | "scientific-text"
-  | "literary-text"
-  | "ghazal"
-  | "essay-writing"
-  | "topic-quizzes"
-  | "mixed-practice"
-  | "error-review"
-  | "full-trial-exam"
-  | "exam-error-analysis"
-  | "weak-area-improvement"
-  | "essay-check"
-  | "final-full-trial-exam";
+    | "spelling"
+    | "morphemics"
+    | "morphology"
+    | "syntax"
+    | "stylistics"
+    | "scientific-text"
+    | "literary-text"
+    | "ghazal"
+    | "essay-writing"
+    | "topic-quizzes"
+    | "mixed-practice"
+    | "error-review"
+    | "full-trial-exam"
+    | "exam-error-analysis"
+    | "weak-area-improvement"
+    | "essay-check"
+    | "final-full-trial-exam";
 
 export type RoadmapStageId =
-  | "foundation"
-  | "grammar"
-  | "text-and-style"
-  | "literary-analysis"
-  | "essay"
-  | "reinforcement"
-  | "exam-preparation";
+    | "foundation"
+    | "grammar"
+    | "text-and-style"
+    | "literary-analysis"
+    | "essay"
+    | "reinforcement"
+    | "exam-preparation";
 
 export interface RoadmapNode {
   readonly id: RoadmapNodeId;
@@ -68,12 +79,14 @@ export interface RoadmapStage {
   readonly id: RoadmapStageId;
   readonly label: string;
   readonly order: number;
-  readonly nodeIds: readonly RoadmapNodeId[];
+  readonly nodeIds:
+      readonly RoadmapNodeId[];
 }
 
 export interface RoadmapDependency {
   readonly nodeId: RoadmapNodeId;
-  readonly prerequisiteId: RoadmapNodeId;
+  readonly prerequisiteId:
+      RoadmapNodeId;
 }
 
 export interface WeeklyTask {
@@ -90,7 +103,8 @@ export interface WeeklyTask {
 export interface RoadmapResult {
   readonly nodeId: RoadmapNodeId;
   readonly score: number | null;
-  readonly status: RoadmapNodeStatus | null;
+  readonly status:
+      RoadmapNodeStatus | null;
   readonly completedAttempt: boolean;
   readonly attemptedAt: string;
 }
@@ -100,8 +114,10 @@ export interface RoadmapVersion {
   readonly version: number;
   readonly mode: RoadmapMode;
   readonly createdAt: string;
-  readonly nodes: readonly RoadmapNode[];
-  readonly dependencies: readonly RoadmapDependency[];
+  readonly nodes:
+      readonly RoadmapNode[];
+  readonly dependencies:
+      readonly RoadmapDependency[];
 }
 
 export interface RoadmapSummary {
@@ -110,7 +126,8 @@ export interface RoadmapSummary {
   readonly masteredCount: number;
   readonly totalCount: number;
   readonly inProgressCount: number;
-  readonly currentStageId: RoadmapStageId;
+  readonly currentStageId:
+      RoadmapStageId;
 }
 
 export interface RoadmapRouteState {
@@ -120,31 +137,38 @@ export interface RoadmapRouteState {
 
 export interface RoadmapDefinition {
   readonly mode: "from-zero";
-  readonly nodes: readonly RoadmapNode[];
-  readonly stages: readonly RoadmapStage[];
-  readonly dependencies: readonly RoadmapDependency[];
+  readonly nodes:
+      readonly RoadmapNode[];
+  readonly stages:
+      readonly RoadmapStage[];
+  readonly dependencies:
+      readonly RoadmapDependency[];
 }
 
-export const roadmapModeLabels: Readonly<Record<RoadmapMode, string>> =
-  Object.freeze({
-    "from-zero": "Noldan sertifikatgacha",
-    boost: "Natijani oshirish",
-  });
+export const roadmapModeLabels: Readonly<
+    Record<RoadmapMode, string>
+> = Object.freeze({
+  "from-zero":
+      "Noldan sertifikatgacha",
+  boost: "Natijani oshirish",
+});
 
-export const roadmapViewLabels: Readonly<Record<RoadmapView, string>> =
-  Object.freeze({
-    full: "To‘liq yo‘l",
-    week: "Bu hafta",
-    results: "Natijalar",
-  });
+export const roadmapViewLabels: Readonly<
+    Record<RoadmapView, string>
+> = Object.freeze({
+  full: "To‘liq yo‘l",
+  week: "Bu hafta",
+  results: "Natijalar",
+});
 
 export const roadmapNodeStatusLabels: Readonly<
-  Record<RoadmapNodeStatus, string>
+    Record<RoadmapNodeStatus, string>
 > = Object.freeze({
   locked: "Qulflangan",
   available: "Mavjud",
   "in-progress": "Jarayonda",
-  "review-needed": "Takrorlash kerak",
+  "review-needed":
+      "Takrorlash kerak",
   good: "Yaxshi",
   mastered: "O‘zlashtirilgan",
   optional: "Ixtiyoriy",
@@ -152,11 +176,12 @@ export const roadmapNodeStatusLabels: Readonly<
 });
 
 export const weeklyTaskStatusLabels: Readonly<
-  Record<WeeklyTaskStatus, string>
+    Record<WeeklyTaskStatus, string>
 > = Object.freeze({
   today: "Bugun",
   scheduled: "Rejalashtirilgan",
   completed: "Bajarildi",
-  "review-needed": "Takrorlash kerak",
+  "review-needed":
+      "Takrorlash kerak",
   moved: "Ko‘chirildi",
 });

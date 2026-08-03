@@ -15,7 +15,10 @@ import {
   validateAnswer,
   validateAnswers,
 } from "./flow";
-import type { OnboardingAnswers, OnboardingStepId } from "./types";
+import type {
+  OnboardingAnswers,
+  OnboardingStepId,
+} from "./types";
 
 const returningAnswers = {
   category: "school-student",
@@ -24,7 +27,11 @@ const returningAnswers = {
   "previous-result": "b-plus",
   "target-level": "a-plus",
   "exam-time": "one-to-two-months",
-  "weak-topics": ["phonetics", "morphemics", "stylistics"],
+  "weak-topics": [
+    "phonetics",
+    "morphemics",
+    "stylistics",
+  ],
   "daily-time": "thirty-to-sixty-minutes",
   "weekly-days": "five-to-six-days",
   "essay-level": "can-write-many-errors",
@@ -45,15 +52,19 @@ const firstTimeAnswers = {
 } as const satisfies OnboardingAnswers;
 
 function traverse(
-  initialStep: OnboardingStepId,
-  answers: OnboardingAnswers,
+    initialStep: OnboardingStepId,
+    answers: OnboardingAnswers,
 ) {
   const visited: OnboardingStepId[] = [];
-  let currentStep: OnboardingStepId | null = initialStep;
+  let currentStep: OnboardingStepId | null =
+      initialStep;
 
   while (currentStep) {
     visited.push(currentStep);
-    currentStep = getNextStep(currentStep, answers);
+    currentStep = getNextStep(
+        currentStep,
+        answers,
+    );
   }
 
   return visited;
@@ -61,197 +72,335 @@ function traverse(
 
 describe("approved onboarding paths", () => {
   it("traverses the complete returning path", () => {
-    expect(traverse("category", returningAnswers)).toEqual(returningPath);
+    expect(
+        traverse("category", returningAnswers),
+    ).toEqual(returningPath);
   });
 
   it("traverses the complete first-time path", () => {
-    expect(traverse("category", firstTimeAnswers)).toEqual(firstTimePath);
+    expect(
+        traverse("category", firstTimeAnswers),
+    ).toEqual(firstTimePath);
   });
 
   it("routes previous exam takers through previous result", () => {
-    expect(getNextStep("previous-exam", returningAnswers)).toBe(
-      "previous-result",
-    );
+    expect(
+        getNextStep(
+            "previous-exam",
+            returningAnswers,
+        ),
+    ).toBe("previous-result");
   });
 
   it("skips previous result for first-time users", () => {
-    expect(getNextStep("previous-exam", firstTimeAnswers)).toBe(
-      "target-level",
-    );
+    expect(
+        getNextStep(
+            "previous-exam",
+            firstTimeAnswers,
+        ),
+    ).toBe("target-level");
   });
 
   it("preserves returning back navigation", () => {
-    expect(getPreviousStep("target-level", returningAnswers)).toBe(
-      "previous-result",
-    );
-    expect(getPreviousStep("returning-choice", returningAnswers)).toBe(
-      "essay-level",
-    );
+    expect(
+        getPreviousStep(
+            "target-level",
+            returningAnswers,
+        ),
+    ).toBe("previous-result");
+
+    expect(
+        getPreviousStep(
+            "returning-choice",
+            returningAnswers,
+        ),
+    ).toBe("essay-level");
   });
 
   it("preserves first-time back navigation", () => {
-    expect(getPreviousStep("target-level", firstTimeAnswers)).toBe(
-      "previous-exam",
-    );
-    expect(getPreviousStep("current-preparation", firstTimeAnswers)).toBe(
-      "essay-level",
-    );
-    expect(getPreviousStep(firstTimeComplete.id, firstTimeAnswers)).toBe(
-      "current-preparation",
-    );
+    expect(
+        getPreviousStep(
+            "target-level",
+            firstTimeAnswers,
+        ),
+    ).toBe("previous-exam");
+
+    expect(
+        getPreviousStep(
+            "current-preparation",
+            firstTimeAnswers,
+        ),
+    ).toBe("essay-level");
+
+    expect(
+        getPreviousStep(
+            firstTimeComplete.id,
+            firstTimeAnswers,
+        ),
+    ).toBe("current-preparation");
   });
 
-  it("maps approved completion actions to frozen routes", () => {
+  it("routes approved completion actions through registration", () => {
     expect(
-      getCompletionDestination("returning-choice", returningAnswers),
-    ).toBe("/diagnostika");
+        getCompletionDestination(
+            "returning-choice",
+            returningAnswers,
+        ),
+    ).toBe(
+        "/auth/register?next=%2Fyol-xaritasi%3Fmode%3Dboost%26view%3Dfull",
+    );
+
     expect(
-      getCompletionDestination("returning-choice", {
-        ...returningAnswers,
-        "returning-choice": "mock",
-      }),
-    ).toBe("/tests");
+        getCompletionDestination(
+            "returning-choice",
+            {
+              ...returningAnswers,
+              "returning-choice": "mock",
+            },
+        ),
+    ).toBe(
+        "/auth/register?next=%2Ftests",
+    );
+
     expect(
-      getCompletionDestination("first-time-complete", firstTimeAnswers),
-    ).toBe("/yol-xaritasi");
+        getCompletionDestination(
+            "first-time-complete",
+            firstTimeAnswers,
+        ),
+    ).toBe(
+        "/auth/register?next=%2Fyol-xaritasi%3Fmode%3Dfrom-zero%26view%3Dfull",
+    );
+
     expect(
-      getCompletionDestination(
-        "first-time-complete",
-        firstTimeAnswers,
-        "diagnostic",
-      ),
-    ).toBe("/diagnostika");
+        getCompletionDestination(
+            "first-time-complete",
+            firstTimeAnswers,
+            "diagnostic",
+        ),
+    ).toBe(
+        "/auth/register?next=%2Fdiagnostika",
+    );
   });
 });
 
 describe("branch validation", () => {
   it("rejects previous-result answers outside the returning branch", () => {
     expect(
-      validateAnswer("previous-result", "a-plus", firstTimeAnswers),
-    ).toMatchObject({ valid: false, code: "step-unavailable" });
+        validateAnswer(
+            "previous-result",
+            "a-plus",
+            firstTimeAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "step-unavailable",
+    });
   });
 
   it("rejects current-preparation answers outside the first-time branch", () => {
     expect(
-      validateAnswer(
-        "current-preparation",
-        "start-from-zero",
-        returningAnswers,
-      ),
-    ).toMatchObject({ valid: false, code: "step-unavailable" });
+        validateAnswer(
+            "current-preparation",
+            "start-from-zero",
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "step-unavailable",
+    });
   });
 
   it("rejects injected branch answers in an answer collection", () => {
     expect(
-      validateAnswers({
-        ...firstTimeAnswers,
-        "previous-result": "a-plus",
-      }),
-    ).toMatchObject({ valid: false, code: "step-unavailable" });
+        validateAnswers({
+          ...firstTimeAnswers,
+          "previous-result": "a-plus",
+        }),
+    ).toMatchObject({
+      valid: false,
+      code: "step-unavailable",
+    });
 
     expect(
-      validateAnswers({
-        ...returningAnswers,
-        "current-preparation": "start-from-zero",
-      }),
-    ).toMatchObject({ valid: false, code: "step-unavailable" });
+        validateAnswers({
+          ...returningAnswers,
+          "current-preparation":
+              "start-from-zero",
+        }),
+    ).toMatchObject({
+      valid: false,
+      code: "step-unavailable",
+    });
   });
 
   it("rejects a manipulated step identifier", () => {
     expect(
-      validateAnswers({
-        ...firstTimeAnswers,
-        "administrator-only-step": "injected",
-      }),
-    ).toMatchObject({ valid: false, code: "unknown-step" });
+        validateAnswers({
+          ...firstTimeAnswers,
+          "administrator-only-step":
+              "injected",
+        }),
+    ).toMatchObject({
+      valid: false,
+      code: "unknown-step",
+    });
   });
 });
 
 describe("answer validation", () => {
   it("requires exactly one value for single-choice questions", () => {
     expect(
-      validateAnswer("category", [], returningAnswers),
-    ).toMatchObject({ valid: false, code: "exactly-one" });
+        validateAnswer(
+            "category",
+            [],
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "exactly-one",
+    });
+
     expect(
-      validateAnswer("category", undefined, returningAnswers),
-    ).toMatchObject({ valid: false, code: "required" });
+        validateAnswer(
+            "category",
+            undefined,
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "required",
+    });
   });
 
   it("accepts the weak-topic minimum", () => {
     expect(
-      validateAnswer("weak-topics", ["phonetics"], returningAnswers),
+        validateAnswer(
+            "weak-topics",
+            ["phonetics"],
+            returningAnswers,
+        ),
     ).toEqual({ valid: true });
   });
 
   it("accepts the weak-topic maximum", () => {
     expect(
-      validateAnswer(
-        "weak-topics",
-        ["phonetics", "morphemics", "stylistics"],
-        returningAnswers,
-      ),
+        validateAnswer(
+            "weak-topics",
+            [
+              "phonetics",
+              "morphemics",
+              "stylistics",
+            ],
+            returningAnswers,
+        ),
     ).toEqual({ valid: true });
   });
 
   it("rejects an empty weak-topic selection", () => {
     expect(
-      validateAnswer("weak-topics", [], returningAnswers),
-    ).toMatchObject({ valid: false, code: "too-few" });
+        validateAnswer(
+            "weak-topics",
+            [],
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "too-few",
+    });
   });
 
   it("rejects more than three weak topics", () => {
     expect(
-      validateAnswer(
-        "weak-topics",
-        ["phonetics", "morphemics", "stylistics", "morphology"],
-        returningAnswers,
-      ),
-    ).toMatchObject({ valid: false, code: "too-many" });
+        validateAnswer(
+            "weak-topics",
+            [
+              "phonetics",
+              "morphemics",
+              "stylistics",
+              "morphology",
+            ],
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "too-many",
+    });
   });
 
   it("accepts the exclusive unknown weak-topic option by itself", () => {
     expect(
-      validateAnswer("weak-topics", ["unknown"], returningAnswers),
+        validateAnswer(
+            "weak-topics",
+            ["unknown"],
+            returningAnswers,
+        ),
     ).toEqual({ valid: true });
   });
 
   it("rejects unknown combined with another weak topic", () => {
     expect(
-      validateAnswer(
-        "weak-topics",
-        ["unknown", "phonetics"],
-        returningAnswers,
-      ),
-    ).toMatchObject({ valid: false, code: "exclusive-option" });
+        validateAnswer(
+            "weak-topics",
+            ["unknown", "phonetics"],
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "exclusive-option",
+    });
   });
 
   it("rejects unknown or manipulated option IDs", () => {
     expect(
-      validateAnswer("category", "administrator", returningAnswers),
-    ).toMatchObject({ valid: false, code: "unapproved-option" });
+        validateAnswer(
+            "category",
+            "administrator",
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "unapproved-option",
+    });
+
     expect(
-      validateAnswer(
-        "weak-topics",
-        ["phonetics", "injected-topic"],
-        returningAnswers,
-      ),
-    ).toMatchObject({ valid: false, code: "unapproved-option" });
+        validateAnswer(
+            "weak-topics",
+            [
+              "phonetics",
+              "injected-topic",
+            ],
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "unapproved-option",
+    });
   });
 
   it("rejects duplicate weak-topic IDs", () => {
     expect(
-      validateAnswer(
-        "weak-topics",
-        ["phonetics", "phonetics"],
-        returningAnswers,
-      ),
-    ).toMatchObject({ valid: false, code: "duplicate-option" });
+        validateAnswer(
+            "weak-topics",
+            [
+              "phonetics",
+              "phonetics",
+            ],
+            returningAnswers,
+        ),
+    ).toMatchObject({
+      valid: false,
+      code: "duplicate-option",
+    });
   });
 });
 
 describe("approved question contract", () => {
   it("keeps the exact approved question order and count", () => {
-    expect(onboardingQuestions.map((question) => question.id)).toEqual([
+    expect(
+        onboardingQuestions.map(
+            (question) => question.id,
+        ),
+    ).toEqual([
       "category",
       "subject-direction",
       "previous-exam",
@@ -264,11 +413,18 @@ describe("approved question contract", () => {
       "essay-level",
       "current-preparation",
     ]);
-    expect(onboardingQuestions).toHaveLength(11);
+
+    expect(
+        onboardingQuestions,
+    ).toHaveLength(11);
   });
 
   it("keeps the exact approved prompts", () => {
-    expect(onboardingQuestions.map((question) => question.prompt)).toEqual([
+    expect(
+        onboardingQuestions.map(
+            (question) => question.prompt,
+        ),
+    ).toEqual([
       "Siz qaysi toifaga kirasiz?",
       "Milliy sertifikat sizga qaysi yo‘nalish uchun kerak?",
       "Milliy sertifikat imtihonini avval topshirganmisiz?",
@@ -285,11 +441,30 @@ describe("approved question contract", () => {
 
   it("keeps exact option counts and approved labels", () => {
     expect(
-      onboardingQuestions.map((question) => question.options.length),
-    ).toEqual([3, 2, 2, 8, 6, 5, 10, 5, 4, 5, 4]);
+        onboardingQuestions.map(
+            (question) =>
+                question.options.length,
+        ),
+    ).toEqual([
+      3,
+      2,
+      2,
+      8,
+      6,
+      5,
+      10,
+      5,
+      4,
+      5,
+      4,
+    ]);
 
     expect(
-      questionsById["weak-topics"].options.map((option) => option.label),
+        questionsById[
+            "weak-topics"
+            ].options.map(
+            (option) => option.label,
+        ),
     ).toEqual([
       "Fonetika",
       "Morfemika",
@@ -303,7 +478,11 @@ describe("approved question contract", () => {
       "Hozircha aniq bilmayman",
     ]);
 
-    expect(returningChoice.options.map((option) => option.label)).toEqual([
+    expect(
+        returningChoice.options.map(
+            (option) => option.label,
+        ),
+    ).toEqual([
       "Shaxsiy yo‘l xaritasi",
       "Mock imtihon",
     ]);

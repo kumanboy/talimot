@@ -306,3 +306,104 @@
   background: #edf4fd;
   color: #376fb5;
 }
+
+
+/* Theme integration */
+
+.summary,
+.stageHeader h2,
+.stageHeader p,
+.splitConnector p,
+.mergeConnector p,
+.parallelContinuation p,
+.essayPolicy,
+.masteredTopics,
+.masteredTopics summary,
+.masteredTopics p {
+  transition:
+          background-color 180ms ease,
+          color 180ms ease,
+          border-color 180ms ease,
+          box-shadow 180ms ease;
+}
+
+:global(html[data-theme="dark"]) .summary {
+  border-color: var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+  box-shadow:
+          0 10px 26px rgb(0 0 0 / 16%),
+          inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
+:global(html[data-theme="dark"]) .summary dl div,
+:global(html[data-theme="dark"]) .stageHeader p,
+:global(html[data-theme="dark"]) .parallelContinuation p,
+:global(html[data-theme="dark"]) .masteredTopics p {
+  color: var(--app-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .stageHeader span,
+:global(html[data-theme="dark"]) .branchLabels {
+  color: var(--app-primary);
+}
+
+:global(html[data-theme="dark"]) .stageHeader h2,
+:global(html[data-theme="dark"]) .splitConnector p {
+  color: var(--app-text);
+}
+
+:global(html[data-theme="dark"]) .nodeConnector {
+  background: var(--app-border);
+}
+
+:global(html[data-theme="dark"]) .splitRails::before,
+:global(html[data-theme="dark"]) .mergeRails::before,
+:global(html[data-theme="dark"]) .splitRails span,
+:global(html[data-theme="dark"]) .mergeRails span,
+:global(html[data-theme="dark"]) .parallelContinuation > span {
+  background: var(--app-primary);
+}
+
+:global(html[data-theme="dark"]) .essayPolicy {
+  border-left-color: var(--app-primary);
+  background: var(--app-primary-soft);
+  color: var(--app-text);
+}
+
+:global(html[data-theme="dark"]) .masteredTopics {
+  border-color:
+          color-mix(in srgb, var(--app-success) 70%, var(--app-border));
+  background:
+          color-mix(in srgb, var(--app-success) 8%, var(--app-surface));
+  color: var(--app-text);
+}
+
+:global(html[data-theme="dark"]) .masteredTopics summary {
+  color: var(--app-success);
+}
+
+:global(html[data-theme="dark"]) .masteredTopics summary:focus-visible {
+  outline-color: var(--app-focus);
+}
+
+:global(html[data-theme="dark"]) .mergeConnector p {
+  border-color: var(--app-primary);
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary,
+  .stageHeader h2,
+  .stageHeader p,
+  .splitConnector p,
+  .mergeConnector p,
+  .parallelContinuation p,
+  .essayPolicy,
+  .masteredTopics,
+  .masteredTopics summary,
+  .masteredTopics p {
+    transition: none;
+  }
+}

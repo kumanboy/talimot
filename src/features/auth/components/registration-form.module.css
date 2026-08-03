@@ -1,0 +1,305 @@
+.screen {
+    --auth-background: #f4f7f5;
+    --auth-primary-text: #1e2229;
+    --auth-secondary-text: #5e6872;
+    --auth-primary: #376fb5;
+    --auth-primary-hover: #2f61a0;
+    --auth-primary-soft: #e8f1fc;
+    --auth-border: #cdd5dc;
+    --auth-error: #b4232d;
+
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    min-height: 100vh;
+    min-height: 100svh;
+    justify-content: center;
+    overflow: hidden;
+    padding:
+            calc(24px + env(safe-area-inset-top))
+            max(24px, env(safe-area-inset-right))
+            calc(28px + env(safe-area-inset-bottom))
+            max(24px, env(safe-area-inset-left));
+    background: var(--auth-background);
+    color: var(--auth-primary-text);
+    font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    max-width: 342px;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    min-height: 56px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.introduction {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 0 16px;
+}
+
+.introduction h1,
+.introduction p {
+    margin: 0;
+}
+
+.introduction h1 {
+    font-size: 26px;
+    font-weight: 650;
+    line-height: 1.25;
+}
+
+.introduction p {
+    color: var(--auth-secondary-text);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.formCard {
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--auth-border);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgb(30 34 41 / 7%);
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field label {
+    color: var(--auth-primary-text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.field input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px;
+    border: 1px solid var(--auth-border);
+    border-radius: 12px;
+    outline: none;
+    background: #fff;
+    color: var(--auth-primary-text);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    transition:
+            border-color 160ms ease-out,
+            box-shadow 160ms ease-out;
+}
+
+.field input::placeholder {
+    color: #7a8793;
+}
+
+.field input:hover {
+    border-color: #9eabb6;
+}
+
+.field input:focus-visible {
+    border-color: var(--auth-primary);
+    box-shadow: 0 0 0 3px rgb(55 111 181 / 16%);
+}
+
+.field input[aria-invalid="true"] {
+    border-color: var(--auth-error);
+}
+
+.helperText,
+.errorText {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.helperText {
+    color: var(--auth-secondary-text);
+}
+
+.errorText {
+    color: var(--auth-error);
+    font-weight: 500;
+}
+
+.termsField {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.termsField label {
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 10px;
+    color: var(--auth-primary-text);
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.termsField input {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    margin: 0;
+    accent-color: var(--auth-primary);
+}
+
+.termsField input:focus-visible {
+    outline: 3px solid var(--auth-primary);
+    outline-offset: 3px;
+}
+
+.submitButton {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 16px;
+    border: 1px solid var(--auth-primary);
+    border-radius: 13px;
+    background: #5d9cec;
+    color: var(--auth-primary-text);
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    transition:
+            background-color 160ms ease-out,
+            box-shadow 160ms ease-out;
+}
+
+.submitButton:hover:not(:disabled) {
+    background: #4b87d1;
+}
+
+.submitButton:active:not(:disabled) {
+    background: var(--auth-primary);
+}
+
+.submitButton:focus-visible {
+    outline: 3px solid var(--auth-primary-text);
+    outline-offset: 3px;
+}
+
+.submitButton:disabled {
+    border-color: #b8c1ca;
+    background: #d6dce2;
+    color: #7a8793;
+    cursor: not-allowed;
+}
+
+.loginPrompt {
+    margin: 16px 0 0;
+    color: var(--auth-secondary-text);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.loginPrompt button {
+    min-height: 44px;
+    padding: 8px 2px;
+    border: 0;
+    background: transparent;
+    color: var(--auth-primary);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+}
+
+.loginPrompt button:hover {
+    text-decoration: underline;
+}
+
+.loginPrompt button:focus-visible {
+    outline: 3px solid var(--auth-primary);
+    outline-offset: 3px;
+}
+
+.decorativeShape {
+    position: absolute;
+    border-radius: 999px;
+    background: var(--auth-primary-soft);
+    pointer-events: none;
+}
+
+.topShape {
+    top: -58px;
+    right: -70px;
+    width: 214px;
+    height: 214px;
+    opacity: 0.86;
+}
+
+.leftShape {
+    top: 38%;
+    left: -42px;
+    width: 92px;
+    height: 92px;
+    opacity: 0.62;
+}
+
+.bottomShape {
+    right: -58px;
+    bottom: -42px;
+    width: 156px;
+    height: 156px;
+    opacity: 0.72;
+}
+
+@media (max-height: 820px) {
+    .screen {
+        overflow-y: auto;
+    }
+
+    .introduction {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .formCard {
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .field {
+        gap: 4px;
+    }
+
+    .field input {
+        min-height: 44px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .field input,
+    .submitButton {
+        transition: none;
+    }
+}

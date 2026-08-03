@@ -52,23 +52,36 @@ const answerableStepIds = new Set<OnboardingStepId>([
 ] as OnboardingStepId[]);
 
 function invalid(
-  code: ValidationErrorCode,
-  message: string,
+    code: ValidationErrorCode,
+    message: string,
 ): ValidationResult {
   return { valid: false, code, message };
 }
 
-function isApprovedOption(stepId: AnswerableOnboardingStepId, value: string) {
+function isApprovedOption(
+    stepId: AnswerableOnboardingStepId,
+    value: string,
+) {
   const options =
-    stepId === returningChoice.id
-      ? returningChoice.options
-      : questionsById[stepId].options;
+      stepId === returningChoice.id
+          ? returningChoice.options
+          : questionsById[stepId].options;
 
   return options.some((option) => option.id === value);
 }
 
+function createRegistrationDestination(
+    destination: OnboardingDestination,
+): string {
+  const searchParams = new URLSearchParams({
+    next: destination,
+  });
+
+  return `/auth/register?${searchParams.toString()}`;
+}
+
 export function getActivePath(
-  answers: OnboardingAnswers,
+    answers: OnboardingAnswers,
 ): readonly OnboardingStepId[] {
   if (answers["previous-exam"] === "previously-taken") {
     return returningPath;
@@ -82,91 +95,114 @@ export function getActivePath(
 }
 
 export function isStepAvailable(
-  stepId: OnboardingStepId,
-  answers: OnboardingAnswers,
+    stepId: OnboardingStepId,
+    answers: OnboardingAnswers,
 ) {
   return getActivePath(answers).includes(stepId);
 }
 
 export function validateAnswer(
-  stepId: AnswerableOnboardingStepId,
-  value: unknown,
-  answers: OnboardingAnswers,
+    stepId: AnswerableOnboardingStepId,
+    value: unknown,
+    answers: OnboardingAnswers,
 ): ValidationResult {
   if (!isStepAvailable(stepId, answers)) {
     return invalid(
-      "step-unavailable",
-      `The ${stepId} step is not available in the active onboarding branch.`,
+        "step-unavailable",
+        `The ${stepId} step is not available in the active onboarding branch.`,
     );
   }
 
   if (stepId === "weak-topics") {
     if (!Array.isArray(value)) {
       return invalid(
-        "exactly-one",
-        "Weak topics must be submitted as a selection list.",
+          "exactly-one",
+          "Weak topics must be submitted as a selection list.",
       );
     }
 
     if (value.length === 0) {
-      return invalid("too-few", "Select at least one weak topic.");
+      return invalid(
+          "too-few",
+          "Select at least one weak topic.",
+      );
     }
 
     if (value.length > 3) {
-      return invalid("too-many", "Select no more than three weak topics.");
+      return invalid(
+          "too-many",
+          "Select no more than three weak topics.",
+      );
     }
 
-    if (value.some((optionId) => typeof optionId !== "string")) {
+    if (
+        value.some(
+            (optionId) => typeof optionId !== "string",
+        )
+    ) {
       return invalid(
-        "unapproved-option",
-        "Weak-topic selections must use approved option IDs.",
+          "unapproved-option",
+          "Weak-topic selections must use approved option IDs.",
       );
     }
 
     if (new Set(value).size !== value.length) {
       return invalid(
-        "duplicate-option",
-        "A weak topic cannot be selected more than once.",
+          "duplicate-option",
+          "A weak topic cannot be selected more than once.",
       );
     }
 
     if (
-      value.some(
-        (optionId) =>
-          !isApprovedOption("weak-topics", optionId as string),
-      )
+        value.some(
+            (optionId) =>
+                !isApprovedOption(
+                    "weak-topics",
+                    optionId as string,
+                ),
+        )
     ) {
       return invalid(
-        "unapproved-option",
-        "One or more weak-topic option IDs are not approved.",
+          "unapproved-option",
+          "One or more weak-topic option IDs are not approved.",
       );
     }
 
-    if (value.includes("unknown") && value.length !== 1) {
+    if (
+        value.includes("unknown") &&
+        value.length !== 1
+    ) {
       return invalid(
-        "exclusive-option",
-        "The unknown weak-topic option must be selected by itself.",
+          "exclusive-option",
+          "The unknown weak-topic option must be selected by itself.",
       );
     }
 
     return { valid: true };
   }
 
-  if (value === undefined || value === null || value === "") {
-    return invalid("required", "Select one approved option.");
+  if (
+      value === undefined ||
+      value === null ||
+      value === ""
+  ) {
+    return invalid(
+        "required",
+        "Select one approved option.",
+    );
   }
 
   if (typeof value !== "string") {
     return invalid(
-      "exactly-one",
-      "Single-choice questions require exactly one option.",
+        "exactly-one",
+        "Single-choice questions require exactly one option.",
     );
   }
 
   if (!isApprovedOption(stepId, value)) {
     return invalid(
-      "unapproved-option",
-      `The option ID is not approved for ${stepId}.`,
+        "unapproved-option",
+        `The option ID is not approved for ${stepId}.`,
     );
   }
 
@@ -174,22 +210,26 @@ export function validateAnswer(
 }
 
 export function validateAnswers(
-  input: Readonly<Record<string, unknown>>,
+    input: Readonly<Record<string, unknown>>,
 ): ValidationResult {
   const answers = input as OnboardingAnswers;
 
   for (const [rawStepId, value] of Object.entries(input)) {
-    if (!answerableStepIds.has(rawStepId as OnboardingStepId)) {
+    if (
+        !answerableStepIds.has(
+            rawStepId as OnboardingStepId,
+        )
+    ) {
       return invalid(
-        "unknown-step",
-        `The onboarding step ID ${rawStepId} is not approved.`,
+          "unknown-step",
+          `The onboarding step ID ${rawStepId} is not approved.`,
       );
     }
 
     const result = validateAnswer(
-      rawStepId as AnswerableOnboardingStepId,
-      value,
-      answers,
+        rawStepId as AnswerableOnboardingStepId,
+        value,
+        answers,
     );
 
     if (!result.valid) {
@@ -202,8 +242,8 @@ export function validateAnswers(
 
 export class OnboardingFlowError extends Error {
   constructor(
-    readonly code: ValidationErrorCode,
-    message: string,
+      readonly code: ValidationErrorCode,
+      message: string,
   ) {
     super(message);
     this.name = "OnboardingFlowError";
@@ -211,27 +251,35 @@ export class OnboardingFlowError extends Error {
 }
 
 function assertCurrentAnswer(
-  stepId: AnswerableOnboardingStepId,
-  answers: OnboardingAnswers,
+    stepId: AnswerableOnboardingStepId,
+    answers: OnboardingAnswers,
 ) {
-  const result = validateAnswer(stepId, answers[stepId], answers);
+  const result = validateAnswer(
+      stepId,
+      answers[stepId],
+      answers,
+  );
 
   if (!result.valid) {
-    throw new OnboardingFlowError(result.code, result.message);
+    throw new OnboardingFlowError(
+        result.code,
+        result.message,
+    );
   }
 }
 
 export function getNextStep(
-  currentStepId: OnboardingStepId,
-  answers: OnboardingAnswers,
+    currentStepId: OnboardingStepId,
+    answers: OnboardingAnswers,
 ): OnboardingStepId | null {
   const activePath = getActivePath(answers);
-  const currentIndex = activePath.indexOf(currentStepId);
+  const currentIndex =
+      activePath.indexOf(currentStepId);
 
   if (currentIndex === -1) {
     throw new OnboardingFlowError(
-      "step-unavailable",
-      `The ${currentStepId} step is not available in the active branch.`,
+        "step-unavailable",
+        `The ${currentStepId} step is not available in the active branch.`,
     );
   }
 
@@ -240,24 +288,25 @@ export function getNextStep(
   }
 
   assertCurrentAnswer(
-    currentStepId as AnswerableOnboardingStepId,
-    answers,
+      currentStepId as AnswerableOnboardingStepId,
+      answers,
   );
 
   return activePath[currentIndex + 1] ?? null;
 }
 
 export function getPreviousStep(
-  currentStepId: OnboardingStepId,
-  answers: OnboardingAnswers,
+    currentStepId: OnboardingStepId,
+    answers: OnboardingAnswers,
 ): OnboardingStepId | null {
   const activePath = getActivePath(answers);
-  const currentIndex = activePath.indexOf(currentStepId);
+  const currentIndex =
+      activePath.indexOf(currentStepId);
 
   if (currentIndex === -1) {
     throw new OnboardingFlowError(
-      "step-unavailable",
-      `The ${currentStepId} step is not available in the active branch.`,
+        "step-unavailable",
+        `The ${currentStepId} step is not available in the active branch.`,
     );
   }
 
@@ -265,23 +314,36 @@ export function getPreviousStep(
 }
 
 export function getCompletionDestination(
-  stepId: "returning-choice" | "first-time-complete",
-  answers: OnboardingAnswers,
-  firstTimeAction: "primary" | "diagnostic" = "primary",
-): OnboardingDestination {
+    stepId:
+        | "returning-choice"
+        | "first-time-complete",
+    answers: OnboardingAnswers,
+    firstTimeAction:
+        | "primary"
+        | "diagnostic" = "primary",
+): string {
   if (stepId === "first-time-complete") {
     if (!isStepAvailable(stepId, answers)) {
       throw new OnboardingFlowError(
-        "step-unavailable",
-        "First-time completion is unavailable in the returning branch.",
+          "step-unavailable",
+          "First-time completion is unavailable in the returning branch.",
       );
     }
 
-    return firstTimeAction === "diagnostic"
-      ? "/diagnostika"
-      : "/yol-xaritasi";
+    const destination: OnboardingDestination =
+        firstTimeAction === "diagnostic"
+            ? "/diagnostika"
+            : "/yol-xaritasi?mode=from-zero&view=full";
+
+    return createRegistrationDestination(destination);
   }
 
   assertCurrentAnswer(stepId, answers);
-  return answers[stepId] === "roadmap" ? "/diagnostika" : "/tests";
+
+  const destination: OnboardingDestination =
+      answers[stepId] === "roadmap"
+          ? "/yol-xaritasi?mode=boost&view=full"
+          : "/tests";
+
+  return createRegistrationDestination(destination);
 }

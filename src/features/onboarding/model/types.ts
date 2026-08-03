@@ -146,6 +146,7 @@ export type ValidationResult =
     };
 
 export type OnboardingDestination =
-  | "/diagnostika"
-  | "/tests"
-  | "/yol-xaritasi";
+    | "/yol-xaritasi?mode=from-zero&view=full"
+    | "/yol-xaritasi?mode=boost&view=full"
+    | "/diagnostika"
+    | "/tests";

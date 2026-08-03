@@ -1,0 +1,961 @@
+.page {
+    position: relative;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    background:
+            linear-gradient(
+                    180deg,
+                    var(--app-background) 0%,
+                    var(--app-subtle) 100%
+            );
+    color: var(--app-text);
+}
+
+.page::before {
+    position: absolute;
+    top: -170px;
+    right: -190px;
+    width: 430px;
+    height: 430px;
+    border-radius: 50%;
+    background:
+            radial-gradient(
+                    circle,
+                    color-mix(
+                            in srgb,
+                            var(--app-primary) 19%,
+                            transparent
+                    ),
+                    transparent 72%
+            );
+    content: "";
+    pointer-events: none;
+    filter: blur(15px);
+}
+
+.content {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 560px);
+    min-height: 100dvh;
+    margin: 0 auto;
+    padding:
+            calc(env(safe-area-inset-top) + 15px)
+            16px
+            calc(env(safe-area-inset-bottom) + 38px);
+}
+
+.topBar {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 11px;
+}
+
+.topBar > button {
+    display: grid;
+    width: 43px;
+    height: 43px;
+    flex: 0 0 43px;
+    place-items: center;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 82%,
+                    transparent
+            );
+    border-radius: 14px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 88%,
+                    transparent
+            );
+    color: var(--app-text);
+    cursor: pointer;
+}
+
+.topBar > button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.topBar > div {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+}
+
+.topBar span {
+    color: var(--app-primary);
+    font-size: 8px;
+    font-weight: 850;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.topBar strong {
+    overflow: hidden;
+    color: var(--app-text);
+    font-size: 15px;
+    font-weight: 850;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.statusGrid {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1.4fr)
+        minmax(0, 1fr);
+    gap: 9px;
+    margin-top: 22px;
+}
+
+.statusGrid article {
+    display: grid;
+    min-height: 92px;
+    align-content: center;
+    padding: 14px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 18px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+}
+
+.statusGrid article:first-child {
+    grid-template-columns:
+        38px
+        minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+}
+
+.statusGrid article:first-child > span {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border-radius: 12px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 13%,
+                    transparent
+            );
+    color: var(--app-primary);
+}
+
+.statusGrid svg {
+    width: 19px;
+    height: 19px;
+}
+
+.statusGrid article > div {
+    display: grid;
+    gap: 4px;
+}
+
+.statusGrid small {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.statusGrid strong {
+    color: var(--app-text);
+    font-size: 23px;
+    font-weight: 880;
+    line-height: 1;
+}
+
+.dangerTime {
+    color: var(--app-error) !important;
+}
+
+.progressSection {
+    margin-top: 13px;
+    padding: 13px 14px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 78%,
+                    transparent
+            );
+    border-radius: 17px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 76%,
+                    transparent
+            );
+}
+
+.progressSection > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--app-text-secondary);
+    font-size: 9px;
+    font-weight: 720;
+}
+
+.progressSection > header strong {
+    color: var(--app-primary);
+}
+
+.progressTrack {
+    height: 7px;
+    margin-top: 9px;
+    overflow: hidden;
+    border-radius: 999px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-border) 65%,
+                    transparent
+            );
+}
+
+.progressTrack > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background:
+            linear-gradient(
+                    90deg,
+                    var(--app-primary),
+                    var(--app-focus)
+            );
+    transition: width 180ms ease;
+}
+
+.questionNavigation {
+    display: grid;
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 16px;
+}
+
+.questionNavigation button {
+    display: grid;
+    min-height: 42px;
+    place-items: center;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 85%,
+                    transparent
+            );
+    border-radius: 12px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 88%,
+                    transparent
+            );
+    color: var(--app-text-secondary);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.questionNavigation .answeredQuestion {
+    border-color:
+            color-mix(
+                    in srgb,
+                    var(--app-success) 35%,
+                    var(--app-border)
+            );
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-success) 10%,
+                    var(--app-surface)
+            );
+    color: var(--app-success);
+}
+
+.questionNavigation .currentQuestion {
+    border-color: var(--app-primary);
+    background: var(--app-primary);
+    color: white;
+}
+
+.questionCard {
+    margin-top: 14px;
+    padding: 16px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 22px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 92%,
+                    transparent
+            );
+    box-shadow:
+            0 14px 34px
+            color-mix(
+                    in srgb,
+                    #000 7%,
+                    transparent
+            );
+}
+
+.questionCard > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.questionCard > header > div {
+    display: grid;
+    gap: 3px;
+}
+
+.questionCard > header span {
+    color: var(--app-primary);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+}
+
+.questionCard > header small {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+.questionCard > header > strong {
+    display: inline-flex;
+    min-height: 27px;
+    align-items: center;
+    padding: 0 9px;
+    border-radius: 999px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 13%,
+                    transparent
+            );
+    color: var(--app-primary);
+    font-size: 9px;
+    font-weight: 850;
+}
+
+.questionCard > h2 {
+    margin: 15px 0 0;
+    color: var(--app-text);
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.45;
+    letter-spacing: -0.015em;
+}
+
+.excerpt,
+.reviewExcerpt {
+    display: grid;
+    gap: 5px;
+    margin: 16px 0 0;
+    padding: 14px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 22%,
+                    var(--app-border)
+            );
+    border-radius: 16px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 6%,
+                    var(--app-surface)
+            );
+    color: var(--app-text);
+    font-family:
+            Georgia,
+            "Times New Roman",
+            serif;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.excerpt span,
+.reviewExcerpt span {
+    display: block;
+}
+
+.reviewExcerpt {
+    margin-top: 11px;
+    font-size: 11px;
+}
+
+.options {
+    display: grid;
+    gap: 9px;
+    margin-top: 17px;
+}
+
+.options > button {
+    display: grid;
+    grid-template-columns:
+        34px
+        minmax(0, 1fr)
+        22px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 62px;
+    padding: 10px 12px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 83%,
+                    transparent
+            );
+    border-radius: 16px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-background) 35%,
+                    transparent
+            );
+    color: var(--app-text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.options > button > span {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 11px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 11%,
+                    transparent
+            );
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.options > button > p {
+    margin: 0;
+    color: inherit;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.options > button > i {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 50%;
+    color: white;
+    font-style: normal;
+}
+
+.options > button > i svg {
+    width: 15px;
+    height: 15px;
+}
+
+.options .selectedOption {
+    border-color: var(--app-primary);
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 10%,
+                    var(--app-surface)
+            );
+}
+
+.options .selectedOption > span,
+.options .selectedOption > i {
+    background: var(--app-primary);
+    color: white;
+}
+
+.navigationActions {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 14px;
+}
+
+.navigationActions button,
+.finishButton {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.navigationActions button:first-child {
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 85%,
+                    transparent
+            );
+    background: transparent;
+    color: var(--app-text);
+}
+
+.navigationActions button:last-child {
+    border: 0;
+    background: var(--app-primary);
+    color: white;
+}
+
+.navigationActions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.navigationActions svg {
+    width: 17px;
+    height: 17px;
+}
+
+.finishButton {
+    width: 100%;
+    margin-top: 9px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-error) 28%,
+                    var(--app-border)
+            );
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-error) 8%,
+                    transparent
+            );
+    color: var(--app-error);
+}
+
+.modalBackdrop {
+    position: fixed;
+    z-index: 120;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background:
+            color-mix(
+                    in srgb,
+                    #000 55%,
+                    transparent
+            );
+    backdrop-filter: blur(6px);
+}
+
+.finishDialog {
+    width: min(100%, 390px);
+    padding: 22px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 23px;
+    background: var(--app-surface);
+    text-align: center;
+}
+
+.dialogIcon {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto;
+    place-items: center;
+    border-radius: 17px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 14%,
+                    transparent
+            );
+    color: var(--app-primary);
+}
+
+.dialogIcon svg {
+    width: 26px;
+    height: 26px;
+}
+
+.finishDialog h2 {
+    margin: 15px 0 0;
+    color: var(--app-text);
+    font-size: 21px;
+    font-weight: 850;
+}
+
+.finishDialog p {
+    margin: 7px 0 0;
+    color: var(--app-text-secondary);
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.dialogActions {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 19px;
+}
+
+.dialogActions button {
+    min-height: 44px;
+    border-radius: 13px;
+    font: inherit;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.dialogActions button:first-child {
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 85%,
+                    transparent
+            );
+    background: transparent;
+    color: var(--app-text);
+}
+
+.dialogActions button:last-child {
+    border: 0;
+    background: var(--app-primary);
+    color: white;
+}
+
+.resultHero {
+    display: grid;
+    justify-items: center;
+    margin-top: 30px;
+    text-align: center;
+}
+
+.resultIcon {
+    display: grid;
+    width: 62px;
+    height: 62px;
+    place-items: center;
+    border-radius: 20px;
+    background:
+            linear-gradient(
+                    145deg,
+                    var(--app-primary),
+                    var(--app-focus)
+            );
+    color: white;
+}
+
+.resultIcon svg {
+    width: 30px;
+    height: 30px;
+}
+
+.resultHero > small {
+    margin-top: 16px;
+    color: var(--app-primary);
+    font-size: 8px;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+}
+
+.resultHero h1 {
+    margin: 8px 0 0;
+    color: var(--app-text);
+    font-size: 32px;
+    font-weight: 880;
+    letter-spacing: -0.04em;
+}
+
+.resultHero > p {
+    margin: 7px 0 0;
+    color: var(--app-text-secondary);
+    font-size: 11px;
+}
+
+.scoreCircle {
+    display: grid;
+    width: 158px;
+    height: 158px;
+    margin-top: 21px;
+    place-items: center;
+    align-content: center;
+    border:
+            10px solid
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 15%,
+                    transparent
+            );
+    border-top-color:
+            var(--app-primary);
+    border-radius: 50%;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+}
+
+.scoreCircle strong {
+    color: var(--app-text);
+    font-size: 45px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.scoreCircle span {
+    margin-top: 5px;
+    color: var(--app-text-secondary);
+    font-size: 9px;
+}
+
+.resultStatistics {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 25px;
+}
+
+.resultStatistics article {
+    display: grid;
+    min-height: 91px;
+    place-items: center;
+    align-content: center;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 17px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+}
+
+.resultStatistics strong {
+    color: var(--app-text);
+    font-size: 24px;
+    font-weight: 870;
+}
+
+.resultStatistics span {
+    margin-top: 3px;
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+.reviewSection {
+    margin-top: 30px;
+}
+
+.reviewSection > h2 {
+    margin: 0 0 14px;
+    color: var(--app-text);
+    font-size: 21px;
+    font-weight: 850;
+}
+
+.reviewList {
+    display: grid;
+    gap: 10px;
+}
+
+.reviewCard {
+    padding: 14px;
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 80%,
+                    transparent
+            );
+    border-radius: 18px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-surface) 90%,
+                    transparent
+            );
+}
+
+.reviewCard > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.reviewCard > header > span {
+    color: var(--app-primary);
+    font-size: 8px;
+    font-weight: 850;
+}
+
+.reviewCard > header > strong {
+    font-size: 9px;
+    font-weight: 850;
+}
+
+.correct {
+    color: var(--app-success);
+}
+
+.incorrect {
+    color: var(--app-error);
+}
+
+.reviewCard h3 {
+    margin: 10px 0 0;
+    color: var(--app-text);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.reviewAnswers {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 12px;
+}
+
+.reviewAnswers p {
+    margin: 0;
+    padding: 9px;
+    border-radius: 11px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-background) 42%,
+                    transparent
+            );
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+.reviewAnswers strong {
+    color: var(--app-text);
+}
+
+.resultActions {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.resultActions button {
+    min-height: 46px;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.resultActions button:first-child {
+    border:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--app-border) 85%,
+                    transparent
+            );
+    background: transparent;
+    color: var(--app-text);
+}
+
+.resultActions button:last-child {
+    border: 0;
+    background: var(--app-primary);
+    color: white;
+}
+
+@media (max-width: 380px) {
+    .content {
+        padding-inline: 13px;
+    }
+
+    .questionCard {
+        padding: 14px;
+    }
+
+    .options > button {
+        grid-template-columns:
+            32px
+            minmax(0, 1fr)
+            20px;
+        padding-inline: 10px;
+    }
+
+    .reviewAnswers {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .progressTrack > span {
+        transition: none;
+    }
+}

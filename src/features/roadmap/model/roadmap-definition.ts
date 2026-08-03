@@ -6,13 +6,17 @@ import type {
   RoadmapStage,
 } from "./types";
 
-type DeepReadonly<Value> = Value extends (...args: never[]) => unknown
-  ? Value
-  : Value extends readonly (infer Item)[]
-    ? readonly DeepReadonly<Item>[]
-    : Value extends object
-      ? { readonly [Key in keyof Value]: DeepReadonly<Value[Key]> }
-      : Value;
+type DeepReadonly<Value> =
+    Value extends (...args: never[]) => unknown
+        ? Value
+        : Value extends readonly (infer Item)[]
+            ? readonly DeepReadonly<Item>[]
+            : Value extends object
+                ? {
+                  readonly [Key in keyof Value]:
+                  DeepReadonly<Value[Key]>;
+                }
+                : Value;
 
 interface RoadmapNodeCandidate {
   readonly id: string;
@@ -25,35 +29,51 @@ interface RoadmapDependencyCandidate {
 }
 
 export interface RoadmapDefinitionCandidate {
-  readonly nodes: readonly RoadmapNodeCandidate[];
-  readonly dependencies: readonly RoadmapDependencyCandidate[];
+  readonly nodes:
+      readonly RoadmapNodeCandidate[];
+  readonly dependencies:
+      readonly RoadmapDependencyCandidate[];
 }
 
 export type RoadmapValidationIssue =
-  | {
-      readonly code: "duplicate-node-id";
-      readonly nodeId: string;
-    }
-  | {
-      readonly code: "missing-dependency-id";
-      readonly nodeId: string;
-    }
-  | {
-      readonly code: "self-dependency";
-      readonly nodeId: string;
-    }
-  | {
-      readonly code: "dependency-cycle";
-    }
-  | {
-      readonly code: "incorrect-node-order";
-      readonly nodeId: string;
-      readonly prerequisiteId?: string;
-    };
+    | {
+  readonly code:
+      "duplicate-node-id";
+  readonly nodeId: string;
+}
+    | {
+  readonly code:
+      "missing-dependency-id";
+  readonly nodeId: string;
+}
+    | {
+  readonly code:
+      "self-dependency";
+  readonly nodeId: string;
+}
+    | {
+  readonly code:
+      "dependency-cycle";
+}
+    | {
+  readonly code:
+      "incorrect-node-order";
+  readonly nodeId: string;
+  readonly prerequisiteId?: string;
+};
 
-function deepFreeze<Value>(value: Value): DeepReadonly<Value> {
-  if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {
-    for (const nestedValue of Object.values(value)) {
+function deepFreeze<Value>(
+    value: Value,
+): DeepReadonly<Value> {
+  if (
+      value !== null &&
+      typeof value === "object" &&
+      !Object.isFrozen(value)
+  ) {
+    for (
+        const nestedValue of
+        Object.values(value)
+        ) {
       deepFreeze(nestedValue);
     }
 
@@ -63,31 +83,52 @@ function deepFreeze<Value>(value: Value): DeepReadonly<Value> {
   return value as DeepReadonly<Value>;
 }
 
-export const fromZeroNodeIds = deepFreeze([
-  "phonetics",
-  "morphemics",
-  "morphology",
-  "syntax",
-  "stylistics",
-  "scientific-text",
-  "literary-text",
-  "ghazal",
-  "essay-writing",
-  "topic-quizzes",
-  "mixed-practice",
-  "error-review",
-  "full-trial-exam",
-  "exam-error-analysis",
-  "weak-area-improvement",
-  "essay-check",
-  "final-full-trial-exam",
-] as const satisfies readonly RoadmapNodeId[]);
+export const fromZeroNodeIds =
+    deepFreeze([
+      "spelling",
+      "morphemics",
+      "morphology",
+      "syntax",
+      "stylistics",
+      "scientific-text",
+      "literary-text",
+      "ghazal",
+      "essay-writing",
+      "topic-quizzes",
+      "mixed-practice",
+      "error-review",
+      "full-trial-exam",
+      "exam-error-analysis",
+      "weak-area-improvement",
+      "essay-check",
+      "final-full-trial-exam",
+    ] as const satisfies readonly RoadmapNodeId[]);
 
 const nodes = [
-  { id: "phonetics", label: "Fonetika", order: 1, stageId: "foundation" },
-  { id: "morphemics", label: "Morfemika", order: 2, stageId: "foundation" },
-  { id: "morphology", label: "Morfologiya", order: 3, stageId: "grammar" },
-  { id: "syntax", label: "Sintaksis", order: 4, stageId: "grammar" },
+  {
+    id: "spelling",
+    label: "Imlo",
+    order: 1,
+    stageId: "foundation",
+  },
+  {
+    id: "morphemics",
+    label: "Morfemika",
+    order: 2,
+    stageId: "foundation",
+  },
+  {
+    id: "morphology",
+    label: "Morfologiya",
+    order: 3,
+    stageId: "grammar",
+  },
+  {
+    id: "syntax",
+    label: "Sintaksis",
+    order: 4,
+    stageId: "grammar",
+  },
   {
     id: "stylistics",
     label: "Uslubiyat",
@@ -150,7 +191,8 @@ const nodes = [
   },
   {
     id: "weak-area-improvement",
-    label: "Zaif mavzu va ko‘nikmalar ustida ishlash",
+    label:
+        "Zaif mavzu va ko‘nikmalar ustida ishlash",
     order: 15,
     stageId: "exam-preparation",
   },
@@ -162,7 +204,8 @@ const nodes = [
   },
   {
     id: "final-full-trial-exam",
-    label: "Yakuniy to‘liq sinov imtihoni",
+    label:
+        "Yakuniy to‘liq sinov imtihoni",
     order: 17,
     stageId: "exam-preparation",
   },
@@ -173,19 +216,29 @@ const stages = [
     id: "foundation",
     label: "Poydevor",
     order: 1,
-    nodeIds: ["phonetics", "morphemics"],
+    nodeIds: [
+      "spelling",
+      "morphemics",
+    ],
   },
   {
     id: "grammar",
     label: "Grammatika",
     order: 2,
-    nodeIds: ["morphology", "syntax"],
+    nodeIds: [
+      "morphology",
+      "syntax",
+    ],
   },
   {
     id: "text-and-style",
     label: "Matn va uslub",
     order: 3,
-    nodeIds: ["stylistics", "scientific-text", "literary-text"],
+    nodeIds: [
+      "stylistics",
+      "scientific-text",
+      "literary-text",
+    ],
   },
   {
     id: "literary-analysis",
@@ -203,7 +256,11 @@ const stages = [
     id: "reinforcement",
     label: "Mustahkamlash",
     order: 6,
-    nodeIds: ["topic-quizzes", "mixed-practice", "error-review"],
+    nodeIds: [
+      "topic-quizzes",
+      "mixed-practice",
+      "error-review",
+    ],
   },
   {
     id: "exam-preparation",
@@ -220,45 +277,112 @@ const stages = [
 ] as const satisfies readonly RoadmapStage[];
 
 const dependencies = [
-  { nodeId: "morphemics", prerequisiteId: "phonetics" },
-  { nodeId: "morphology", prerequisiteId: "morphemics" },
-  { nodeId: "syntax", prerequisiteId: "morphology" },
-  { nodeId: "stylistics", prerequisiteId: "syntax" },
-  { nodeId: "scientific-text", prerequisiteId: "stylistics" },
-  { nodeId: "literary-text", prerequisiteId: "stylistics" },
-  { nodeId: "ghazal", prerequisiteId: "syntax" },
-  { nodeId: "essay-writing", prerequisiteId: "syntax" },
-  { nodeId: "essay-writing", prerequisiteId: "stylistics" },
-  { nodeId: "topic-quizzes", prerequisiteId: "scientific-text" },
-  { nodeId: "topic-quizzes", prerequisiteId: "literary-text" },
-  { nodeId: "topic-quizzes", prerequisiteId: "ghazal" },
-  { nodeId: "topic-quizzes", prerequisiteId: "essay-writing" },
-  { nodeId: "mixed-practice", prerequisiteId: "topic-quizzes" },
-  { nodeId: "error-review", prerequisiteId: "mixed-practice" },
-  { nodeId: "full-trial-exam", prerequisiteId: "error-review" },
-  { nodeId: "exam-error-analysis", prerequisiteId: "full-trial-exam" },
   {
-    nodeId: "weak-area-improvement",
-    prerequisiteId: "exam-error-analysis",
+    nodeId: "morphemics",
+    prerequisiteId: "spelling",
   },
-  { nodeId: "essay-check", prerequisiteId: "weak-area-improvement" },
-  { nodeId: "final-full-trial-exam", prerequisiteId: "essay-check" },
+  {
+    nodeId: "morphology",
+    prerequisiteId: "morphemics",
+  },
+  {
+    nodeId: "syntax",
+    prerequisiteId: "morphology",
+  },
+  {
+    nodeId: "stylistics",
+    prerequisiteId: "syntax",
+  },
+  {
+    nodeId: "scientific-text",
+    prerequisiteId: "stylistics",
+  },
+  {
+    nodeId: "literary-text",
+    prerequisiteId: "stylistics",
+  },
+  {
+    nodeId: "ghazal",
+    prerequisiteId: "syntax",
+  },
+  {
+    nodeId: "essay-writing",
+    prerequisiteId: "syntax",
+  },
+  {
+    nodeId: "essay-writing",
+    prerequisiteId: "stylistics",
+  },
+  {
+    nodeId: "topic-quizzes",
+    prerequisiteId: "scientific-text",
+  },
+  {
+    nodeId: "topic-quizzes",
+    prerequisiteId: "literary-text",
+  },
+  {
+    nodeId: "topic-quizzes",
+    prerequisiteId: "ghazal",
+  },
+  {
+    nodeId: "topic-quizzes",
+    prerequisiteId: "essay-writing",
+  },
+  {
+    nodeId: "mixed-practice",
+    prerequisiteId: "topic-quizzes",
+  },
+  {
+    nodeId: "error-review",
+    prerequisiteId: "mixed-practice",
+  },
+  {
+    nodeId: "full-trial-exam",
+    prerequisiteId: "error-review",
+  },
+  {
+    nodeId: "exam-error-analysis",
+    prerequisiteId:
+        "full-trial-exam",
+  },
+  {
+    nodeId:
+        "weak-area-improvement",
+    prerequisiteId:
+        "exam-error-analysis",
+  },
+  {
+    nodeId: "essay-check",
+    prerequisiteId:
+        "weak-area-improvement",
+  },
+  {
+    nodeId:
+        "final-full-trial-exam",
+    prerequisiteId: "essay-check",
+  },
 ] as const satisfies readonly RoadmapDependency[];
 
-export const fromZeroRoadmapDefinition = deepFreeze({
-  mode: "from-zero",
-  nodes,
-  stages,
-  dependencies,
-} satisfies RoadmapDefinition);
+export const fromZeroRoadmapDefinition =
+    deepFreeze({
+      mode: "from-zero",
+      nodes,
+      stages,
+      dependencies,
+    } satisfies RoadmapDefinition);
 
 export function findDuplicateNodeIds(
-  nodesToValidate: readonly RoadmapNodeCandidate[],
+    nodesToValidate:
+    readonly RoadmapNodeCandidate[],
 ): readonly string[] {
   const seen = new Set<string>();
-  const duplicates = new Set<string>();
+  const duplicates =
+      new Set<string>();
 
-  for (const node of nodesToValidate) {
+  for (
+      const node of nodesToValidate
+      ) {
     if (seen.has(node.id)) {
       duplicates.add(node.id);
     }
@@ -270,18 +394,40 @@ export function findDuplicateNodeIds(
 }
 
 export function findMissingDependencyIds(
-  definition: RoadmapDefinitionCandidate,
+    definition:
+    RoadmapDefinitionCandidate,
 ): readonly string[] {
-  const nodeIds = new Set(definition.nodes.map((node) => node.id));
-  const missingIds = new Set<string>();
+  const nodeIds = new Set(
+      definition.nodes.map(
+          (node) => node.id,
+      ),
+  );
 
-  for (const dependency of definition.dependencies) {
-    if (!nodeIds.has(dependency.nodeId)) {
-      missingIds.add(dependency.nodeId);
+  const missingIds =
+      new Set<string>();
+
+  for (
+      const dependency of
+      definition.dependencies
+      ) {
+    if (
+        !nodeIds.has(
+            dependency.nodeId,
+        )
+    ) {
+      missingIds.add(
+          dependency.nodeId,
+      );
     }
 
-    if (!nodeIds.has(dependency.prerequisiteId)) {
-      missingIds.add(dependency.prerequisiteId);
+    if (
+        !nodeIds.has(
+            dependency.prerequisiteId,
+        )
+    ) {
+      missingIds.add(
+          dependency.prerequisiteId,
+      );
     }
   }
 
@@ -289,37 +435,67 @@ export function findMissingDependencyIds(
 }
 
 export function findSelfDependencies(
-  dependenciesToValidate: readonly RoadmapDependencyCandidate[],
+    dependenciesToValidate:
+    readonly RoadmapDependencyCandidate[],
 ): readonly RoadmapDependencyCandidate[] {
   return dependenciesToValidate.filter(
-    (dependency) => dependency.nodeId === dependency.prerequisiteId,
+      (dependency) =>
+          dependency.nodeId ===
+          dependency.prerequisiteId,
   );
 }
 
 export function hasDependencyCycle(
-  definition: RoadmapDefinitionCandidate,
+    definition:
+    RoadmapDefinitionCandidate,
 ): boolean {
-  const nodeIds = new Set(definition.nodes.map((node) => node.id));
-  const dependentsByPrerequisite = new Map<string, string[]>();
+  const nodeIds = new Set(
+      definition.nodes.map(
+          (node) => node.id,
+      ),
+  );
 
-  for (const dependency of definition.dependencies) {
+  const dependentsByPrerequisite =
+      new Map<string, string[]>();
+
+  for (
+      const dependency of
+      definition.dependencies
+      ) {
     if (
-      !nodeIds.has(dependency.nodeId) ||
-      !nodeIds.has(dependency.prerequisiteId)
+        !nodeIds.has(
+            dependency.nodeId,
+        ) ||
+        !nodeIds.has(
+            dependency.prerequisiteId,
+        )
     ) {
       continue;
     }
 
     const dependents =
-      dependentsByPrerequisite.get(dependency.prerequisiteId) ?? [];
-    dependents.push(dependency.nodeId);
-    dependentsByPrerequisite.set(dependency.prerequisiteId, dependents);
+        dependentsByPrerequisite.get(
+            dependency.prerequisiteId,
+        ) ?? [];
+
+    dependents.push(
+        dependency.nodeId,
+    );
+
+    dependentsByPrerequisite.set(
+        dependency.prerequisiteId,
+        dependents,
+    );
   }
 
-  const visiting = new Set<string>();
-  const visited = new Set<string>();
+  const visiting =
+      new Set<string>();
+  const visited =
+      new Set<string>();
 
-  function visit(nodeId: string): boolean {
+  function visit(
+      nodeId: string,
+  ): boolean {
     if (visiting.has(nodeId)) {
       return true;
     }
@@ -330,7 +506,12 @@ export function hasDependencyCycle(
 
     visiting.add(nodeId);
 
-    for (const dependentId of dependentsByPrerequisite.get(nodeId) ?? []) {
+    for (
+        const dependentId of
+    dependentsByPrerequisite.get(
+        nodeId,
+    ) ?? []
+        ) {
       if (visit(dependentId)) {
         return true;
       }
@@ -338,42 +519,72 @@ export function hasDependencyCycle(
 
     visiting.delete(nodeId);
     visited.add(nodeId);
+
     return false;
   }
 
-  return definition.nodes.some((node) => visit(node.id));
+  return definition.nodes.some(
+      (node) => visit(node.id),
+  );
 }
 
 export function findIncorrectNodeOrder(
-  definition: RoadmapDefinitionCandidate,
+    definition:
+    RoadmapDefinitionCandidate,
 ): readonly RoadmapValidationIssue[] {
-  const issues: RoadmapValidationIssue[] = [];
+  const issues:
+      RoadmapValidationIssue[] = [];
+
   const indexByNodeId = new Map(
-    definition.nodes.map((node, index) => [node.id, index]),
+      definition.nodes.map(
+          (node, index) => [
+            node.id,
+            index,
+          ],
+      ),
   );
 
-  definition.nodes.forEach((node, index) => {
-    if (node.order !== index + 1) {
-      issues.push({
-        code: "incorrect-node-order",
-        nodeId: node.id,
-      });
-    }
-  });
+  definition.nodes.forEach(
+      (node, index) => {
+        if (
+            node.order !== index + 1
+        ) {
+          issues.push({
+            code:
+                "incorrect-node-order",
+            nodeId: node.id,
+          });
+        }
+      },
+  );
 
-  for (const dependency of definition.dependencies) {
-    const nodeIndex = indexByNodeId.get(dependency.nodeId);
-    const prerequisiteIndex = indexByNodeId.get(dependency.prerequisiteId);
+  for (
+      const dependency of
+      definition.dependencies
+      ) {
+    const nodeIndex =
+        indexByNodeId.get(
+            dependency.nodeId,
+        );
+
+    const prerequisiteIndex =
+        indexByNodeId.get(
+            dependency.prerequisiteId,
+        );
 
     if (
-      nodeIndex !== undefined &&
-      prerequisiteIndex !== undefined &&
-      prerequisiteIndex >= nodeIndex
+        nodeIndex !== undefined &&
+        prerequisiteIndex !==
+        undefined &&
+        prerequisiteIndex >= nodeIndex
     ) {
       issues.push({
-        code: "incorrect-node-order",
-        nodeId: dependency.nodeId,
-        prerequisiteId: dependency.prerequisiteId,
+        code:
+            "incorrect-node-order",
+        nodeId:
+        dependency.nodeId,
+        prerequisiteId:
+        dependency.prerequisiteId,
       });
     }
   }
@@ -382,27 +593,62 @@ export function findIncorrectNodeOrder(
 }
 
 export function validateRoadmapDefinition(
-  definition: RoadmapDefinitionCandidate,
+    definition:
+    RoadmapDefinitionCandidate,
 ): readonly RoadmapValidationIssue[] {
-  const issues: RoadmapValidationIssue[] = [];
+  const issues:
+      RoadmapValidationIssue[] = [];
 
-  for (const nodeId of findDuplicateNodeIds(definition.nodes)) {
-    issues.push({ code: "duplicate-node-id", nodeId });
+  for (
+      const nodeId of
+      findDuplicateNodeIds(
+          definition.nodes,
+      )
+      ) {
+    issues.push({
+      code: "duplicate-node-id",
+      nodeId,
+    });
   }
 
-  for (const nodeId of findMissingDependencyIds(definition)) {
-    issues.push({ code: "missing-dependency-id", nodeId });
+  for (
+      const nodeId of
+      findMissingDependencyIds(
+          definition,
+      )
+      ) {
+    issues.push({
+      code:
+          "missing-dependency-id",
+      nodeId,
+    });
   }
 
-  for (const dependency of findSelfDependencies(definition.dependencies)) {
-    issues.push({ code: "self-dependency", nodeId: dependency.nodeId });
+  for (
+      const dependency of
+      findSelfDependencies(
+          definition.dependencies,
+      )
+      ) {
+    issues.push({
+      code: "self-dependency",
+      nodeId: dependency.nodeId,
+    });
   }
 
-  if (hasDependencyCycle(definition)) {
-    issues.push({ code: "dependency-cycle" });
+  if (
+      hasDependencyCycle(definition)
+  ) {
+    issues.push({
+      code: "dependency-cycle",
+    });
   }
 
-  issues.push(...findIncorrectNodeOrder(definition));
+  issues.push(
+      ...findIncorrectNodeOrder(
+          definition,
+      ),
+  );
 
   return issues;
 }

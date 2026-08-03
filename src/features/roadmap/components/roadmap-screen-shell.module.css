@@ -1,7 +1,7 @@
 .screen {
-  --roadmap-background: #f4f7f5;
-  --roadmap-primary-soft: #e8f1fc;
-  --roadmap-primary-text: #1e2229;
+  --roadmap-background: var(--app-background);
+  --roadmap-primary-soft: var(--app-primary-soft);
+  --roadmap-primary-text: var(--app-text);
 
   position: relative;
   box-sizing: border-box;
@@ -11,10 +11,10 @@
   justify-content: center;
   overflow: hidden;
   padding:
-    calc(20px + env(safe-area-inset-top))
-    max(24px, env(safe-area-inset-right))
-    0
-    max(24px, env(safe-area-inset-left));
+          calc(20px + env(safe-area-inset-top))
+          max(24px, env(safe-area-inset-right))
+          0
+          max(24px, env(safe-area-inset-left));
   background: var(--roadmap-background);
   color: var(--roadmap-primary-text);
   font-family: Inter, "Segoe UI", sans-serif;
@@ -39,6 +39,15 @@
   align-items: flex-start;
   gap: 18px;
   padding-bottom: 18px;
+}
+
+
+.headerTop {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .header h1 {
@@ -105,11 +114,64 @@
     padding-bottom: 14px;
   }
 
+
+  .headerTop {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
   .header h1 {
     font-size: 24px;
   }
 
   .scrollRegion {
     padding-top: 16px;
+  }
+}
+
+
+.screen,
+.stickyFooter,
+.header h1,
+.decorativeShape {
+  transition:
+          background-color 180ms ease,
+          color 180ms ease,
+          border-color 180ms ease,
+          opacity 180ms ease;
+}
+
+:global(html[data-theme="dark"]) .screen {
+  background:
+          radial-gradient(
+                  circle at 100% 0,
+                  rgb(93 156 236 / 8%),
+                  transparent 28%
+          ),
+          var(--app-background);
+}
+
+:global(html[data-theme="dark"]) .stickyFooter {
+  background:
+          linear-gradient(
+                  180deg,
+                  rgb(26 37 44 / 0%),
+                  var(--app-background) 24%
+          );
+}
+
+:global(html[data-theme="dark"]) .decorativeShape {
+  opacity: 0.34;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen,
+  .stickyFooter,
+  .header h1,
+  .decorativeShape {
+    transition: none;
   }
 }
