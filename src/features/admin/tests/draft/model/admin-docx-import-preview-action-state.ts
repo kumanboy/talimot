@@ -25,6 +25,15 @@ export interface AdminDocxImportPreviewSummary {
 import type {
     AdminStandardMcqParseResult,
 } from "./admin-docx-parser-types";
+import type {
+    AdminPassageDocxParseResult,
+} from "./admin-passage-docx-parser-types";
+import type {
+    AdminGhazalDocxParseResult,
+} from "./admin-ghazal-docx-parser-types";
+import type {
+    AdminLiteraryWorksDocxParseResult,
+} from "./admin-literary-works-docx-parser-types";
 
 export interface AdminDocxImportPreviewActionState {
     readonly status:
@@ -47,6 +56,12 @@ export interface AdminDocxImportPreviewActionState {
         readonly string[];
     readonly parsedMcq:
         AdminStandardMcqParseResult | null;
+    readonly parsedPassage:
+        AdminPassageDocxParseResult | null;
+    readonly parsedGhazal:
+        AdminGhazalDocxParseResult | null;
+    readonly parsedLiteraryWorks:
+        AdminLiteraryWorksDocxParseResult | null;
 }
 
 export const initialAdminDocxImportPreviewActionState:
@@ -68,5 +83,11 @@ export const initialAdminDocxImportPreviewActionState:
         warnings:
             [],
         parsedMcq:
+            null,
+        parsedPassage:
+            null,
+        parsedGhazal:
+            null,
+        parsedLiteraryWorks:
             null,
     };

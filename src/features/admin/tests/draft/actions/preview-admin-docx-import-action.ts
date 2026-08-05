@@ -16,6 +16,15 @@ import type {
 import {
     parseStandardMcqDocument,
 } from "@/features/admin/tests/draft/model/admin-standard-mcq-parser";
+import {
+    parsePassageDocxDocument,
+} from "@/features/admin/tests/draft/model/admin-passage-docx-parser";
+import {
+    parseGhazalDocxDocument,
+} from "@/features/admin/tests/draft/model/admin-ghazal-docx-parser";
+import {
+    parseLiteraryWorksDocxDocument,
+} from "@/features/admin/tests/draft/model/admin-literary-works-docx-parser";
 
 const maximumDocxBytes =
     10 * 1024 * 1024;
@@ -412,6 +421,35 @@ export async function previewAdminDocxImportAction(
                     "table-row",
             ).length;
 
+        const parsedLiteraryWorks =
+            parseLiteraryWorksDocxDocument(
+                rawTextResult.value,
+            );
+
+        const parsedGhazal =
+            parsedLiteraryWorks
+                ? null
+                : parseGhazalDocxDocument(
+                    rawTextResult.value,
+                );
+
+        const parsedPassage =
+            parsedLiteraryWorks ||
+            parsedGhazal
+                ? null
+                : parsePassageDocxDocument(
+                    rawTextResult.value,
+                );
+
+        const parsedMcq =
+            parsedLiteraryWorks ||
+            parsedGhazal ||
+            parsedPassage
+                ? null
+                : parseStandardMcqDocument(
+                    rawTextResult.value,
+                );
+
         return {
             status:
                 "success",
@@ -443,10 +481,10 @@ export async function previewAdminDocxImportAction(
                     )
                     .trim(),
             warnings,
-            parsedMcq:
-                parseStandardMcqDocument(
-                    rawTextResult.value,
-                ),
+            parsedMcq,
+            parsedPassage,
+            parsedGhazal,
+            parsedLiteraryWorks,
         };
     } catch (error) {
         console.error(
@@ -471,6 +509,12 @@ export async function previewAdminDocxImportAction(
             warnings:
                 [],
             parsedMcq:
+                null,
+            parsedPassage:
+                null,
+            parsedGhazal:
+                null,
+            parsedLiteraryWorks:
                 null,
         };
     }

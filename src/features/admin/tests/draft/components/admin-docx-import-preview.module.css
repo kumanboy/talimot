@@ -509,3 +509,743 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+.importToolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--app-border);
+    background: color-mix(
+        in srgb,
+        var(--app-primary) 5%,
+        var(--app-surface)
+    );
+}
+
+.importToolbar strong,
+.importToolbar span {
+    display: block;
+}
+
+.importToolbar strong {
+    color: var(--app-text);
+    font-size: 13px;
+}
+
+.importToolbar span {
+    margin-top: 4px;
+    color: var(--app-text-muted);
+    font-size: 11px;
+}
+
+.importToolbarActions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.importButton,
+.secondaryImportButton {
+    min-height: 38px;
+    border-radius: 11px;
+    padding: 0 13px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 850;
+}
+
+.importButton {
+    border: 0;
+    background: var(--app-primary);
+    color: #fff;
+}
+
+.importButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.secondaryImportButton {
+    border: 1px solid var(--app-border);
+    background: var(--app-surface);
+    color: var(--app-text);
+}
+
+.questionSelection {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.questionSelection > input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--app-primary);
+}
+
+.answerReview {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--app-border);
+}
+
+.answerReview label {
+    display: grid;
+    gap: 5px;
+}
+
+.answerReview label > span {
+    color: var(--app-text);
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.answerReview select {
+    min-width: 145px;
+    min-height: 38px;
+    border: 1px solid var(--app-border);
+    border-radius: 10px;
+    padding: 0 10px;
+    background: var(--app-background);
+    color: var(--app-text);
+    font: inherit;
+}
+
+.answerReview > span {
+    color: var(--app-text-muted);
+    font-size: 11px;
+    text-align: right;
+}
+
+@media (max-width: 850px) {
+    .importToolbar,
+    .answerReview {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .importToolbarActions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .importToolbarActions button {
+        width: 100%;
+    }
+
+    .answerReview > span {
+        text-align: left;
+    }
+}
+
+
+.passageParserSection {
+    margin-top: 18px;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: var(--app-background);
+}
+
+.passageParserHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 17px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.passageParserHeader span:first-child {
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+}
+
+.passageParserHeader h3 {
+    margin: 6px 0 0;
+    color: var(--app-text);
+    font-size: 17px;
+}
+
+.passageParserHeader p {
+    margin: 6px 0 0;
+    color: var(--app-text-muted);
+    font-size: 12px;
+}
+
+.passageConfidence {
+    display: grid;
+    min-width: 58px;
+    min-height: 34px;
+    place-items: center;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.passageConfidence_high {
+    background: rgba(22, 163, 74, 0.1);
+    color: #15803d;
+}
+
+.passageConfidence_review {
+    background: rgba(217, 119, 6, 0.1);
+    color: #a16207;
+}
+
+.passageConfidence_invalid {
+    background: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+}
+
+.passageMetaGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px;
+}
+
+.passageMetaGrid article {
+    padding: 12px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: var(--app-surface);
+}
+
+.passageMetaGrid span,
+.passageMetaGrid strong {
+    display: block;
+}
+
+.passageMetaGrid span {
+    color: var(--app-text-muted);
+    font-size: 9px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.passageMetaGrid strong {
+    margin-top: 5px;
+    overflow-wrap: anywhere;
+    color: var(--app-text);
+}
+
+.passagePreviewGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    gap: 12px;
+    padding: 0 14px 14px;
+}
+
+.passageBlockList,
+.passageQuestionList {
+    max-height: 510px;
+    overflow: auto;
+    border: 1px solid var(--app-border);
+    border-radius: 13px;
+    background: var(--app-surface);
+}
+
+.passageBlockList h4,
+.passageQuestionList h4 {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--app-border);
+    background: var(--app-surface);
+    color: var(--app-text);
+    font-size: 12px;
+}
+
+.passageBlockList article {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 10px;
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.passageBlockList article > div strong,
+.passageBlockList article > div span {
+    display: block;
+}
+
+.passageBlockList article > div strong {
+    color: var(--app-primary);
+}
+
+.passageBlockList article > div span {
+    margin-top: 3px;
+    color: var(--app-text-muted);
+    font-size: 9px;
+}
+
+.passageBlockList p {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.passageQuestionList article {
+    display: grid;
+    gap: 5px;
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.passageQuestionList article strong {
+    color: var(--app-text);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.passageQuestionList article span {
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.passageIssues {
+    margin: 0 14px 14px;
+    padding: 12px 14px 12px 32px;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    border-radius: 12px;
+    color: #a16207;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.passageNextStep {
+    margin: 0;
+    padding: 12px 14px;
+    border-top: 1px solid var(--app-border);
+    color: var(--app-text-muted);
+    font-size: 11px;
+}
+
+@media (max-width: 900px) {
+    .passageMetaGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .passagePreviewGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.passageImportBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px;
+    border-top: 1px solid var(--app-border);
+    background: color-mix(
+        in srgb,
+        var(--app-primary) 5%,
+        var(--app-surface)
+    );
+}
+
+.passageImportBar strong,
+.passageImportBar span {
+    display: block;
+}
+
+.passageImportBar strong {
+    color: var(--app-text);
+    font-size: 13px;
+}
+
+.passageImportBar span {
+    max-width: 650px;
+    margin-top: 4px;
+    color: var(--app-text-muted);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.passageImportBar button {
+    min-height: 42px;
+    border: 0;
+    border-radius: 12px;
+    padding: 0 15px;
+    background: var(--app-primary);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.passageImportBar button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+@media (max-width: 850px) {
+    .passageImportBar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .passageImportBar button {
+        width: 100%;
+        white-space: normal;
+    }
+}
+
+
+.ghazalParserSection {
+    margin-top: 18px;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: var(--app-background);
+}
+
+.ghazalParserHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 17px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.ghazalParserHeader > div > span {
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+}
+
+.ghazalParserHeader h3 {
+    margin: 6px 0 0;
+    color: var(--app-text);
+    font-size: 17px;
+}
+
+.ghazalParserHeader p {
+    margin: 6px 0 0;
+    color: var(--app-text-muted);
+    font-size: 12px;
+}
+
+.ghazalMetaGrid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px;
+}
+
+.ghazalMetaGrid article {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: var(--app-surface);
+}
+
+.ghazalMetaGrid span,
+.ghazalMetaGrid strong {
+    display: block;
+}
+
+.ghazalMetaGrid span {
+    color: var(--app-text-muted);
+    font-size: 9px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.ghazalMetaGrid strong {
+    margin-top: 5px;
+    overflow-wrap: anywhere;
+    color: var(--app-text);
+    font-size: 12px;
+}
+
+.ghazalPreviewGrid {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1.15fr)
+        minmax(230px, 0.65fr)
+        minmax(260px, 0.8fr);
+    gap: 12px;
+    padding: 0 14px 14px;
+}
+
+.ghazalCoupletList,
+.ghazalVocabularyList,
+.ghazalQuestionList {
+    max-height: 520px;
+    overflow: auto;
+    border: 1px solid var(--app-border);
+    border-radius: 13px;
+    background: var(--app-surface);
+}
+
+.ghazalCoupletList h4,
+.ghazalVocabularyList h4,
+.ghazalQuestionList h4 {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    margin: 0;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--app-border);
+    background: var(--app-surface);
+    color: var(--app-text);
+    font-size: 12px;
+}
+
+.ghazalCoupletList article,
+.ghazalVocabularyList article {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 10px;
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.ghazalCoupletList article > strong,
+.ghazalVocabularyList article > strong {
+    color: var(--app-primary);
+}
+
+.ghazalCoupletList p,
+.ghazalVocabularyList p {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+.ghazalQuestionList article {
+    display: grid;
+    gap: 5px;
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.ghazalQuestionList article strong {
+    color: var(--app-text);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.ghazalQuestionList article span {
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 850;
+}
+
+@media (max-width: 1150px) {
+    .ghazalMetaGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ghazalPreviewGrid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ghazalQuestionList {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 760px) {
+    .ghazalParserHeader {
+        flex-direction: column;
+    }
+
+    .ghazalMetaGrid,
+    .ghazalPreviewGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .ghazalQuestionList {
+        grid-column: auto;
+    }
+}
+
+
+.literaryWorksParserSection {
+    margin-top: 18px;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: var(--app-background);
+}
+
+.literaryWorksParserHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 17px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.literaryWorksParserHeader > div > span {
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+}
+
+.literaryWorksParserHeader h3 {
+    margin: 6px 0 0;
+    color: var(--app-text);
+    font-size: 17px;
+}
+
+.literaryWorksParserHeader p {
+    margin: 6px 0 0;
+    color: var(--app-text-muted);
+    font-size: 12px;
+}
+
+.literaryWorksMetaGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px;
+}
+
+.literaryWorksMetaGrid article {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: var(--app-surface);
+}
+
+.literaryWorksMetaGrid span,
+.literaryWorksMetaGrid strong {
+    display: block;
+}
+
+.literaryWorksMetaGrid span {
+    color: var(--app-text-muted);
+    font-size: 9px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.literaryWorksMetaGrid strong {
+    margin-top: 5px;
+    overflow-wrap: anywhere;
+    color: var(--app-text);
+}
+
+.literaryWorksQuestionList {
+    display: grid;
+    gap: 12px;
+    max-height: 760px;
+    overflow: auto;
+    padding: 0 14px 14px;
+}
+
+.literaryWorksQuestionCard {
+    padding: 15px;
+    border: 1px solid var(--app-border);
+    border-left-width: 5px;
+    border-radius: 14px;
+    background: var(--app-surface);
+}
+
+.literaryWorksQuestionTop {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.literaryWorksQuestionTop strong {
+    color: var(--app-text);
+}
+
+.literaryWorksQuestionTop span {
+    color: var(--app-primary);
+    font-size: 11px;
+    font-weight: 850;
+}
+
+.literaryWorksPrompt,
+.literaryWorksQuestion {
+    color: var(--app-text);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.literaryWorksPrompt {
+    margin: 12px 0 0;
+    color: var(--app-text-muted);
+}
+
+.literaryWorksQuestion {
+    margin: 12px 0;
+    font-weight: 750;
+}
+
+.literaryWorksQuestionCard blockquote {
+    display: grid;
+    gap: 4px;
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    border-left: 4px solid var(--app-primary);
+    border-radius: 0 11px 11px 0;
+    background: color-mix(
+        in srgb,
+        var(--app-primary) 6%,
+        var(--app-background)
+    );
+    color: var(--app-text);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.55;
+}
+
+.literaryWorksAnswer {
+    margin-top: 12px;
+    color: var(--app-text-muted);
+    font-size: 11px;
+}
+
+.literaryWorksAnswer strong {
+    color: var(--app-primary);
+}
+
+@media (max-width: 1000px) {
+    .literaryWorksMetaGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .literaryWorksParserHeader {
+        flex-direction: column;
+    }
+
+    .literaryWorksMetaGrid {
+        grid-template-columns: 1fr;
+    }
+}
