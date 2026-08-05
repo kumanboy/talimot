@@ -27,15 +27,17 @@ export default function RootLayout({
             lang="uz"
             suppressHydrationWarning
         >
+            <head>
+                <Script
+                    id="talimot-theme-bootstrap"
+                    src="/theme-bootstrap.js"
+                    strategy="beforeInteractive"
+                />
+            </head>
+
             <body>
                 {children}
             </body>
-
-            <Script
-                id="talimot-theme-bootstrap"
-                src="/theme-bootstrap.js"
-                strategy="beforeInteractive"
-            />
         </html>
     );
 }

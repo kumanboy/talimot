@@ -1145,7 +1145,7 @@ export function TestRunner({
             "";
 
         router.replace(
-            collectionsHref,
+            "/tests",
         );
     };
 

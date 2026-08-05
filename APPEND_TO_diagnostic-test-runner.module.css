@@ -1,0 +1,24 @@
+.certificateActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.certificateActions button:last-child {
+    border: 1px solid var(--app-border);
+    background: var(--app-surface);
+    color: var(--app-text);
+}
+
+@media (max-width: 640px) {
+    .certificateActions {
+        width: 100%;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .certificateActions button {
+        width: 100%;
+    }
+}

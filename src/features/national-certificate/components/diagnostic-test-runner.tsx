@@ -2080,14 +2080,25 @@ function ResultView({
                     </div>
 
                     {certificateRecord ? (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setIsCertificateOpen(true)
-                            }
-                        >
-                            Sertifikatni ko‘rish
-                        </button>
+                        <div className={styles.certificateActions}>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setIsCertificateOpen(true)
+                                }
+                            >
+                                Sertifikatni ko‘rish
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    router.push("/profil")
+                                }
+                            >
+                                Profilga saqlash
+                            </button>
+                        </div>
                     ) : (
                         <button
                             type="button"
@@ -2137,6 +2148,8 @@ function ResultView({
             {isCertificateOpen &&
             certificateRecord ? (
                 <DiagnosticCertificatePreview
+                    testTitle={test.title}
+                    result={result}
                     record={certificateRecord}
                     onClose={closeCertificate}
                 />
@@ -3207,7 +3220,7 @@ export function DiagnosticTestRunner({
 
                     setIsExitDialogOpen(false);
                     router.replace(
-                        collectionsHref,
+                        "/tests",
                     );
                 }}
             />
