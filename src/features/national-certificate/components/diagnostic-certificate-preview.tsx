@@ -13,8 +13,8 @@ import type {
 import styles from "./diagnostic-certificate-preview.module.css";
 
 type DiagnosticCertificatePreviewProps = {
-    readonly testTitle: string;
-    readonly result: DiagnosticTestScoreResult;
+    readonly testTitle?: string;
+    readonly result?: DiagnosticTestScoreResult;
     readonly record: DiagnosticCertificateRecord;
     readonly onClose: () => void;
 };
@@ -97,8 +97,32 @@ export function DiagnosticCertificatePreview({
     record,
     onClose,
 }: DiagnosticCertificatePreviewProps) {
+    const resolvedTestTitle =
+        testTitle ??
+        record.result.testTitle;
+
+    const resolvedResult =
+        result ?? {
+            score:
+                record.result.score,
+            maximumScore:
+                record.result.maximumScore,
+            percentage:
+                record.result.percentage,
+            correctCount:
+                record.result.correctCount,
+            incorrectCount:
+                record.result.incorrectCount,
+            unansweredCount:
+                record.result.unansweredCount,
+            pendingCount:
+                record.result.pendingCount,
+        };
+
     const level =
-        getPlatformLevel(result.percentage);
+        getPlatformLevel(
+            resolvedResult.percentage,
+        );
 
     const handleDownload = () => {
         window.print();
@@ -144,7 +168,8 @@ export function DiagnosticCertificatePreview({
                     <div className={styles.cornerTop} aria-hidden="true" />
                     <div className={styles.cornerBottom} aria-hidden="true" />
 
-                    <header className={styles.certificateHeader}>
+                    <div className={styles.content}>
+                        <header className={styles.certificateHeader}>
                         <TalimotLogo className={styles.logo} />
 
                         <p>
@@ -206,22 +231,22 @@ export function DiagnosticCertificatePreview({
 
                         <div>
                             <span>Imtihon turi:</span>
-                            <strong>{testTitle}</strong>
+                            <strong>{resolvedTestTitle}</strong>
                         </div>
 
                         <div>
                             <span>Umumiy to‘plagan bali:</span>
-                            <strong>{result.score}</strong>
+                            <strong>{resolvedResult.score}</strong>
                         </div>
 
                         <div>
                             <span>Maksimal ball:</span>
-                            <strong>{result.maximumScore}</strong>
+                            <strong>{resolvedResult.maximumScore}</strong>
                         </div>
 
                         <div>
                             <span>Umumiy ballga nisbatan foiz:</span>
-                            <strong>{result.percentage}%</strong>
+                            <strong>{resolvedResult.percentage}%</strong>
                         </div>
 
                         <div>
@@ -235,23 +260,23 @@ export function DiagnosticCertificatePreview({
 
                         <div>
                             <span>To‘g‘ri javoblar:</span>
-                            <strong>{result.correctCount}</strong>
+                            <strong>{resolvedResult.correctCount}</strong>
                         </div>
 
                         <div>
                             <span>Noto‘g‘ri javoblar:</span>
-                            <strong>{result.incorrectCount}</strong>
+                            <strong>{resolvedResult.incorrectCount}</strong>
                         </div>
 
                         <div>
                             <span>Javobsiz savollar:</span>
-                            <strong>{result.unansweredCount}</strong>
+                            <strong>{resolvedResult.unansweredCount}</strong>
                         </div>
 
                         <div>
                             <span>Umumiy ball:</span>
                             <strong>
-                                {result.score} / {result.maximumScore}
+                                {resolvedResult.score} / {resolvedResult.maximumScore}
                             </strong>
                         </div>
                     </section>
@@ -274,10 +299,11 @@ export function DiagnosticCertificatePreview({
                         </div>
                     </footer>
 
-                    <p className={styles.disclaimer}>
-                        Ushbu hujjat TA’LIMOT platformasi diagnostika natijasi bo‘lib,
-                        rasmiy davlat sertifikati hisoblanmaydi.
-                    </p>
+                        <p className={styles.disclaimer}>
+                            Ushbu hujjat TA’LIMOT platformasi diagnostika natijasi bo‘lib,
+                            rasmiy davlat sertifikati hisoblanmaydi.
+                        </p>
+                    </div>
                 </article>
             </section>
         </div>

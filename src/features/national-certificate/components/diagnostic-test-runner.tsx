@@ -2079,36 +2079,16 @@ function ResultView({
                         </p>
                     </div>
 
-                    {certificateRecord ? (
-                        <div className={styles.certificateActions}>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setIsCertificateOpen(true)
-                                }
-                            >
-                                Sertifikatni ko‘rish
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    router.push("/profil")
-                                }
-                            >
-                                Profilga saqlash
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                router.push("/profil")
-                            }
-                        >
-                            Profilni to‘ldirish
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        onClick={() =>
+                        router.push("/profil")
+                        }
+                    >
+                {certificateRecord
+                ? "Profilga saqlash"
+                : "Profilni to‘ldirish"}
+                    </button>
                 </section>
 
                 <DiagnosticAnswerReview
