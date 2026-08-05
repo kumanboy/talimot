@@ -10,18 +10,17 @@ const footerLinks = [
         href: "/haqida",
     },
     {
-        label: "Yordam",
-        href: "/yordam",
-    },
-    {
         label: "Foydalanish shartlari",
         href: "/foydalanish-shartlari",
     },
     {
         label: "Maxfiylik siyosati",
-        href: "/maxfiylik",
+        href: "/maxfiylik-siyosati",
     },
 ] as const;
+
+const SUPPORT_TELEGRAM_URL =
+    "https://t.me/husan_davronov";
 
 export function HomeFooter() {
     return (
@@ -64,91 +63,91 @@ export function HomeFooter() {
                         className={styles.telegramLink}
                         href="https://t.me/sardortoshmuhammad_onatili"
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                     >
-            <span className={styles.socialIcon}>
-              <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  aria-hidden="true"
-              >
-                <path
-                    d="m21 4-3 16-6-4-3 3 1-5 8-7-10 6-5-2 18-7Z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-              </svg>
-            </span>
+                        <span className={styles.socialIcon}>
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    d="m21 4-3 16-6-4-3 3 1-5 8-7-10 6-5-2 18-7Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                        </span>
 
                         <span className={styles.socialCopy}>
-              <strong>Telegram kanal</strong>
-              <small>
-                Darslar, testlar va e’lonlar
-              </small>
-            </span>
+                            <strong>Telegram kanal</strong>
+                            <small>
+                                Darslar, testlar va e’lonlar
+                            </small>
+                        </span>
 
                         <span
                             className={styles.socialArrow}
                             aria-hidden="true"
                         >
-              →
-            </span>
+                            →
+                        </span>
                     </a>
 
                     <a
                         className={styles.instagramLink}
                         href="https://www.instagram.com/sardor_toshmuhammadov/"
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                     >
-            <span className={styles.socialIcon}>
-              <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  aria-hidden="true"
-              >
-                <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                />
+                        <span className={styles.socialIcon}>
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                aria-hidden="true"
+                            >
+                                <rect
+                                    x="3"
+                                    y="3"
+                                    width="18"
+                                    height="18"
+                                    rx="5"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                />
 
-                <circle
-                    cx="12"
-                    cy="12"
-                    r="4"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                />
+                                <circle
+                                    cx="12"
+                                    cy="12"
+                                    r="4"
+                                    stroke="currentColor"
+                                    strokeWidth="1.8"
+                                />
 
-                <circle
-                    cx="17.5"
-                    cy="6.5"
-                    r="1"
-                    fill="currentColor"
-                />
-              </svg>
-            </span>
+                                <circle
+                                    cx="17.5"
+                                    cy="6.5"
+                                    r="1"
+                                    fill="currentColor"
+                                />
+                            </svg>
+                        </span>
 
                         <span className={styles.socialCopy}>
-              <strong>Instagram sahifa</strong>
-              <small>
-                Qisqa va foydali video darslar
-              </small>
-            </span>
+                            <strong>Instagram sahifa</strong>
+                            <small>
+                                Qisqa va foydali video darslar
+                            </small>
+                        </span>
 
                         <span
                             className={styles.socialArrow}
                             aria-hidden="true"
                         >
-              →
-            </span>
+                            →
+                        </span>
                     </a>
                 </div>
             </section>
@@ -175,43 +174,51 @@ export function HomeFooter() {
                             href={link.href}
                         >
                             <span>{link.label}</span>
-
                             <span aria-hidden="true">›</span>
                         </Link>
                     ))}
+
+                    <a
+                        href={SUPPORT_TELEGRAM_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <span>Yordam</span>
+                        <span aria-hidden="true">›</span>
+                    </a>
                 </nav>
             </section>
 
             <section className={styles.supportCard}>
-        <span className={styles.supportIcon}>
-          <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-          >
-            <path
-                d="M5 18a8 8 0 1 1 14 0"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-            />
+                <span className={styles.supportIcon}>
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-hidden="true"
+                    >
+                        <path
+                            d="M5 18a8 8 0 1 1 14 0"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                        />
 
-            <path
-                d="M5 14H3v4h3M19 14h2v4h-3"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
+                        <path
+                            d="M5 14H3v4h3M19 14h2v4h-3"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
 
-            <path
-                d="M18 19c-1 1-3 2-6 2"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-            />
-          </svg>
-        </span>
+                        <path
+                            d="M18 19c-1 1-3 2-6 2"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+                </span>
 
                 <div>
                     <strong>Yordam kerakmi?</strong>
@@ -222,19 +229,21 @@ export function HomeFooter() {
                     </p>
                 </div>
 
-                <Link href="/yordam">
+                <a
+                    href={SUPPORT_TELEGRAM_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     Yordam
-                </Link>
+                </a>
             </section>
 
             <div className={styles.bottom}>
-                <p>
-                    © 2026 TA’LIMOT
-                </p>
+                <p>© 2026 TA’LIMOT</p>
 
                 <span>
-          Barcha huquqlar himoyalangan
-        </span>
+                    Barcha huquqlar himoyalangan
+                </span>
             </div>
         </footer>
     );

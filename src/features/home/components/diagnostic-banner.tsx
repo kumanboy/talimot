@@ -206,7 +206,7 @@ export function DiagnosticBanner() {
                 className={styles.actionButton}
                 type="button"
                 onClick={() =>
-                    router.push("/diagnostika")
+                    router.push("/tests/milliy-sertifikat/diagnostika")
                 }
             >
         <span>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="1d12a3c2-1a98-4f21-8a75-b8c7255b61d3" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/home/components/course-showcase.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/home/components/course-showcase.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/home/components/free-tests-carousel.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/home/components/free-tests-carousel.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/home/components/topic-grid.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/home/components/topic-grid.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/roadmap/components/boost-full-roadmap.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/roadmap/components/boost-full-roadmap.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/roadmap/components/from-zero-full-roadmap.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/roadmap/components/from-zero-full-roadmap.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/features/tests/model/test-navigation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/features/tests/model/test-navigation.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 3
+}</component>
+  <component name="ProjectId" id="3HPe4HDAlUMDZQMNZydi42GZWiE" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "feat/roadmap-foundation",
+    "nodejs_package_manager_path": "npm"
+  }
+}]]></component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
+    <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: server-side" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-WS-262.8665.341" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="1d12a3c2-1a98-4f21-8a75-b8c7255b61d3" name="Changes" comment="" />
+      <created>1785773943097</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1785773943097</updated>
+      <workItem from="1785773944801" duration="23000" />
+      <workItem from="1785792364588" duration="209000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

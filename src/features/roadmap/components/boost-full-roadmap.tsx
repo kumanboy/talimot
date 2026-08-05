@@ -250,7 +250,7 @@ export function BoostFullRoadmap() {
   };
 
   const startSyntax = () => {
-    router.push("/");
+    router.push("/tests/grammatika/sintaksis");
   };
 
   return (

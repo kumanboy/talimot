@@ -4,7 +4,30 @@
 }
 
 .heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px;
     padding: 0 16px;
+}
+
+.heading > div {
+    min-width: 0;
+}
+
+.heading > button {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 5px;
+    min-height: 44px;
+    padding: 8px 0 8px 8px;
+    border: 0;
+    background: transparent;
+    color: #376fb5;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 750;
 }
 
 .heading span,
@@ -420,4 +443,14 @@
     --accent: #9b8be1;
     --accent-soft: #3a3452;
     --accent-glow: rgb(155 139 225 / 18%);
+}
+
+
+.heading > button:focus-visible {
+    outline: 3px solid var(--app-focus);
+    outline-offset: 3px;
+}
+
+:global(html[data-theme="dark"]) .heading > button {
+    color: var(--app-primary);
 }

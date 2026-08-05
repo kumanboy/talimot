@@ -35,7 +35,7 @@ const freeTests: readonly FreeTest[] = [
             "Fe’lning shakllari, nisbatlari va vazifa shakllari bo‘yicha bilimingizni tekshiring.",
         meta: "10 ta savol",
         actionLabel: "Testni ishlash",
-        href: "/tests?topic=verb",
+        href: "/tests/grammatika/morfologiya/fel",
         icon: "verb",
     },
     {
@@ -45,7 +45,7 @@ const freeTests: readonly FreeTest[] = [
             "Gap bo‘laklari, gap turlari va sintaktik bog‘lanishlar bo‘yicha test.",
         meta: "12 ta savol",
         actionLabel: "Testni ishlash",
-        href: "/tests?topic=syntax",
+        href: "/tests/grammatika/sintaksis",
         icon: "syntax",
     },
     {
@@ -55,7 +55,7 @@ const freeTests: readonly FreeTest[] = [
             "O‘zak, qo‘shimcha va so‘z tarkibi bo‘yicha bilimlaringizni sinang.",
         meta: "10 ta savol",
         actionLabel: "Testni ishlash",
-        href: "/tests?topic=morphemics",
+        href: "/tests/grammatika/morfemika",
         icon: "morphemics",
     },
     {
@@ -63,9 +63,9 @@ const freeTests: readonly FreeTest[] = [
         title: "Ilmiy matn testi",
         description:
             "Matn mazmuni, dalillar va ilmiy uslubni tahlil qilishni mashq qiling.",
-        meta: "8 ta savol",
+        meta: "5 ta savol",
         actionLabel: "Testni ishlash",
-        href: "/tests?topic=scientific-text",
+        href: "/tests/milliy-sertifikat/ilmiy-matn",
         icon: "scientific",
     },
     {
@@ -73,9 +73,9 @@ const freeTests: readonly FreeTest[] = [
         title: "G‘azal testi",
         description:
             "Bayt mazmuni, mumtoz so‘zlar va she’riy san’atlarni aniqlang.",
-        meta: "10 ta savol",
+        meta: "5 ta savol",
         actionLabel: "Testni ishlash",
-        href: "/tests?topic=ghazal",
+        href: "/tests/milliy-sertifikat/gazal",
         icon: "ghazal",
     },
     {

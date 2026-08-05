@@ -25,7 +25,8 @@
     width: min(84vw, 360px);
     height: 100%;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding:
             calc(16px + env(safe-area-inset-top))
             16px
@@ -148,12 +149,40 @@
 }
 
 .navigation {
+    position: relative;
     display: grid;
     gap: 7px;
     margin-top: 20px;
 }
 
+
+.slidingIndicator {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 54px;
+    border: 1px solid rgb(55 111 181 / 14%);
+    border-radius: 16px;
+    background:
+        linear-gradient(
+            145deg,
+            rgb(255 255 255 / 78%),
+            rgb(232 241 252 / 78%)
+        );
+    box-shadow:
+        0 8px 20px rgb(55 111 181 / 10%);
+    transition:
+        transform 340ms
+        cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+    pointer-events: none;
+}
+
 .navigation button {
+    position: relative;
+    z-index: 1;
     display: grid;
     min-height: 54px;
     grid-template-columns:
@@ -183,6 +212,11 @@
     border-radius: 12px;
     background: rgb(237 244 253 / 82%);
     color: #376fb5;
+    transition:
+        transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 220ms ease,
+        color 220ms ease,
+        box-shadow 220ms ease;
 }
 
 .itemIcon svg {
@@ -199,29 +233,36 @@
     color: #8b99a5;
     font-size: 23px;
     font-weight: 300;
+    transition:
+        color 220ms ease,
+        transform 220ms ease;
 }
 
 .navigation .activeItem {
-    border-color: rgb(55 111 181 / 14%);
-    background:
-            linear-gradient(
-                    145deg,
-                    rgb(255 255 255 / 78%),
-                    rgb(232 241 252 / 78%)
-            );
     color: #376fb5;
-    box-shadow:
-            0 8px 20px rgb(55 111 181 / 10%);
 }
 
 .activeItem .itemIcon {
     background:
-            linear-gradient(
-                    145deg,
-                    #5d9cec,
-                    #376fb5
-            );
+        linear-gradient(
+            145deg,
+            #5d9cec,
+            #376fb5
+        );
     color: #ffffff;
+    box-shadow:
+        0 8px 18px rgb(55 111 181 / 24%),
+        inset 0 1px 0 rgb(255 255 255 / 20%);
+    transform: scale(1.04);
+}
+
+.activeItem .itemArrow {
+    color: #376fb5;
+    transform: translateX(2px);
+}
+
+.pendingItem .itemIcon {
+    animation: drawer-item-pulse 760ms ease-in-out infinite;
 }
 
 .navigation button:active {
@@ -253,6 +294,19 @@
 .drawer a:focus-visible {
     outline: 3px solid #376fb5;
     outline-offset: 2px;
+}
+
+@keyframes drawer-item-pulse {
+    0%,
+    100% {
+        opacity: 0.75;
+        transform: scale(0.96);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.06);
+    }
 }
 
 @keyframes drawer-enter {
@@ -291,7 +345,11 @@
 @media (prefers-reduced-motion: reduce) {
     .drawer,
     .overlay,
-    .navigation button {
+    .navigation button,
+    .slidingIndicator,
+    .itemIcon,
+    .itemArrow,
+    .pendingItem .itemIcon {
         animation: none;
         transition: none;
     }
@@ -360,16 +418,23 @@
     color: var(--app-text-secondary);
 }
 
-:global(html[data-theme="dark"]) .navigation .activeItem {
+:global(html[data-theme="dark"]) .slidingIndicator {
     border-color: var(--app-border);
     background:
-            linear-gradient(
-                    145deg,
-                    rgb(42 58 68 / 90%),
-                    rgb(35 60 87 / 72%)
-            );
-    color: var(--app-primary);
+        linear-gradient(
+            145deg,
+            rgb(42 58 68 / 90%),
+            rgb(35 60 87 / 72%)
+        );
     box-shadow: 0 9px 22px rgb(0 0 0 / 22%);
+}
+
+:global(html[data-theme="dark"]) .navigation .activeItem {
+    color: var(--app-primary);
+}
+
+:global(html[data-theme="dark"]) .activeItem .itemArrow {
+    color: var(--app-primary);
 }
 
 :global(html[data-theme="dark"]) .socials a {

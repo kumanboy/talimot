@@ -26,6 +26,8 @@ type DrawerIcon =
     | "roadmap"
     | "courses"
     | "books"
+    | "essay"
+    | "wallet"
     | "profile";
 
 type DrawerItem = {
@@ -62,6 +64,16 @@ const drawerItems = [
         label: "Kitoblar",
         href: "/kitoblar",
         icon: "books",
+    },
+    {
+        label: "Esse tekshirish",
+        href: "/esse-tekshirish",
+        icon: "essay",
+    },
+    {
+        label: "Tanga",
+        href: "/packages",
+        icon: "wallet",
     },
     {
         label: "Profil",
@@ -230,6 +242,66 @@ function DrawerItemIcon({
         );
     }
 
+    if (type === "essay") {
+        return (
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+            >
+                <path
+                    d="M6 3.8h8.8L19 8v12.2H6V3.8Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M14.5 3.8V8H19M9 12h7M9 15.5h5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="m8.8 18.4 1.4 1.4 3-3"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                />
+            </svg>
+        );
+    }
+
+    if (type === "wallet") {
+        return (
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+            >
+                <path
+                    d="M4 7.5h14.5A1.5 1.5 0 0 1 20 9v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18V7.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinejoin="round"
+                />
+                <path
+                    d="M4 8V6.5A2.5 2.5 0 0 1 6.5 4H17"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                />
+                <path
+                    d="M15.5 12.5H20v3h-4.5a1.5 1.5 0 0 1 0-3Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                />
+            </svg>
+        );
+    }
+
     return (
         <svg
             viewBox="0 0 24 24"
@@ -277,6 +349,9 @@ export function HomeDrawer({
 
     const [isClosing, setIsClosing] =
         useState(false);
+
+    const [visualHref, setVisualHref] =
+        useState<string | null>(null);
 
     const clearCloseTimer = useCallback(() => {
         if (closeTimerRef.current === null) {
@@ -344,6 +419,7 @@ export function HomeDrawer({
         }
 
         pendingHrefRef.current = null;
+        setVisualHref(null);
         document.body.style.overflow = "hidden";
 
         return () => {
@@ -409,6 +485,15 @@ export function HomeDrawer({
             item.href,
         );
     };
+
+    const activeIndex = Math.max(
+        0,
+        drawerItems.findIndex((item) =>
+            visualHref
+                ? item.href === visualHref
+                : isActiveItem(item),
+        ),
+    );
 
     return (
         <div
@@ -505,18 +590,37 @@ export function HomeDrawer({
                     className={styles.navigation}
                     aria-label="Yon navigatsiya"
                 >
+                    <span
+                        className={styles.slidingIndicator}
+                        style={{
+                            transform: `translateY(calc(${activeIndex} * (54px + 7px)))`,
+                        }}
+                        aria-hidden="true"
+                    />
+
                     {drawerItems.map((item) => {
                         const active =
-                            isActiveItem(item);
+                            visualHref
+                                ? visualHref === item.href
+                                : isActiveItem(item);
+
+                        const pending =
+                            visualHref === item.href &&
+                            !isActiveItem(item);
 
                         return (
                             <button
                                 key={item.href}
-                                className={
+                                className={[
                                     active
                                         ? styles.activeItem
-                                        : undefined
-                                }
+                                        : "",
+                                    pending
+                                        ? styles.pendingItem
+                                        : "",
+                                ]
+                                    .filter(Boolean)
+                                    .join(" ")}
                                 type="button"
                                 aria-current={
                                     active
@@ -524,9 +628,17 @@ export function HomeDrawer({
                                         : undefined
                                 }
                                 disabled={isClosing}
-                                onClick={() =>
-                                    requestClose(item.href)
-                                }
+                                onClick={() => {
+                                    if (isClosing) {
+                                        return;
+                                    }
+
+                                    setVisualHref(item.href);
+
+                                    window.setTimeout(() => {
+                                        requestClose(item.href);
+                                    }, 180);
+                                }}
                             >
                 <span
                     className={

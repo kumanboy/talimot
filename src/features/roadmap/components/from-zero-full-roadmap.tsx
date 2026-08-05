@@ -392,7 +392,7 @@ export function FromZeroFullRoadmap() {
   };
 
   const startSpelling = () => {
-    router.push("/tests/imlo");
+    router.push("/tests/grammatika/imlo");
   };
 
   return (

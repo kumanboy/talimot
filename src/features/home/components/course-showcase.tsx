@@ -25,14 +25,31 @@ type Course = {
 
 const courses: readonly Course[] = [
     {
+        id: "national-certificate-course",
+        title: "Milliy sertifikat kursi",
+        description:
+            "Grammatika, esse, g‘azal, badiiy matn va ilmiy matn bo‘yicha kompleks tayyorgarlik.",
+        badge: "ENG TO‘LIQ KURS",
+        meta: [
+            "Haftada 4 kun jonli dars",
+            "Cheklanmagan foydalanish",
+        ],
+        href: "/kurslar/milliy-sertifikat",
+        image: "/images/home/course-promotion.png",
+        imageAlt:
+            "Sardor Toshmuhammadovning Milliy sertifikat kursi",
+        accent: "grammar",
+        imagePosition: "center 50%",
+    },
+    {
         id: "grammar-course",
         title: "Grammatika kursi",
         description:
-            "Fonetika, morfemika, morfologiya va sintaksisni tizimli o‘rganing.",
+            "Imlo, morfemika, leksikologiya, morfologiya va sintaksisni tizimli o‘rganing.",
         badge: "ENG OMMABOP",
         meta: [
-            "35 ta video dars",
-            "120+ soat",
+            "Video va audio darslar",
+            "Cheklanmagan foydalanish",
         ],
         href: "/kurslar/grammatika",
         image:
@@ -44,13 +61,13 @@ const courses: readonly Course[] = [
     },
     {
         id: "text-analysis-course",
-        title: "G‘azal va matn tahlili",
+        title: "G‘azal va matn tahlillari",
         description:
             "G‘azal, badiiy va ilmiy matn savollarini tahlil qilishni o‘rganing.",
         badge: "TAVSIYA ETILADI",
         meta: [
-            "20+ dars",
             "Amaliy tahlillar",
+            "Cheklanmagan foydalanish",
         ],
         href: "/kurslar/matn-tahlili",
         image:
@@ -64,11 +81,11 @@ const courses: readonly Course[] = [
         id: "essay-course",
         title: "Esse yozish kursi",
         description:
-            "Kirish, asosiy qism, dalillash va kuchli xulosa yozishni o‘zlashtiring.",
-        badge: "YANGI",
+            "Esse shabloni, dalillash va kuchli xulosa yozishni o‘zlashtiring.",
+        badge: "ESSE SHABLONI BILAN",
         meta: [
-            "Bosqichma-bosqich",
-            "Tekshiruv bilan",
+            "Yozib olingan darslar",
+            "Cheklanmagan foydalanish",
         ],
         href: "/kurslar/esse",
         image:
@@ -107,7 +124,7 @@ export function CourseShowcase() {
             </header>
 
             <div className={styles.list}>
-                {courses.map((course,index) => (
+                {courses.map((course, index) => (
                     <article
                         key={course.id}
                         className={`${styles.card} ${
@@ -141,42 +158,40 @@ export function CourseShowcase() {
                             />
 
                             <div className={styles.imageTopRow}>
-                <span className={styles.badge}>
-                  {course.badge}
-                </span>
+                                <span className={styles.badge}>
+                                    {course.badge}
+                                </span>
 
                                 <span
                                     className={styles.imageArrow}
                                     aria-hidden="true"
                                 >
-                  →
-                </span>
+                                    →
+                                </span>
                             </div>
 
                             <span className={styles.imageLabel}>
-                TA’LIMOT KURSI
-              </span>
+                                TA’LIMOT KURSI
+                            </span>
                         </button>
 
                         <div className={styles.content}>
                             <div className={styles.copy}>
                                 <h3>{course.title}</h3>
-
                                 <p>{course.description}</p>
                             </div>
 
                             <div className={styles.meta}>
                                 {course.meta.map((item) => (
                                     <span key={item}>
-                    <span
-                        className={styles.metaCheck}
-                        aria-hidden="true"
-                    >
-                      ✓
-                    </span>
-
+                                        <span
+                                            className={styles.metaCheck}
+                                            aria-hidden="true"
+                                        >
+                                            ✓
+                                        </span>
                                         {item}
-                  </span>
+                                    </span>
                                 ))}
                             </div>
 
@@ -188,13 +203,12 @@ export function CourseShowcase() {
                                 }
                             >
                                 <span>Kursni ko‘rish</span>
-
                                 <span
                                     className={styles.buttonIcon}
                                     aria-hidden="true"
                                 >
-                  →
-                </span>
+                                    →
+                                </span>
                             </button>
                         </div>
                     </article>

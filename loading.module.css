@@ -1,0 +1,122 @@
+.page {
+    position: fixed;
+    z-index: 999;
+    inset: 0;
+    display: grid;
+    min-width: 320px;
+    min-height: 100dvh;
+    place-items: center;
+    padding:
+        calc(24px + env(safe-area-inset-top))
+        24px
+        calc(24px + env(safe-area-inset-bottom));
+    overflow: hidden;
+    background: var(--app-background);
+}
+
+.glow {
+    position: absolute;
+    top: -120px;
+    right: -110px;
+    width: 320px;
+    height: 320px;
+    border-radius: 999px;
+    background: rgb(93 156 236 / 18%);
+    filter: blur(32px);
+    pointer-events: none;
+}
+
+.card {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: min(100%, 342px);
+    justify-items: center;
+    gap: 22px;
+    padding: 32px 24px;
+    border: 1px solid var(--app-border);
+    border-radius: 26px;
+    background:
+        radial-gradient(
+            circle at 100% 0,
+            rgb(93 156 236 / 18%),
+            transparent 40%
+        ),
+        var(--app-surface);
+    box-shadow:
+        0 20px 56px rgb(30 34 41 / 12%),
+        inset 0 1px 0 rgb(255 255 255 / 70%);
+    text-align: center;
+}
+
+.logo {
+    display: flex;
+    justify-content: center;
+}
+
+.loader {
+    display: flex;
+    min-height: 20px;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+.loader span {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--app-primary);
+    animation: loader-bounce 900ms ease-in-out infinite;
+}
+
+.loader span:nth-child(2) {
+    animation-delay: 120ms;
+}
+
+.loader span:nth-child(3) {
+    animation-delay: 240ms;
+}
+
+.copy {
+    display: grid;
+    gap: 6px;
+}
+
+.copy strong {
+    color: var(--app-text);
+    font-size: 17px;
+}
+
+.copy p {
+    margin: 0;
+    color: var(--app-text-secondary);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+@keyframes loader-bounce {
+    0%,
+    100% {
+        opacity: 0.45;
+        transform: translateY(0) scale(0.82);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(-6px) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loader span {
+        animation: none;
+        opacity: 1;
+    }
+}
+
+:global(html[data-theme="dark"]) .card {
+    box-shadow:
+        0 22px 60px rgb(0 0 0 / 32%),
+        inset 0 1px 0 rgb(255 255 255 / 6%);
+}

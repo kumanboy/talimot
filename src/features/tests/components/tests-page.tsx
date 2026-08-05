@@ -11,12 +11,10 @@ import { MobileNavigation } from "@/features/home/components/mobile-navigation";
 import { useTestDashboardStorage } from "@/features/tests/hooks/use-test-dashboard-storage";
 
 import {
-    testDashboardFilterLabels,
     testDashboardTabLabels,
 } from "@/features/tests/model/test-dashboard";
 
 import type {
-    TestDashboardFilter,
     TestDashboardTab,
 } from "@/features/tests/model/test-dashboard";
 
@@ -47,11 +45,6 @@ const dashboardTabs = [
     "completed",
 ] as const satisfies readonly TestDashboardTab[];
 
-const dashboardFilters = [
-    "all",
-    "free",
-    "premium",
-] as const satisfies readonly TestDashboardFilter[];
 
 function SearchIcon() {
     return (
@@ -290,25 +283,6 @@ function CategoryIcon({
     }
 
     return <TestIcon />;
-}
-
-function matchesDashboardFilter(
-    item:
-        | StoredTestProgress
-        | StoredCompletedTest,
-    filter: TestDashboardFilter,
-) {
-    if (filter === "all") {
-        return true;
-    }
-
-    if (filter === "free") {
-        return !item.metadata.isPremium;
-    }
-
-    return Boolean(
-        item.metadata.isPremium,
-    );
 }
 
 function matchesSearch(
@@ -775,13 +749,6 @@ export function TestsPage() {
             "all",
         );
 
-    const [
-        activeFilter,
-        setActiveFilter,
-    ] =
-        useState<TestDashboardFilter>(
-            "all",
-        );
 
     const [
         searchQuery,
@@ -821,10 +788,6 @@ export function TestsPage() {
         useMemo(() => {
             return ongoing.filter(
                 (test) =>
-                    matchesDashboardFilter(
-                        test,
-                        activeFilter,
-                    ) &&
                     matchesSearch(
                         test.metadata.title,
                         test.metadata.category,
@@ -832,7 +795,6 @@ export function TestsPage() {
                     ),
             );
         }, [
-            activeFilter,
             normalizedQuery,
             ongoing,
         ]);
@@ -841,10 +803,6 @@ export function TestsPage() {
         useMemo(() => {
             return completed.filter(
                 (test) =>
-                    matchesDashboardFilter(
-                        test,
-                        activeFilter,
-                    ) &&
                     matchesSearch(
                         test.metadata.title,
                         test.metadata.category,
@@ -852,7 +810,6 @@ export function TestsPage() {
                     ),
             );
         }, [
-            activeFilter,
             completed,
             normalizedQuery,
         ]);
@@ -986,75 +943,6 @@ export function TestsPage() {
                     )}
                 </div>
 
-                <div
-                    className={
-                        styles.filterSection
-                    }
-                >
-                    <div
-                        className={
-                            styles.filterHeader
-                        }
-                    >
-            <span>
-              Saralash va filtrlar
-            </span>
-
-                        {activeFilter !==
-                        "all" ? (
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setActiveFilter(
-                                        "all",
-                                    )
-                                }
-                            >
-                                Tozalash
-                            </button>
-                        ) : null}
-                    </div>
-
-                    <div
-                        className={
-                            styles.filterChips
-                        }
-                    >
-                        {dashboardFilters.map(
-                            (filter) => {
-                                const active =
-                                    activeFilter ===
-                                    filter;
-
-                                return (
-                                    <button
-                                        key={filter}
-                                        className={
-                                            active
-                                                ? styles.activeFilter
-                                                : undefined
-                                        }
-                                        type="button"
-                                        aria-pressed={
-                                            active
-                                        }
-                                        onClick={() =>
-                                            setActiveFilter(
-                                                filter,
-                                            )
-                                        }
-                                    >
-                                        {
-                                            testDashboardFilterLabels[
-                                                filter
-                                                ]
-                                        }
-                                    </button>
-                                );
-                            },
-                        )}
-                    </div>
-                </div>
 
                 {showAllTab ? (
                     <>

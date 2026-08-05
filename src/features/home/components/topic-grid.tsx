@@ -18,56 +18,56 @@ const topics: Topic[] = [
         id: "spelling",
         title: "Imlo",
         description: "To‘g‘ri yozish qoidalari",
-        href: "/mavzular/imlo",
+        href: "/tests/grammatika/imlo",
         icon: "spelling",
     },
     {
         id: "morphemics",
         title: "Morfemika",
         description: "So‘z tarkibi",
-        href: "/mavzular/morfemika",
+        href: "/tests/grammatika/morfemika",
         icon: "morphemics",
     },
     {
         id: "morphology",
         title: "Morfologiya",
         description: "So‘z turkumlari",
-        href: "/mavzular/morfologiya",
+        href: "/tests/grammatika/morfologiya",
         icon: "morphology",
     },
     {
         id: "syntax",
         title: "Sintaksis",
         description: "Gap tuzilishi",
-        href: "/mavzular/sintaksis",
+        href: "/tests/grammatika/sintaksis",
         icon: "syntax",
     },
     {
         id: "ghazal",
         title: "G‘azal",
         description: "Bayt va san’atlar",
-        href: "/mavzular/gazal",
+        href: "/tests/milliy-sertifikat/gazal",
         icon: "ghazal",
     },
     {
         id: "literary-text",
         title: "Badiiy matn",
         description: "Asar tahlili",
-        href: "/mavzular/badiiy-matn",
+        href: "/tests/milliy-sertifikat/badiiy-matn",
         icon: "literary",
     },
     {
         id: "scientific-text",
         title: "Ilmiy matn",
         description: "Matn va dalillar",
-        href: "/mavzular/ilmiy-matn",
+        href: "/tests/milliy-sertifikat/ilmiy-matn",
         icon: "scientific",
     },
     {
         id: "essay",
         title: "Esse",
         description: "Fikr va dalillash",
-        href: "/mavzular/esse",
+        href: "/esse-tekshirish",
         icon: "essay",
     },
 ];
@@ -237,7 +237,7 @@ export function TopicGrid() {
             <div className={styles.heading}>
                 <div>
                     <span>TEZKOR TANLOV</span>
-                    <h2>Mavzuni tanlang</h2>
+                    <h2>Testlarni tanlang</h2>
                     <p>Bilimingizni kerakli yo‘nalish bo‘yicha mustahkamlang.</p>
                 </div>
 

@@ -17,6 +17,22 @@ import {
     calculateDiagnosticTestScore,
 } from "@/features/national-certificate/model/diagnostic-test-scoring";
 
+import {
+    createDiagnosticCertificateRecord,
+    readDiagnosticCertificateRecord,
+} from "@/features/national-certificate/model/diagnostic-certificate-storage";
+import type {
+    DiagnosticCertificateRecord,
+} from "@/features/national-certificate/model/diagnostic-certificate-storage";
+
+import {
+    readUserProfile,
+} from "@/features/profile/model/profile-storage";
+
+import {
+    DiagnosticCertificatePreview,
+} from "@/features/national-certificate/components/diagnostic-certificate-preview";
+
 import type {
     DiagnosticAnswers,
     DiagnosticMatchingAnswers,
@@ -1828,6 +1844,9 @@ function ResultView({
                         test,
                         result,
                         answers,
+                        certificateRecord,
+                        openCertificateInitially,
+                        onInitialCertificateClose,
                         onRestart,
                     }: {
     readonly test:
@@ -1836,11 +1855,30 @@ function ResultView({
         DiagnosticTestScoreResult;
     readonly answers:
         DiagnosticAnswers;
+    readonly certificateRecord:
+        DiagnosticCertificateRecord | null;
+    readonly openCertificateInitially:
+        boolean;
+    readonly onInitialCertificateClose:
+        () => void;
     readonly onRestart:
         () => void;
 }) {
     const router =
         useRouter();
+
+    const [
+        isCertificateOpen,
+        setIsCertificateOpen,
+    ] = useState(
+        openCertificateInitially &&
+        Boolean(certificateRecord),
+    );
+
+    const closeCertificate = () => {
+        setIsCertificateOpen(false);
+        onInitialCertificateClose();
+    };
 
     const sectionLabels:
         Readonly<
@@ -2027,6 +2065,41 @@ function ResultView({
                     )}
                 </section>
 
+
+                <section className={styles.certificateCallout}>
+                    <div>
+                        <span>TA’LIMOT SERTIFIKATI</span>
+                        <h2>
+                            Diagnostika natijangizni
+                            sertifikat ko‘rinishida saqlang
+                        </h2>
+                        <p>
+                            Sertifikat profil ma’lumotlaringiz va
+                            yakunlangan natijangiz asosida yaratiladi.
+                        </p>
+                    </div>
+
+                    {certificateRecord ? (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setIsCertificateOpen(true)
+                            }
+                        >
+                            Sertifikatni ko‘rish
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                router.push("/profil")
+                            }
+                        >
+                            Profilni to‘ldirish
+                        </button>
+                    )}
+                </section>
+
                 <DiagnosticAnswerReview
                     test={test}
                     result={result}
@@ -2060,6 +2133,18 @@ function ResultView({
                     </button>
                 </div>
             </div>
+
+            {isCertificateOpen &&
+            certificateRecord ? (
+                <DiagnosticCertificatePreview
+                    testTitle={test.title}
+                    result={result}
+                    record={certificateRecord}
+                    onClose={
+                        closeCertificate
+                    }
+                />
+            ) : null}
         </main>
     );
 }
@@ -2161,6 +2246,20 @@ export function DiagnosticTestRunner({
         );
 
     const [
+        certificateRecord,
+        setCertificateRecord,
+    ] =
+        useState<
+            DiagnosticCertificateRecord | null
+        >(null);
+
+    const [
+        openCertificateOnResult,
+        setOpenCertificateOnResult,
+    ] =
+        useState(false);
+
+    const [
         isLoaded,
         setIsLoaded,
     ] =
@@ -2225,6 +2324,16 @@ export function DiagnosticTestRunner({
 
                 setResult(
                     restoredResult,
+                );
+
+                setCertificateRecord(
+                    readDiagnosticCertificateRecord(
+                        attemptId,
+                    ),
+                );
+
+                setOpenCertificateOnResult(
+                    false,
                 );
 
                 setView(
@@ -2391,10 +2500,6 @@ export function DiagnosticTestRunner({
                 finalResult,
             );
 
-            setView(
-                "result",
-            );
-
             setIsFinishOpen(
                 false,
             );
@@ -2428,10 +2533,42 @@ export function DiagnosticTestRunner({
                 });
 
             if (completed) {
+                const nextCertificateRecord =
+                    createDiagnosticCertificateRecord({
+                        attemptId:
+                            completed.attemptId,
+                        profile:
+                            readUserProfile(),
+                    });
+
+                setCertificateRecord(
+                    nextCertificateRecord,
+                );
+
+                setOpenCertificateOnResult(
+                    Boolean(
+                        nextCertificateRecord,
+                    ),
+                );
+
+                setView(
+                    "result",
+                );
+
                 router.replace(
                     `/tests/milliy-sertifikat/diagnostika/${test.slug}?attempt=${completed.attemptId}`,
                 );
+
+                return;
             }
+
+            setOpenCertificateOnResult(
+                false,
+            );
+
+            setView(
+                "result",
+            );
         }, [
             answers,
             metadata,
@@ -2507,6 +2644,14 @@ export function DiagnosticTestRunner({
             null,
         );
 
+        setCertificateRecord(
+            null,
+        );
+
+        setOpenCertificateOnResult(
+            false,
+        );
+
         setView(
             "test",
         );
@@ -2529,6 +2674,17 @@ export function DiagnosticTestRunner({
                 }
                 answers={
                     answers
+                }
+                certificateRecord={
+                    certificateRecord
+                }
+                openCertificateInitially={
+                    openCertificateOnResult
+                }
+                onInitialCertificateClose={() =>
+                    setOpenCertificateOnResult(
+                        false,
+                    )
                 }
                 onRestart={
                     restart
