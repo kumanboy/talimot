@@ -1,4 +1,8 @@
 import {
+    Suspense,
+} from "react";
+
+import {
     notFound,
 } from "next/navigation";
 
@@ -48,6 +52,8 @@ export default async function StandardTestRoute({
     }
 
     return (
-        <TestRunner test={test} />
+        <Suspense fallback={null}>
+            <TestRunner test={test} />
+        </Suspense>
     );
 }

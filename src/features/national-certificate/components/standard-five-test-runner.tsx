@@ -233,7 +233,6 @@ function createResultFromAttempt(
             fallbackScore,
 
         maximumScore:
-            attempt.maximumScore ??
             test.maximumScore,
 
         percentage:

@@ -20,9 +20,9 @@ import styles from "./essay-check-page.module.css";
 type ReviewType = "ai" | "teacher-ai";
 
 type FormErrors = {
-    readonly topic?: string;
-    readonly essay?: string;
-    readonly images?: string;
+    topic?: string;
+    essay?: string;
+    images?: string;
 };
 
 type SelectedImage = {

@@ -2137,12 +2137,8 @@ function ResultView({
             {isCertificateOpen &&
             certificateRecord ? (
                 <DiagnosticCertificatePreview
-                    testTitle={test.title}
-                    result={result}
                     record={certificateRecord}
-                    onClose={
-                        closeCertificate
-                    }
+                    onClose={closeCertificate}
                 />
             ) : null}
         </main>
@@ -2539,6 +2535,22 @@ export function DiagnosticTestRunner({
                             completed.attemptId,
                         profile:
                             readUserProfile(),
+                        testTitle:
+                            test.title,
+                        score:
+                            finalResult.score,
+                        maximumScore:
+                            finalResult.maximumScore,
+                        percentage:
+                            finalResult.percentage,
+                        correctCount:
+                            finalResult.correctCount,
+                        incorrectCount:
+                            finalResult.incorrectCount,
+                        unansweredCount:
+                            finalResult.unansweredCount,
+                        pendingCount:
+                            finalResult.pendingCount,
                     });
 
                 setCertificateRecord(

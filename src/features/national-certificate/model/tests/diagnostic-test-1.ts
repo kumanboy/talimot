@@ -101,7 +101,9 @@ const literaryPassage:
                     type:
                         "dialogue",
                     marker:
-                    block.marker,
+                        "marker" in block
+                            ? block.marker
+                            : undefined,
                     text:
                         `${block.speaker}: ${block.text}`,
                 };
@@ -682,9 +684,11 @@ const rawQuestions:
                 order:
                 question.sourceOrder,
                 context:
-                    question.excerpt?.join(
-                        "\n",
-                    ),
+                    "excerpt" in question
+                        ? question.excerpt?.join(
+                            "\n",
+                        )
+                        : undefined,
             }),
         ),
 
@@ -817,7 +821,9 @@ const rawQuestions:
                         question:
                         question.question,
                         context:
-                        question.context,
+                            "context" in question
+                                ? question.context
+                                : undefined,
                         image:
                             question.sourceOrder ===
                             36
@@ -833,13 +839,17 @@ const rawQuestions:
                                 }
                                 : undefined,
                         examples:
-                        question.examples,
+                            "examples" in question
+                                ? question.examples
+                                : undefined,
                         acceptedAnswers:
                         question.acceptedAnswers,
                         comparison:
                         question.comparison,
                         requiredKeywords:
-                        question.requiredKeywords,
+                            "requiredKeywords" in question
+                                ? question.requiredKeywords
+                                : undefined,
                         maximumScore:
                         question.maximumScore,
                     };

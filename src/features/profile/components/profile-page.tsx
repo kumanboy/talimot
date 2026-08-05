@@ -13,6 +13,15 @@ import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
 import {
+    DiagnosticCertificatePreview,
+} from "@/features/national-certificate/components/diagnostic-certificate-preview";
+import {
+    readDiagnosticCertificates,
+} from "@/features/national-certificate/model/diagnostic-certificate-storage";
+import type {
+    DiagnosticCertificateRecord,
+} from "@/features/national-certificate/model/diagnostic-certificate-storage";
+import {
     defaultUserProfile,
     getProfileFullName,
     readUserProfile,
@@ -26,11 +35,7 @@ import styles from "./profile-page.module.css";
 
 function BackIcon() {
     return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-        >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
                 d="m15 5-7 7 7 7"
                 stroke="currentColor"
@@ -44,11 +49,7 @@ function BackIcon() {
 
 function WalletIcon() {
     return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            aria-hidden="true"
-        >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
                 d="M4 7.5h14.5A1.5 1.5 0 0 1 20 9v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18V7.5Z"
                 stroke="currentColor"
@@ -70,18 +71,48 @@ function WalletIcon() {
     );
 }
 
+function formatDate(
+    timestamp: number,
+): string {
+    return new Intl.DateTimeFormat(
+        "uz-UZ",
+        {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        },
+    ).format(new Date(timestamp));
+}
+
+function getLevel(
+    percentage: number,
+): string {
+    if (percentage >= 90) return "A+";
+    if (percentage >= 80) return "A";
+    if (percentage >= 70) return "B+";
+    if (percentage >= 60) return "B";
+    if (percentage >= 50) return "C+";
+    if (percentage >= 40) return "C";
+
+    return "—";
+}
+
 export function ProfilePage() {
     const router = useRouter();
 
     const [values, setValues] =
-        useState<UserProfile>(
-            defaultUserProfile,
-        );
+        useState<UserProfile>(defaultUserProfile);
 
     const [savedValues, setSavedValues] =
-        useState<UserProfile>(
-            defaultUserProfile,
-        );
+        useState<UserProfile>(defaultUserProfile);
+
+    const [certificates, setCertificates] =
+        useState<
+            readonly DiagnosticCertificateRecord[]
+        >([]);
+
+    const [selectedCertificate, setSelectedCertificate] =
+        useState<DiagnosticCertificateRecord | null>(null);
 
     const [isEditing, setIsEditing] =
         useState(false);
@@ -91,8 +122,12 @@ export function ProfilePage() {
 
     useEffect(() => {
         const profile = readUserProfile();
+
         setValues(profile);
         setSavedValues(profile);
+        setCertificates(
+            readDiagnosticCertificates(),
+        );
     }, []);
 
     const fullName =
@@ -102,7 +137,9 @@ export function ProfilePage() {
         values.firstName,
         values.lastName,
     ]
-        .map((part) => part.trim()[0]?.toUpperCase())
+        .map((part) =>
+            part.trim()[0]?.toUpperCase(),
+        )
         .filter(Boolean)
         .join("");
 
@@ -171,23 +208,31 @@ export function ProfilePage() {
 
                     <div className={styles.heroCopy}>
                         <span>FOYDALANUVCHI</span>
-                        <h1>{fullName || "Foydalanuvchi"}</h1>
+                        <h1>
+                            {fullName || "Foydalanuvchi"}
+                        </h1>
                         <p>{values.telegramUsername}</p>
                     </div>
                 </section>
 
                 <section className={styles.statsGrid}>
                     <article>
-                        <strong>0</strong>
-                        <span>Yakunlangan test</span>
+                        <strong>
+                            {certificates.length}
+                        </strong>
+                        <span>Sertifikat</span>
                     </article>
                     <article>
                         <strong>0</strong>
                         <span>Esse tekshiruvi</span>
                     </article>
                     <article>
-                        <strong>0%</strong>
-                        <span>Umumiy natija</span>
+                        <strong>
+                            {certificates[0]
+                                ?.result.percentage ?? 0}
+                            %
+                        </strong>
+                        <span>So‘nggi natija</span>
                     </article>
                 </section>
 
@@ -207,7 +252,9 @@ export function ProfilePage() {
 
                     <button
                         type="button"
-                        onClick={() => router.push("/packages")}
+                        onClick={() =>
+                            router.push("/packages")
+                        }
                     >
                         To‘ldirish
                     </button>
@@ -227,11 +274,15 @@ export function ProfilePage() {
                             type="button"
                             className={styles.editButton}
                             onClick={() => {
-                                setIsEditing((current) => !current);
+                                setIsEditing(
+                                    (current) => !current,
+                                );
                                 setNotice("");
                             }}
                         >
-                            {isEditing ? "Yopish" : "Tahrirlash"}
+                            {isEditing
+                                ? "Yopish"
+                                : "Tahrirlash"}
                         </button>
                     </div>
 
@@ -242,7 +293,6 @@ export function ProfilePage() {
                                 type="text"
                                 value={values.firstName}
                                 disabled={!isEditing}
-                                autoComplete="given-name"
                                 onChange={(event) =>
                                     updateField(
                                         "firstName",
@@ -258,7 +308,6 @@ export function ProfilePage() {
                                 type="text"
                                 value={values.lastName}
                                 disabled={!isEditing}
-                                autoComplete="family-name"
                                 onChange={(event) =>
                                     updateField(
                                         "lastName",
@@ -294,7 +343,6 @@ export function ProfilePage() {
                                 type="tel"
                                 value={values.phone}
                                 disabled={!isEditing}
-                                autoComplete="tel"
                                 onChange={(event) =>
                                     updateField(
                                         "phone",
@@ -310,8 +358,6 @@ export function ProfilePage() {
                                 type="text"
                                 value={values.telegramUsername}
                                 disabled={!isEditing}
-                                autoCapitalize="none"
-                                spellCheck={false}
                                 onChange={(event) =>
                                     updateField(
                                         "telegramUsername",
@@ -350,9 +396,108 @@ export function ProfilePage() {
                         </p>
                     ) : null}
                 </form>
+
+                <section className={styles.certificatesSection}>
+                    <div className={styles.sectionHeading}>
+                        <span>SERTIFIKATLAR</span>
+                        <h2>Sertifikatlarim</h2>
+                    </div>
+
+                    {certificates.length > 0 ? (
+                        <div className={styles.certificateList}>
+                            {certificates.map(
+                                (certificate) => (
+                                    <article
+                                        key={
+                                            certificate.attemptId
+                                        }
+                                        className={
+                                            styles.certificateCard
+                                        }
+                                    >
+                                        <div>
+                                            <span>
+                                                {
+                                                    certificate
+                                                        .result
+                                                        .testTitle
+                                                }
+                                            </span>
+                                            <strong>
+                                                {
+                                                    certificate
+                                                        .result.score
+                                                }{" "}
+                                                /{" "}
+                                                {
+                                                    certificate
+                                                        .result
+                                                        .maximumScore
+                                                }
+                                            </strong>
+                                            <small>
+                                                {formatDate(
+                                                    certificate.issuedAt,
+                                                )}
+                                                {" · "}
+                                                Daraja{" "}
+                                                {getLevel(
+                                                    certificate
+                                                        .result
+                                                        .percentage,
+                                                )}
+                                            </small>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedCertificate(
+                                                    certificate,
+                                                )
+                                            }
+                                        >
+                                            Ko‘rish
+                                        </button>
+                                    </article>
+                                ),
+                            )}
+                        </div>
+                    ) : (
+                        <div className={styles.emptyCertificates}>
+                            <strong>
+                                Hozircha sertifikat yo‘q
+                            </strong>
+                            <p>
+                                To‘liq diagnostika imtihonini
+                                yakunlaganingizdan keyin
+                                sertifikat shu yerda saqlanadi.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    router.push(
+                                        "/tests/milliy-sertifikat/diagnostika",
+                                    )
+                                }
+                            >
+                                Diagnostikaga o‘tish
+                            </button>
+                        </div>
+                    )}
+                </section>
             </div>
 
             <MobileNavigation />
+
+            {selectedCertificate ? (
+                <DiagnosticCertificatePreview
+                    record={selectedCertificate}
+                    onClose={() =>
+                        setSelectedCertificate(null)
+                    }
+                />
+            ) : null}
         </main>
     );
 }

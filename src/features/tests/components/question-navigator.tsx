@@ -1,9 +1,9 @@
 "use client";
 
 import type {
-    TestOptionId,
-    TestQuestion,
-} from "@/features/tests/model/questions/spelling-type-1";
+    StandardTestOptionId as TestOptionId,
+    StandardTestQuestion as TestQuestion,
+} from "@/features/tests/model/questions/types";
 
 import styles from "./question-navigator.module.css";
 

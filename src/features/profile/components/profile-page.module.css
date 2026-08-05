@@ -387,3 +387,113 @@
         transition: none;
     }
 }
+
+
+.certificatesSection {
+    margin-top: 13px;
+    padding: 18px 16px;
+    border: 1px solid var(--app-border);
+    border-radius: 21px;
+    background: var(--app-surface);
+    box-shadow: 0 14px 34px rgb(30 34 41 / 8%);
+}
+
+.certificateList {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.certificateCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 13px;
+    padding: 14px;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background:
+        radial-gradient(
+            circle at 100% 0,
+            rgb(93 156 236 / 15%),
+            transparent 44%
+        ),
+        var(--app-background-subtle);
+}
+
+.certificateCard > div {
+    display: grid;
+    min-width: 0;
+    gap: 5px;
+}
+
+.certificateCard span {
+    overflow: hidden;
+    color: var(--app-text);
+    font-size: 11px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.certificateCard strong {
+    color: var(--app-primary);
+    font-size: 17px;
+}
+
+.certificateCard small {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+.certificateCard button,
+.emptyCertificates button {
+    min-height: 44px;
+    padding: 9px 13px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--app-primary);
+    color: #fff;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 850;
+}
+
+.emptyCertificates {
+    display: grid;
+    justify-items: center;
+    margin-top: 16px;
+    padding: 24px 16px;
+    border-radius: 16px;
+    background: var(--app-background-subtle);
+    text-align: center;
+}
+
+.emptyCertificates strong {
+    color: var(--app-text);
+    font-size: 14px;
+}
+
+.emptyCertificates p {
+    max-width: 300px;
+    margin: 7px 0 15px;
+    color: var(--app-text-secondary);
+    font-size: 9px;
+    line-height: 1.55;
+}
+
+.certificateCard button:focus-visible,
+.emptyCertificates button:focus-visible {
+    outline: 3px solid var(--app-focus);
+    outline-offset: 3px;
+}
+
+@media (max-width: 360px) {
+    .certificateCard {
+        grid-template-columns: 1fr;
+    }
+
+    .certificateCard button {
+        width: 100%;
+    }
+}

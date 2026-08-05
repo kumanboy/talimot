@@ -17,7 +17,7 @@ import {
 } from "./types";
 
 const approvedLabels = [
-  "Fonetika",
+  "Imlo",
   "Morfemika",
   "Morfologiya",
   "Sintaksis",
@@ -37,7 +37,7 @@ const approvedLabels = [
 ] as const;
 
 const approvedDependencies = [
-  ["morphemics", "phonetics"],
+  ["morphemics", "spelling"],
   ["morphology", "morphemics"],
   ["syntax", "morphology"],
   ["stylistics", "syntax"],
@@ -174,7 +174,7 @@ describe("from-zero roadmap definition", () => {
       fromZeroRoadmapDefinition.nodes[0],
     ];
 
-    expect(findDuplicateNodeIds(nodes)).toEqual(["phonetics"]);
+    expect(findDuplicateNodeIds(nodes)).toEqual(["spelling"]);
     expect(
       validateRoadmapDefinition(candidate({ nodes })).map(
         (issue) => issue.code,
@@ -197,11 +197,11 @@ describe("from-zero roadmap definition", () => {
   it("detects self-dependencies", () => {
     const dependencies = [
       ...fromZeroRoadmapDefinition.dependencies,
-      { nodeId: "phonetics", prerequisiteId: "phonetics" },
+      { nodeId: "spelling", prerequisiteId: "spelling" },
     ];
 
     expect(findSelfDependencies(dependencies)).toEqual([
-      { nodeId: "phonetics", prerequisiteId: "phonetics" },
+      { nodeId: "spelling", prerequisiteId: "spelling" },
     ]);
   });
 
@@ -209,7 +209,7 @@ describe("from-zero roadmap definition", () => {
     const dependencies = [
       ...fromZeroRoadmapDefinition.dependencies,
       {
-        nodeId: "phonetics",
+        nodeId: "spelling",
         prerequisiteId: "final-full-trial-exam",
       },
     ];

@@ -59,6 +59,43 @@ type UserAnswers = Partial<
     Record<string, TestOptionId>
 >;
 
+function isTestOptionId(
+    value: unknown,
+): value is TestOptionId {
+    return (
+        value === "A" ||
+        value === "B" ||
+        value === "C" ||
+        value === "D"
+    );
+}
+
+function restoreStandardAnswers(
+    storedAnswers:
+        StoredCompletedTest["answers"],
+): UserAnswers {
+    const restoredAnswers:
+        UserAnswers = {};
+
+    Object.entries(
+        storedAnswers,
+    ).forEach(
+        ([questionId, answer]) => {
+            if (
+                isTestOptionId(
+                    answer,
+                )
+            ) {
+                restoredAnswers[
+                    questionId
+                ] = answer;
+            }
+        },
+    );
+
+    return restoredAnswers;
+}
+
 type TestStage =
     | "questions"
     | "confirm"
@@ -567,7 +604,9 @@ export function TestRunner({
                 );
 
                 setAnswers(
-                    attempt.answers,
+                    restoreStandardAnswers(
+                        attempt.answers,
+                    ),
                 );
 
                 setStage("results");

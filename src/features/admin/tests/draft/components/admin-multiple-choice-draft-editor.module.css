@@ -1,0 +1,382 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.backLink {
+    display: inline-flex;
+    margin-bottom: 20px;
+    color: var(--app-text-muted);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.backLink:hover {
+    color: var(--app-primary);
+}
+
+.eyebrow {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--app-primary);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.header h1 {
+    margin: 0;
+    color: var(--app-text);
+    font-size: clamp(30px, 4vw, 44px);
+}
+
+.header p {
+    margin: 12px 0 0;
+    color: var(--app-text-muted);
+}
+
+.headerStats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+    gap: 12px;
+}
+
+.headerStats > div {
+    padding: 16px 18px;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: var(--app-surface);
+}
+
+.headerStats span,
+.saveBar span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--app-text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.headerStats strong {
+    color: var(--app-text);
+    font-size: 22px;
+}
+
+.successBanner,
+.errorBanner,
+.warningBanner {
+    margin-bottom: 18px;
+    padding: 15px 18px;
+    border-radius: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.successBanner {
+    border: 1px solid rgba(22, 163, 74, 0.3);
+    background: rgba(22, 163, 74, 0.08);
+    color: #15803d;
+}
+
+.errorBanner {
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    background: rgba(220, 38, 38, 0.08);
+    color: #b91c1c;
+}
+
+.warningBanner {
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    background: rgba(217, 119, 6, 0.08);
+    color: #a16207;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 18px;
+    padding: 18px 20px;
+    border: 1px solid var(--app-border);
+    border-radius: 18px;
+    background: var(--app-surface);
+}
+
+.toolbar strong,
+.toolbar span {
+    display: block;
+}
+
+.toolbar strong {
+    color: var(--app-text);
+}
+
+.toolbar span {
+    margin-top: 4px;
+    color: var(--app-text-muted);
+    font-size: 13px;
+}
+
+.addButton,
+.saveButton {
+    border: 0;
+    border-radius: 13px;
+    background: var(--app-primary);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+}
+
+.addButton {
+    min-height: 44px;
+    padding: 0 17px;
+}
+
+.saveButton {
+    min-height: 48px;
+    padding: 0 24px;
+}
+
+.saveButton:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.questionList {
+    display: grid;
+    gap: 18px;
+}
+
+.questionCard {
+    padding: 22px;
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    background: var(--app-surface);
+    box-shadow: 0 14px 40px rgba(15, 23, 42, 0.04);
+}
+
+.questionTop {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.questionTop > div:first-child {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.questionNumber {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--app-primary);
+    color: #fff;
+    font-weight: 900;
+}
+
+.questionTop strong,
+.questionTop small {
+    display: block;
+}
+
+.questionTop strong {
+    color: var(--app-text);
+}
+
+.questionTop small {
+    margin-top: 4px;
+    color: var(--app-text-muted);
+}
+
+.questionActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.questionActions button {
+    min-width: 36px;
+    min-height: 36px;
+    border: 1px solid var(--app-border);
+    border-radius: 10px;
+    background: var(--app-background);
+    color: var(--app-text);
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.questionActions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+}
+
+.questionActions .deleteButton {
+    padding: 0 12px;
+    color: #dc2626;
+}
+
+.fieldGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding-top: 20px;
+}
+
+.fieldGrid label,
+.explanationField {
+    display: grid;
+    gap: 7px;
+}
+
+.fieldGrid label > span,
+.explanationField > span {
+    color: var(--app-text);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
+.fieldGrid input,
+.fieldGrid select,
+.fieldGrid textarea,
+.option input[type="text"],
+.correctOption input[type="text"],
+.explanationField textarea {
+    width: 100%;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: var(--app-background);
+    color: var(--app-text);
+    font: inherit;
+    outline: none;
+}
+
+.fieldGrid input,
+.fieldGrid select {
+    min-height: 44px;
+    padding: 0 12px;
+}
+
+.fieldGrid textarea,
+.explanationField textarea {
+    padding: 11px 12px;
+    resize: vertical;
+}
+
+.fieldGrid input:focus,
+.fieldGrid select:focus,
+.fieldGrid textarea:focus,
+.option input:focus,
+.correctOption input:focus,
+.explanationField textarea:focus {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-primary) 14%, transparent);
+}
+
+.optionGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.option,
+.correctOption {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    background: var(--app-background);
+}
+
+.correctOption {
+    border-color: color-mix(in srgb, var(--app-primary) 58%, var(--app-border));
+    background: color-mix(in srgb, var(--app-primary) 7%, var(--app-background));
+}
+
+.option strong,
+.correctOption strong {
+    color: var(--app-primary);
+}
+
+.option input[type="text"],
+.correctOption input[type="text"] {
+    min-height: 40px;
+    padding: 0 10px;
+}
+
+.explanationField {
+    margin-top: 18px;
+}
+
+.emptyState {
+    padding: 48px 24px;
+    border: 1px dashed var(--app-border);
+    border-radius: 20px;
+    text-align: center;
+}
+
+.emptyState strong {
+    color: var(--app-text);
+    font-size: 20px;
+}
+
+.emptyState p {
+    margin: 8px 0 18px;
+    color: var(--app-text-muted);
+}
+
+.saveBar {
+    position: sticky;
+    bottom: 16px;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-top: 22px;
+    padding: 16px 18px;
+    border: 1px solid var(--app-border);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--app-surface) 94%, transparent);
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.14);
+    backdrop-filter: blur(14px);
+}
+
+.saveBar strong {
+    color: var(--app-text);
+}
+
+@media (max-width: 900px) {
+    .header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fieldGrid,
+    .optionGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .fullWidth {
+        grid-column: auto;
+    }
+}

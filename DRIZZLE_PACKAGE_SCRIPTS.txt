@@ -1,0 +1,6 @@
+Add these scripts to package.json later, after the first migration is verified:
+
+"db:generate": "drizzle-kit generate",
+"db:migrate": "drizzle-kit migrate",
+"db:check": "drizzle-kit check",
+"db:studio": "drizzle-kit studio"
