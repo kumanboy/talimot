@@ -110,17 +110,14 @@ function subscriptionKeyboard() {
 }
 
 async function sendSubscriptionPrompt(chatId: number) {
-    await telegramApi("sendMessage", {
-        chat_id: chatId,
-        text:
-            "Assalomu alaykum! 👋\n\n" +
-            "TA’LIMOT platformasidan foydalanish uchun avval quyidagi sahifalarga obuna bo‘ling:\n\n" +
-            "1️⃣ Instagram — @sardor_toshmuhammadov\n" +
-            "2️⃣ Telegram — @sardortoshmuhammad_onatili\n\n" +
-            "Avval Instagramga, keyin Telegram kanalga obuna bo‘ling. So‘ng «Obunani tekshirish» tugmasini bosing.",
-        reply_markup: subscriptionKeyboard(),
-        disable_web_page_preview: true,
-    });
+  await telegramApi("sendMessage", {
+    chat_id: chatId,
+    text:
+      "Assalomu alaykum! 👋\n\n" +
+      "TA’LIMOT platformasidan foydalanish uchun avval quyidagi sahifalarga obuna bo‘ling!",
+    reply_markup: subscriptionKeyboard(),
+    disable_web_page_preview: true,
+  });
 }
 
 async function isTelegramChannelMember(userId: number) {
