@@ -1,0 +1,279 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const TELEGRAM_CHANNEL_USERNAME = "@sardortoshmuhammad_onatili";
+const TELEGRAM_CHANNEL_URL = "https://t.me/sardortoshmuhammad_onatili";
+const INSTAGRAM_URL = "https://www.instagram.com/sardor_toshmuhammadov/";
+const CHECK_SUBSCRIPTIONS_CALLBACK = "check_required_subscriptions";
+
+type TelegramUser = {
+    id: number;
+    username?: string;
+};
+
+type TelegramChat = {
+    id: number;
+};
+
+type TelegramMessage = {
+    message_id: number;
+    text?: string;
+    chat: TelegramChat;
+    from?: TelegramUser;
+};
+
+type TelegramCallbackQuery = {
+    id: string;
+    from: TelegramUser;
+    data?: string;
+    message?: TelegramMessage;
+};
+
+type TelegramUpdate = {
+    message?: TelegramMessage;
+    callback_query?: TelegramCallbackQuery;
+};
+
+function requireEnvironment(key: string): string {
+    const value = process.env[key]?.trim();
+
+    if (!value) {
+        throw new Error(`${key} environment variable is not configured.`);
+    }
+
+    return value;
+}
+
+function getBotToken() {
+    return requireEnvironment("TELEGRAM_VERIFICATION_BOT_TOKEN");
+}
+
+function getAppUrl() {
+    return requireEnvironment("NEXT_PUBLIC_APP_URL").replace(/\/$/, "");
+}
+
+async function telegramApi<T>(method: string, body: Record<string, unknown>) {
+    const response = await fetch(
+        `https://api.telegram.org/bot${getBotToken()}/${method}`,
+        {
+            method: "POST",
+            headers: {
+                "content-type": "application/json",
+            },
+            body: JSON.stringify(body),
+            cache: "no-store",
+        },
+    );
+
+    const payload = (await response.json()) as {
+        ok: boolean;
+        result?: T;
+        description?: string;
+    };
+
+    if (!response.ok || !payload.ok) {
+        throw new Error(
+            payload.description ?? `Telegram API ${method} request failed.`,
+        );
+    }
+
+    return payload.result as T;
+}
+
+function subscriptionKeyboard() {
+    return {
+        inline_keyboard: [
+            [
+                {
+                    text: "1️⃣ Instagramga obuna bo‘lish",
+                    url: INSTAGRAM_URL,
+                },
+            ],
+            [
+                {
+                    text: "2️⃣ Telegram kanalga obuna bo‘lish",
+                    url: TELEGRAM_CHANNEL_URL,
+                },
+            ],
+            [
+                {
+                    text: "✅ Obunani tekshirish",
+                    callback_data: CHECK_SUBSCRIPTIONS_CALLBACK,
+                },
+            ],
+        ],
+    };
+}
+
+async function sendSubscriptionPrompt(chatId: number) {
+    await telegramApi("sendMessage", {
+        chat_id: chatId,
+        text:
+            "Assalomu alaykum! 👋\n\n" +
+            "TA’LIMOT platformasidan foydalanish uchun avval quyidagi sahifalarga obuna bo‘ling:\n\n" +
+            "1️⃣ Instagram — @sardor_toshmuhammadov\n" +
+            "2️⃣ Telegram — @sardortoshmuhammad_onatili\n\n" +
+            "Avval Instagramga, keyin Telegram kanalga obuna bo‘ling. So‘ng «Obunani tekshirish» tugmasini bosing.",
+        reply_markup: subscriptionKeyboard(),
+        disable_web_page_preview: true,
+    });
+}
+
+async function isTelegramChannelMember(userId: number) {
+    try {
+        const member = await telegramApi<{ status: string }>("getChatMember", {
+            chat_id: TELEGRAM_CHANNEL_USERNAME,
+            user_id: userId,
+        });
+
+        return ["creator", "administrator", "member", "restricted"].includes(
+            member.status,
+        );
+    } catch {
+        return false;
+    }
+}
+
+async function answerCallbackQuery(
+    callbackQueryId: string,
+    text?: string,
+    showAlert = false,
+) {
+    await telegramApi("answerCallbackQuery", {
+        callback_query_id: callbackQueryId,
+        ...(text ? { text } : {}),
+        show_alert: showAlert,
+    });
+}
+
+async function sendContinueMessage(chatId: number, telegramUserId: number) {
+    const user = await getUserByTelegramId(telegramUserId);
+    const appUrl = getAppUrl();
+
+    if (user && user.status === "active") {
+        await telegramApi("sendMessage", {
+            chat_id: chatId,
+            text:
+                "✅ Telegram obunangiz tasdiqlandi.\n\n" +
+                "Hisobingiz mavjud. TA’LIMOTga kirishni davom ettiring.",
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: "🔐 TA’LIMOTga kirish",
+                            url: `${appUrl}/auth/login?next=%2F`,
+                        },
+                    ],
+                ],
+            },
+        });
+        return;
+    }
+
+    await telegramApi("sendMessage", {
+        chat_id: chatId,
+        text:
+            "✅ Telegram obunangiz tasdiqlandi.\n\n" +
+            "TA’LIMOTga birinchi marta kirayotganingiz uchun onboardingdan boshlaymiz.",
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "🚀 Onboardingni boshlash",
+                        url: `${appUrl}/onboarding`,
+                    },
+                ],
+            ],
+        },
+    });
+}
+
+async function handleCallbackQuery(callback: TelegramCallbackQuery) {
+    if (callback.data !== CHECK_SUBSCRIPTIONS_CALLBACK) {
+        await answerCallbackQuery(callback.id);
+        return;
+    }
+
+    const chatId = callback.message?.chat.id;
+
+    if (!chatId) {
+        await answerCallbackQuery(
+            callback.id,
+            "Chat topilmadi. /start buyrug‘ini qayta yuboring.",
+            true,
+        );
+        return;
+    }
+
+    const subscribed = await isTelegramChannelMember(callback.from.id);
+
+    if (!subscribed) {
+        await answerCallbackQuery(
+            callback.id,
+            "Telegram kanalga hali obuna bo‘lmagansiz.",
+            true,
+        );
+
+        await telegramApi("sendMessage", {
+            chat_id: chatId,
+            text:
+                "❌ Telegram kanalga obuna aniqlanmadi.\n\n" +
+                "Avval Instagramga, keyin Telegram kanalga obuna bo‘ling va yana tekshiring.",
+            reply_markup: subscriptionKeyboard(),
+            disable_web_page_preview: true,
+        });
+        return;
+    }
+
+    await answerCallbackQuery(callback.id, "Obuna tasdiqlandi ✅");
+    await sendContinueMessage(chatId, callback.from.id);
+}
+
+async function handleMessage(message: TelegramMessage) {
+    const text = message.text?.trim() ?? "";
+
+    if (text === "/start" || text.startsWith("/start ")) {
+        await sendSubscriptionPrompt(message.chat.id);
+        return;
+    }
+}
+
+export async function POST(request: NextRequest) {
+    const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
+    const receivedSecret = request.headers.get(
+        "x-telegram-bot-api-secret-token",
+    );
+
+    if (!expectedSecret || receivedSecret !== expectedSecret) {
+        return NextResponse.json({ ok: false }, { status: 401 });
+    }
+
+    try {
+        const update = (await request.json()) as TelegramUpdate;
+
+        if (update.callback_query) {
+            await handleCallbackQuery(update.callback_query);
+        } else if (update.message) {
+            await handleMessage(update.message);
+        }
+
+        return NextResponse.json({ ok: true });
+    } catch (error) {
+        console.error("Telegram webhook error", error);
+
+        // Telegram retries non-2xx webhook responses. Returning 200 prevents
+        // repeated delivery loops while the server log keeps the error visible.
+        return NextResponse.json({ ok: true });
+    }
+}
+
+export async function GET() {
+    return NextResponse.json({
+        ok: true,
+        service: "talimot-telegram-webhook",
+    });
+}
