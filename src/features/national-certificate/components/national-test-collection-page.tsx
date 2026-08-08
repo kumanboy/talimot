@@ -419,7 +419,7 @@ export function NationalTestCollectionPage({
                         aria-label="Orqaga qaytish"
                         onClick={() =>
                             router.replace(
-                                TEST_ROUTES.nationalCertificateHome,
+                                TEST_ROUTES.testsHome,
                             )
                         }
                     >

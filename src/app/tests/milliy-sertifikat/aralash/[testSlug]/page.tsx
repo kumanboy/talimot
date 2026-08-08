@@ -5,10 +5,9 @@ import {
 import {
     MixedTestRunner,
 } from "@/features/national-certificate/components/mixed-test-runner";
-
 import {
-    getNationalTest,
-} from "@/features/national-certificate/model/national-test-registry";
+    getStudentNationalTest,
+} from "@/features/national-certificate/server/get-published-national-test";
 
 type MixedTestRouteProps = {
     readonly params: Promise<{
@@ -17,14 +16,14 @@ type MixedTestRouteProps = {
 };
 
 export default async function MixedTestRoute({
-                                                 params,
-                                             }: MixedTestRouteProps) {
+    params,
+}: MixedTestRouteProps) {
     const {
         testSlug,
     } = await params;
 
     const test =
-        getNationalTest(
+        await getStudentNationalTest(
             "aralash",
             testSlug,
         );
@@ -32,9 +31,9 @@ export default async function MixedTestRoute({
     if (
         !test ||
         test.kind !==
-        "mixed" ||
+            "mixed" ||
         test.topic !==
-        "aralash"
+            "aralash"
     ) {
         notFound();
     }

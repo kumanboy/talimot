@@ -8,6 +8,9 @@ import {
     hasValidAdminSession,
 } from "@/features/admin/model/admin-session";
 import {
+    isMorphologySubtopicSlug,
+} from "@/features/tests/model/morphology-categories";
+import {
     createEmptyAdminTestDraft,
 } from "@/features/admin/tests/draft/model/admin-test-draft-factory";
 import type {
@@ -32,6 +35,7 @@ const allowedGroups =
     new Set<AdminTestDraftGroup>([
         "grammar",
         "national-certificate",
+        "morphology",
     ]);
 
 const allowedFormats =
@@ -41,6 +45,7 @@ const allowedFormats =
         "standard-five",
         "mixed",
         "diagnostic",
+        "morphology-standard",
     ]);
 
 const allowedDifficulties =
@@ -55,6 +60,33 @@ const allowedAccess =
         "free",
         "premium",
     ]);
+
+const nationalCertificateCategoryRoutes = {
+    "Badiiy asarlar": {
+        topicSlug: "badiiy-asarlar",
+        format: "standard-five",
+    },
+    "Ilmiy matn": {
+        topicSlug: "ilmiy-matn",
+        format: "passage-five",
+    },
+    "Badiiy matn": {
+        topicSlug: "badiiy-matn",
+        format: "passage-five",
+    },
+    "G‘azal": {
+        topicSlug: "gazal",
+        format: "passage-five",
+    },
+    Aralash: {
+        topicSlug: "aralash",
+        format: "mixed",
+    },
+    Diagnostika: {
+        topicSlug: "diagnostika",
+        format: "diagnostic",
+    },
+} as const;
 
 function readText(
     formData:
@@ -95,7 +127,7 @@ export async function createAdminTestDraftAction(
         );
     }
 
-    const values = {
+    const rawValues = {
         title:
             readText(
                 formData,
@@ -148,6 +180,66 @@ export async function createAdminTestDraftAction(
             ),
     };
 
+    const isDiagnostic =
+        rawValues.format ===
+        "diagnostic";
+
+    const isMorphology =
+        rawValues.group ===
+            "morphology" ||
+        rawValues.format ===
+            "morphology-standard";
+
+    const nationalCategoryRoute =
+        rawValues.group ===
+            "national-certificate" &&
+        rawValues.category in
+            nationalCertificateCategoryRoutes
+            ? nationalCertificateCategoryRoutes[
+                rawValues.category as
+                    keyof typeof nationalCertificateCategoryRoutes
+            ]
+            : null;
+
+    const values =
+        isDiagnostic
+            ? {
+                ...rawValues,
+                group:
+                    "national-certificate",
+                category:
+                    "Diagnostika",
+                topicSlug:
+                    "diagnostika",
+                format:
+                    "diagnostic",
+                difficulty:
+                    "hard",
+                estimatedMinutes:
+                    "180",
+            }
+            : isMorphology
+              ? {
+                    ...rawValues,
+                    group:
+                        "morphology",
+                    category:
+                        "Morfologiya",
+                    format:
+                        "morphology-standard",
+                }
+              : nationalCategoryRoute
+                ? {
+                    ...rawValues,
+                    group:
+                        "national-certificate",
+                    topicSlug:
+                        nationalCategoryRoute.topicSlug,
+                    format:
+                        nationalCategoryRoute.format,
+                }
+                : rawValues;
+
     const fieldErrors:
         Record<string, string> = {};
 
@@ -159,6 +251,17 @@ export async function createAdminTestDraftAction(
     if (!values.category) {
         fieldErrors.category =
             "Kategoriyani kiriting.";
+    }
+
+    if (
+        values.group ===
+            "morphology" &&
+        !isMorphologySubtopicSlug(
+            values.topicSlug,
+        )
+    ) {
+        fieldErrors.topicSlug =
+            "Morfologiya bo‘limini tanlang.";
     }
 
     if (

@@ -1249,3 +1249,168 @@
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Step 6.6C — mixed DOCX human-review preview */
+.mixedParserSection {
+    margin-top: 18px;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: var(--app-background);
+}
+
+.mixedParserHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 17px;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.mixedParserHeader > div > span {
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+}
+
+.mixedParserHeader h3 {
+    margin: 6px 0 0;
+    color: var(--app-text);
+    font-size: 17px;
+}
+
+.mixedParserHeader p {
+    margin: 6px 0 0;
+    color: var(--app-text-muted);
+    font-size: 12px;
+}
+
+.mixedMetaGrid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 9px;
+    padding: 14px;
+}
+
+.mixedMetaGrid article {
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: var(--app-surface);
+}
+
+.mixedMetaGrid span,
+.mixedMetaGrid strong {
+    display: block;
+}
+
+.mixedMetaGrid span {
+    color: var(--app-text-muted);
+    font-size: 9px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.mixedMetaGrid strong {
+    margin-top: 5px;
+    overflow-wrap: anywhere;
+    color: var(--app-text);
+    font-size: 13px;
+}
+
+.mixedQuestionList {
+    display: grid;
+    gap: 12px;
+    max-height: 760px;
+    overflow: auto;
+    padding: 0 14px 14px;
+}
+
+.mixedQuestionCard {
+    padding: 15px;
+    border: 1px solid var(--app-border);
+    border-left-width: 5px;
+    border-radius: 14px;
+    background: var(--app-surface);
+}
+
+.mixedQuestionTop {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.mixedQuestionTop > div strong,
+.mixedQuestionTop > div span {
+    display: block;
+}
+
+.mixedQuestionTop strong {
+    color: var(--app-text);
+}
+
+.mixedQuestionTop > div span,
+.mixedQuestionTop > span {
+    margin-top: 3px;
+    color: var(--app-primary);
+    font-size: 11px;
+    font-weight: 850;
+}
+
+.mixedQuestionCard > p,
+.mixedQuestionCard blockquote {
+    color: var(--app-text);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.mixedQuestionCard blockquote {
+    margin: 10px 0;
+    padding: 10px 12px;
+    border-left: 4px solid var(--app-primary);
+    background: color-mix(in srgb, var(--app-primary) 6%, var(--app-background));
+    white-space: pre-wrap;
+}
+
+.mixedCompactList {
+    display: grid;
+    gap: 7px;
+    margin-top: 11px;
+}
+
+.mixedCompactList span {
+    padding: 9px 10px;
+    border: 1px solid var(--app-border);
+    border-radius: 10px;
+    color: var(--app-text);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.mixedNextStep {
+    margin: 0;
+    padding: 12px 14px;
+    border-top: 1px solid var(--app-border);
+    color: var(--app-text-muted);
+    font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+    .mixedMetaGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .mixedParserHeader {
+        flex-direction: column;
+    }
+
+    .mixedMetaGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

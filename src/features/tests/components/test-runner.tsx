@@ -41,6 +41,7 @@ import styles from "./test-runner.module.css";
 
 type TestRunnerData = {
     readonly id: string;
+    readonly slug: string;
     readonly title: string;
     readonly category: string;
     readonly topicSlug: string;
@@ -52,7 +53,9 @@ type TestRunnerData = {
 };
 
 type TestRunnerProps = {
-    test: TestRunnerData;
+    readonly test: TestRunnerData;
+    readonly collectionsHref?: string;
+    readonly testHref?: string;
 };
 
 type UserAnswers = Partial<
@@ -357,12 +360,23 @@ function formatCompletedDate(
 }
 
 export function TestRunner({
-                               test,
-                           }: TestRunnerProps) {
+    test,
+    collectionsHref:
+        collectionsHrefOverride,
+    testHref:
+        testHrefOverride,
+}: TestRunnerProps) {
     const collectionsHref =
+        collectionsHrefOverride ??
         getGrammarCollectionHref(
             test.topicSlug,
         );
+
+    const testHref =
+        testHrefOverride ??
+        `${collectionsHref}/${encodeURIComponent(
+            test.slug,
+        )}`;
     const router = useRouter();
     const searchParams =
         useSearchParams();
@@ -378,7 +392,7 @@ export function TestRunner({
             title: test.title,
             category: test.category,
             href:
-                "/tests/grammatika/imlo/1-tip",
+                testHref,
             totalQuestions:
             test.questionCount,
             estimatedMinutes:
@@ -388,6 +402,7 @@ export function TestRunner({
         [
             test.category,
             test.estimatedMinutes,
+            testHref,
             test.questionCount,
             test.title,
         ],

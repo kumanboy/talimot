@@ -10,14 +10,16 @@ export type AdminTestDraftStatus =
 
 export type AdminTestDraftGroup =
     | "grammar"
-    | "national-certificate";
+    | "national-certificate"
+    | "morphology";
 
 export type AdminTestDraftFormat =
     | "standard"
     | "passage-five"
     | "standard-five"
     | "mixed"
-    | "diagnostic";
+    | "diagnostic"
+    | "morphology-standard";
 
 export type AdminTestDraftDifficulty =
     | "easy"
@@ -33,6 +35,12 @@ export type AdminTestDraftSource =
     | "docx-import"
     | "pdf-import"
     | "existing-code";
+
+export interface AdminDiagnosticDraftMetadata {
+    readonly taskCount: number;
+    readonly finalMaximumScore: number;
+    readonly rawMaximumScore: number;
+}
 
 export interface AdminTestDraftMetadata {
     readonly title: string;
@@ -50,6 +58,8 @@ export interface AdminTestDraftMetadata {
         AdminTestDraftAccess;
     readonly estimatedMinutes:
         number;
+    readonly diagnostic?:
+        AdminDiagnosticDraftMetadata | null;
 }
 
 export interface AdminTestDraftAudit {
@@ -79,14 +89,24 @@ export interface AdminTestDraft {
 export interface AdminTestDraftSummary {
     readonly id: string;
     readonly title: string;
+    readonly description: string;
     readonly status:
         AdminTestDraftStatus;
     readonly source:
         AdminTestDraftSource;
     readonly group:
         AdminTestDraftGroup;
+    readonly category: string;
+    readonly topicSlug: string;
+    readonly slug: string;
     readonly format:
         AdminTestDraftFormat;
+    readonly difficulty:
+        AdminTestDraftDifficulty;
+    readonly access:
+        AdminTestDraftAccess;
+    readonly estimatedMinutes:
+        number;
     readonly questionCount:
         number;
     readonly maximumScore:

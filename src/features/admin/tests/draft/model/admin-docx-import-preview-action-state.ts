@@ -34,6 +34,12 @@ import type {
 import type {
     AdminLiteraryWorksDocxParseResult,
 } from "./admin-literary-works-docx-parser-types";
+import type {
+    AdminMixedDocxParseResult,
+} from "./admin-mixed-docx-parser-types";
+import type {
+    AdminDiagnosticDocxParseResult,
+} from "./admin-diagnostic-docx-parser-types";
 
 export interface AdminDocxImportPreviewActionState {
     readonly status:
@@ -54,6 +60,10 @@ export interface AdminDocxImportPreviewActionState {
         string;
     readonly warnings:
         readonly string[];
+    readonly parsedDiagnostic:
+        AdminDiagnosticDocxParseResult | null;
+    readonly parsedMixed:
+        AdminMixedDocxParseResult | null;
     readonly parsedMcq:
         AdminStandardMcqParseResult | null;
     readonly parsedPassage:
@@ -82,6 +92,10 @@ export const initialAdminDocxImportPreviewActionState:
             "",
         warnings:
             [],
+        parsedDiagnostic:
+            null,
+        parsedMixed:
+            null,
         parsedMcq:
             null,
         parsedPassage:

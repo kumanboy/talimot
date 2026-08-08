@@ -5,14 +5,9 @@ import {
 import {
     PassageFiveTestRunner,
 } from "@/features/national-certificate/components/passage-five-test-runner";
-
 import {
-    getNationalTest,
-} from "@/features/national-certificate/model/national-test-registry";
-
-import type {
-    PassageFiveTestDefinition,
-} from "@/features/national-certificate/model/passage-five-test-types";
+    getStudentNationalTest,
+} from "@/features/national-certificate/server/get-published-national-test";
 
 type ScientificTextRouteProps = {
     readonly params: Promise<{
@@ -21,14 +16,14 @@ type ScientificTextRouteProps = {
 };
 
 export default async function ScientificTextRoute({
-                                                      params,
-                                                  }: ScientificTextRouteProps) {
+    params,
+}: ScientificTextRouteProps) {
     const {
         testSlug,
     } = await params;
 
     const test =
-        getNationalTest(
+        await getStudentNationalTest(
             "ilmiy-matn",
             testSlug,
         );
@@ -36,18 +31,16 @@ export default async function ScientificTextRoute({
     if (
         !test ||
         test.kind !==
-        "passage-five" ||
+            "passage-five" ||
         test.topic !==
-        "ilmiy-matn"
+            "ilmiy-matn"
     ) {
         notFound();
     }
 
     return (
         <PassageFiveTestRunner
-            test={
-                test as PassageFiveTestDefinition
-            }
+            test={test}
         />
     );
 }

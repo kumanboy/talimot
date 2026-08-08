@@ -32,7 +32,10 @@ const questionsHeadingPattern =
 const answersHeadingPattern =
     /^(?:javoblar|javoblar\s+kaliti|answers)\s*$/iu;
 const romanMarkerPattern =
-    /^(I|II|III|IV)\s*[\.\):\-]?\s*(.*)$/u;
+    /^([IVXLCDM]+)\s*[\.\):\-]?\s*(.*)$/u;
+
+const canonicalScientificMarkers =
+    ["I", "II", "III", "IV"] as const;
 const taggedBlockPattern =
     /^\[(SARLAVHA|PARAGRAF|DIALOG|DIALOGUE)\]\s*(.*)$/iu;
 const speakerPattern =
@@ -146,48 +149,112 @@ function createBlock({
 function parseScientificPassage(
     lines: readonly string[],
 ): readonly AdminParsedPassageBlock[] {
-    const blocks: AdminParsedPassageBlock[] = [];
-    let currentMarker: string | null = null;
-    let currentParts: string[] = [];
+    const sections:
+        string[][] = [];
+    let currentParts:
+        string[] = [];
+    let sawExplicitMarker =
+        false;
 
     function flush() {
-        if (!currentMarker || currentParts.length === 0) {
-            currentParts = [];
+        if (
+            currentParts.length ===
+            0
+        ) {
             return;
         }
 
-        createBlock({
-            blocks,
-            type: "numbered-paragraph",
-            marker: currentMarker,
-            text: currentParts.join(" "),
-        });
-
+        sections.push(
+            currentParts,
+        );
         currentParts = [];
     }
 
     for (const line of lines) {
-        const markerMatch = romanMarkerPattern.exec(line);
+        const markerMatch =
+            romanMarkerPattern.exec(
+                line,
+            );
 
-        if (markerMatch?.[1] !== undefined) {
+        if (
+            markerMatch?.[1] !==
+            undefined
+        ) {
+            /*
+             * Real source DOCX files sometimes contain the first scientific
+             * section as an unnumbered paragraph and then continue with
+             * stale/misaligned Roman labels.  The student format, however,
+             * always has exactly four ordered sections: I, II, III, IV.
+             * Treat every explicit Roman label as a section boundary and
+             * canonicalise the visible markers by section order below.
+             */
             flush();
-            currentMarker = markerMatch[1];
+            sawExplicitMarker =
+                true;
 
             if (markerMatch[2]) {
-                currentParts.push(markerMatch[2]);
+                currentParts.push(
+                    markerMatch[2],
+                );
             }
 
             continue;
         }
 
-        if (!currentMarker) {
-            currentMarker = "I";
-        }
-
-        currentParts.push(line);
+        currentParts.push(
+            line,
+        );
     }
 
     flush();
+
+    if (
+        sections.length === 0 &&
+        !sawExplicitMarker
+    ) {
+        return [];
+    }
+
+    const normalizedSections =
+        sections.length > 4
+            ? [
+                ...sections.slice(
+                    0,
+                    3,
+                ),
+                sections
+                    .slice(3)
+                    .flat(),
+            ]
+            : sections;
+
+    const blocks:
+        AdminParsedPassageBlock[] = [];
+
+    normalizedSections.forEach(
+        (parts, index) => {
+            const marker =
+                canonicalScientificMarkers[
+                    index
+                ];
+
+            if (!marker) {
+                return;
+            }
+
+            createBlock({
+                blocks,
+                type:
+                    "numbered-paragraph",
+                marker,
+                text:
+                    parts.join(
+                        " ",
+                    ),
+            });
+        },
+    );
+
     return blocks;
 }
 

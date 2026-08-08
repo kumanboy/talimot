@@ -228,6 +228,43 @@ export class DrizzleAdminTestDraftRepository
             : null;
     }
 
+    async getByRoute(
+        route:
+            AdminTestDraftRoute,
+    ) {
+        const [row] =
+            await db
+                .select()
+                .from(
+                    adminTestDrafts,
+                )
+                .where(
+                    and(
+                        eq(
+                            adminTestDrafts.groupName,
+                            route.group,
+                        ),
+                        eq(
+                            adminTestDrafts.topicSlug,
+                            route.topicSlug,
+                        ),
+                        eq(
+                            adminTestDrafts.slug,
+                            route.slug,
+                        ),
+                    ),
+                )
+                .limit(1);
+
+        return row
+            ? mapStorageRecordToDraft(
+                toStorageRecord(
+                    row,
+                ),
+            )
+            : null;
+    }
+
     async list(
         filters:
             AdminTestDraftListFilters = {},

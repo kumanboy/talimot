@@ -1,57 +1,108 @@
 import {
-    getPlannedNationalTestsByTopic,
-} from "@/features/national-certificate/model/national-test-collections";
-
-import {
-    isNationalTestRegistered,
-} from "@/features/national-certificate/model/national-test-registry";
-
+    adminTestDraftService,
+} from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
 import type {
+    AdminTestDraftSummary,
+} from "@/features/admin/tests/draft/model/admin-test-draft-types";
+import type {
+    NationalTestFormat,
     NationalTestSummary,
     NationalTestTopic,
 } from "@/features/national-certificate/model/national-test-types";
 
+function expectedFormat(
+    topic:
+        NationalTestTopic,
+): NationalTestFormat {
+    if (
+        topic === "gazal" ||
+        topic === "ilmiy-matn" ||
+        topic === "badiiy-matn"
+    ) {
+        return "passage-five";
+    }
+
+    if (
+        topic === "badiiy-asarlar"
+    ) {
+        return "standard-five";
+    }
+
+    if (
+        topic === "aralash"
+    ) {
+        return "mixed";
+    }
+
+    return "diagnostic";
+}
+
+function publishedNationalSummary(
+    draft:
+        AdminTestDraftSummary,
+    topic:
+        NationalTestTopic,
+): NationalTestSummary {
+    return {
+        id:
+            draft.id,
+        slug:
+            draft.slug,
+        title:
+            draft.title,
+        description:
+            draft.description,
+        topic,
+        format:
+            expectedFormat(
+                topic,
+            ),
+        questionCount:
+            draft.questionCount,
+        estimatedMinutes:
+            draft.estimatedMinutes,
+        difficulty:
+            draft.difficulty,
+        access:
+            draft.access,
+        href:
+            `/tests/milliy-sertifikat/${topic}/${draft.slug}`,
+        isAvailable:
+            true,
+    };
+}
+
+/**
+ * Milliy sertifikat collection pages are database-authoritative.
+ * Only published Admin tests are visible to students.
+ */
 export async function getNationalTestsByTopic(
     topic: NationalTestTopic,
 ): Promise<
     readonly NationalTestSummary[]
 > {
-    const plannedTests =
-        getPlannedNationalTestsByTopic(
+    const requiredFormat =
+        expectedFormat(
             topic,
         );
+    const publishedDrafts =
+        await adminTestDraftService.listPublished(
+            "national-certificate",
+        );
 
-    return plannedTests.map(
-        (test) => ({
-            id: test.id,
-            slug: test.slug,
-
-            title: test.title,
-            description:
-            test.description,
-
-            topic: test.topic,
-            format: test.format,
-
-            questionCount:
-            test.questionCount,
-
-            estimatedMinutes:
-            test.estimatedMinutes,
-
-            difficulty:
-            test.difficulty,
-
-            access: test.access,
-
-            href:
-                `/tests/milliy-sertifikat/${test.topic}/${test.slug}`,
-
-            isAvailable:
-                isNationalTestRegistered(
-                    test.topic,
-                    test.slug,
+    return publishedDrafts
+        .filter(
+            (draft) =>
+                draft.topicSlug ===
+                    topic &&
+                draft.format ===
+                    requiredFormat,
+        )
+        .map(
+            (draft) =>
+                publishedNationalSummary(
+                    draft,
+                    topic,
                 ),
-        }),
-    );
+        );
 }

@@ -1,7 +1,6 @@
 import {
     Suspense,
 } from "react";
-
 import {
     notFound,
 } from "next/navigation";
@@ -9,11 +8,9 @@ import {
 import {
     TestRunner,
 } from "@/features/tests/components/test-runner";
-
 import {
-    getStandardTest,
-    standardTestRegistry,
-} from "@/features/tests/model/test-registry";
+    getStudentStandardTest,
+} from "@/features/tests/server/get-published-standard-test";
 
 type StandardTestRouteProps = {
     params: Promise<{
@@ -22,27 +19,16 @@ type StandardTestRouteProps = {
     }>;
 };
 
-export function generateStaticParams() {
-    return standardTestRegistry.map(
-        (test) => ({
-            topic:
-            test.topicSlug,
-            testSlug:
-            test.slug,
-        }),
-    );
-}
-
 export default async function StandardTestRoute({
-                                                    params,
-                                                }: StandardTestRouteProps) {
+    params,
+}: StandardTestRouteProps) {
     const {
         topic,
         testSlug,
     } = await params;
 
     const test =
-        getStandardTest(
+        await getStudentStandardTest(
             topic,
             testSlug,
         );

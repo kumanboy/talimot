@@ -145,6 +145,84 @@ export function createEmptyShortAnswerQuestion({
     };
 }
 
+
+export function createEmptyMatchingQuestion({
+    order,
+    section = "syntax",
+}: {
+    readonly order: number;
+    readonly section?:
+        AdminDraftQuestionSection;
+}): Extract<
+    AdminDraftQuestion,
+    {
+        readonly type:
+            "matching";
+    }
+> {
+    return {
+        type: "matching",
+        id:
+            createStableId(
+                "matching-question",
+            ),
+        order,
+        sourceOrder: null,
+        section,
+        question: "",
+        instruction: null,
+        context: null,
+        maximumScore: 0,
+        image: null,
+        explanation: {
+            text: "",
+            audio: null,
+        },
+        title: null,
+        choices: [
+            { id: "A", text: "" },
+            { id: "B", text: "" },
+        ],
+        items: [],
+    };
+}
+
+export function createEmptyMultipartQuestion({
+    order,
+    section = "written",
+}: {
+    readonly order: number;
+    readonly section?:
+        AdminDraftQuestionSection;
+}): Extract<
+    AdminDraftQuestion,
+    {
+        readonly type:
+            "multipart";
+    }
+> {
+    return {
+        type: "multipart",
+        id:
+            createStableId(
+                "multipart-question",
+            ),
+        order,
+        sourceOrder: null,
+        section,
+        question: "",
+        instruction: null,
+        context: null,
+        maximumScore: 0,
+        image: null,
+        explanation: {
+            text: "",
+            audio: null,
+        },
+        parts: [],
+    };
+}
+
 export function createEmptyEssayQuestion({
     order,
 }: {
@@ -177,9 +255,14 @@ export function createEmptyEssayQuestion({
         topic: "",
         requirements: {
             minimumWords: null,
+            recommendedWords: null,
             maximumWords: null,
             recommendedParagraphs:
                 null,
+            introduction: [],
+            body: [],
+            conclusion: [],
+            warnings: [],
             rubric: [],
         },
         comparison: "manual-review",

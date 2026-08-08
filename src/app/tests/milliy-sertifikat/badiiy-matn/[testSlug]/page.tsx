@@ -5,10 +5,9 @@ import {
 import {
     PassageFiveTestRunner,
 } from "@/features/national-certificate/components/passage-five-test-runner";
-
 import {
-    getNationalTest,
-} from "@/features/national-certificate/model/national-test-registry";
+    getStudentNationalTest,
+} from "@/features/national-certificate/server/get-published-national-test";
 
 type LiteraryTextRouteProps = {
     readonly params: Promise<{
@@ -17,14 +16,14 @@ type LiteraryTextRouteProps = {
 };
 
 export default async function LiteraryTextRoute({
-                                                    params,
-                                                }: LiteraryTextRouteProps) {
+    params,
+}: LiteraryTextRouteProps) {
     const {
         testSlug,
     } = await params;
 
     const test =
-        getNationalTest(
+        await getStudentNationalTest(
             "badiiy-matn",
             testSlug,
         );
@@ -32,9 +31,9 @@ export default async function LiteraryTextRoute({
     if (
         !test ||
         test.kind !==
-        "passage-five" ||
+            "passage-five" ||
         test.topic !==
-        "badiiy-matn"
+            "badiiy-matn"
     ) {
         notFound();
     }

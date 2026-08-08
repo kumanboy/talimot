@@ -3,28 +3,27 @@ import {
 } from "next/navigation";
 
 import {
-    DiagnosticTestRunner,
-} from "@/features/national-certificate/components/diagnostic-test-runner";
-
+    DiagnosticTestStart,
+} from "@/features/national-certificate/components/diagnostic-test-start";
 import {
-    getNationalTest,
-} from "@/features/national-certificate/model/national-test-registry";
+    getStudentNationalTest,
+} from "@/features/national-certificate/server/get-published-national-test";
 
-type DiagnosticExamRouteProps = {
+type DiagnosticTestRouteProps = {
     readonly params: Promise<{
         testSlug: string;
     }>;
 };
 
-export default async function DiagnosticExamRoute({
-                                                      params,
-                                                  }: DiagnosticExamRouteProps) {
+export default async function DiagnosticTestRoute({
+    params,
+}: DiagnosticTestRouteProps) {
     const {
         testSlug,
     } = await params;
 
     const test =
-        getNationalTest(
+        await getStudentNationalTest(
             "diagnostika",
             testSlug,
         );
@@ -32,15 +31,15 @@ export default async function DiagnosticExamRoute({
     if (
         !test ||
         test.kind !==
-        "diagnostic" ||
+            "diagnostic" ||
         test.topic !==
-        "diagnostika"
+            "diagnostika"
     ) {
         notFound();
     }
 
     return (
-        <DiagnosticTestRunner
+        <DiagnosticTestStart
             test={test}
         />
     );

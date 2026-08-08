@@ -177,7 +177,7 @@ export function DiagnosticTestStart({
         );
 
     const testHref =
-        `${collectionsHref}/${test.slug}`;
+        `${collectionsHref}/${test.slug}/imtihon`;
 
     return (
         <main

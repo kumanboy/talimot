@@ -59,6 +59,11 @@ export interface AdminTestDraftRepository {
         id: string,
     ): Promise<AdminTestDraft | null>;
 
+    getByRoute(
+        route:
+            AdminTestDraftRoute,
+    ): Promise<AdminTestDraft | null>;
+
     list(
         filters?:
             AdminTestDraftListFilters,

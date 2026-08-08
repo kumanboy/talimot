@@ -1,0 +1,176 @@
+.importer {
+    display: grid;
+    gap: 16px;
+    margin: 18px 0;
+    padding: 18px;
+    border: 1px solid color-mix(in srgb, var(--app-primary) 28%, var(--app-border));
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--app-primary) 4%, var(--app-surface));
+}
+
+.heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.heading span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--app-primary);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.heading h3 {
+    margin: 0;
+    color: var(--app-text);
+    font-size: 17px;
+}
+
+.heading p {
+    margin: 5px 0 0;
+    color: var(--app-text-muted);
+    font-size: 13px;
+}
+
+.heading > strong {
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.09);
+    color: #15803d;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.form label {
+    display: grid;
+    gap: 7px;
+}
+
+.form label > span {
+    color: var(--app-text);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.form input[type="file"] {
+    width: 100%;
+    min-height: 44px;
+    padding: 9px 11px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: var(--app-background);
+    color: var(--app-text);
+    font: inherit;
+}
+
+.form button,
+.importButton {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--app-primary);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+}
+
+.form button:disabled,
+.importButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.preview {
+    display: grid;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.stats > div {
+    padding: 11px 12px;
+    border: 1px solid var(--app-border);
+    border-radius: 12px;
+    background: var(--app-surface);
+}
+
+.stats span,
+.stats strong {
+    display: block;
+}
+
+.stats span {
+    margin-bottom: 4px;
+    color: var(--app-text-muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.stats strong {
+    color: var(--app-text);
+    font-size: 14px;
+}
+
+.issues {
+    margin: 0;
+    padding: 12px 12px 12px 30px;
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    border-radius: 12px;
+    background: rgba(217, 119, 6, 0.06);
+    color: #a16207;
+    font-size: 13px;
+}
+
+.error {
+    padding: 12px 14px;
+    border: 1px solid rgba(220, 38, 38, 0.28);
+    border-radius: 12px;
+    background: rgba(220, 38, 38, 0.06);
+    color: #b91c1c;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.importButton {
+    justify-self: end;
+}
+
+@media (max-width: 760px) {
+    .heading,
+    .form {
+        grid-template-columns: 1fr;
+        display: grid;
+    }
+
+    .heading > strong {
+        justify-self: start;
+        white-space: normal;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .importButton {
+        justify-self: stretch;
+    }
+}

@@ -6,11 +6,9 @@ import {
     getMorphologyCategory,
     isMorphologySubtopicSlug,
 } from "@/features/tests/model/morphology-categories";
-
 import {
-    getMorphologyTestsBySubtopic,
-} from "@/features/tests/model/morphology-test-collections";
-
+    getStudentMorphologyTestsBySubtopic,
+} from "@/features/tests/api/get-morphology-tests";
 import {
     MorphologyTestCollectionPage,
 } from "@/features/tests/components/morphology-test-collection-page";
@@ -22,8 +20,8 @@ type MorphologySubtopicRouteProps = {
 };
 
 export default async function MorphologySubtopicRoute({
-                                                          params,
-                                                      }: MorphologySubtopicRouteProps) {
+    params,
+}: MorphologySubtopicRouteProps) {
     const {
         subtopicSlug,
     } = await params;
@@ -46,7 +44,7 @@ export default async function MorphologySubtopicRoute({
     }
 
     const collections =
-        getMorphologyTestsBySubtopic(
+        await getStudentMorphologyTestsBySubtopic(
             subtopicSlug,
         );
 

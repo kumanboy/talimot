@@ -19,11 +19,6 @@ import type {
 } from "@/features/tests/model/test-dashboard";
 
 import {
-    grammarTestCategories,
-    nationalCertificateTestCategories,
-} from "@/features/tests/model/test-categories";
-
-import {
     calculateRestoredTime,
 } from "@/features/tests/model/test-progress-storage";
 
@@ -732,7 +727,17 @@ function DashboardLoadingState() {
     );
 }
 
-export function TestsPage() {
+interface TestsPageProps {
+    readonly grammarCategories:
+        readonly TestCategory[];
+    readonly nationalCertificateCategories:
+        readonly TestCategory[];
+}
+
+export function TestsPage({
+    grammarCategories,
+    nationalCertificateCategories,
+}: TestsPageProps) {
     const router = useRouter();
 
     const {
@@ -762,7 +767,7 @@ export function TestsPage() {
 
     const filteredGrammar =
         useMemo(() => {
-            return grammarTestCategories.filter(
+            return grammarCategories.filter(
                 (category) =>
                     matchesSearch(
                         category.title,
@@ -770,11 +775,14 @@ export function TestsPage() {
                         normalizedQuery,
                     ),
             );
-        }, [normalizedQuery]);
+        }, [
+            grammarCategories,
+            normalizedQuery,
+        ]);
 
     const filteredNational =
         useMemo(() => {
-            return nationalCertificateTestCategories.filter(
+            return nationalCertificateCategories.filter(
                 (category) =>
                     matchesSearch(
                         category.title,
@@ -782,7 +790,10 @@ export function TestsPage() {
                         normalizedQuery,
                     ),
             );
-        }, [normalizedQuery]);
+        }, [
+            nationalCertificateCategories,
+            normalizedQuery,
+        ]);
 
     const filteredOngoing =
         useMemo(() => {

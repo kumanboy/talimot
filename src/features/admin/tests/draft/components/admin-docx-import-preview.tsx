@@ -25,6 +25,14 @@ import type {
 import type {
     AdminLiteraryWorksDocxParseResult,
 } from "../model/admin-literary-works-docx-parser-types";
+import type {
+    AdminMixedDocxParseResult,
+    AdminParsedMixedQuestion,
+} from "../model/admin-mixed-docx-parser-types";
+import type {
+    AdminDiagnosticDocxParseResult,
+    AdminParsedDiagnosticQuestion,
+} from "../model/admin-diagnostic-docx-parser-types";
 
 import styles from "./admin-docx-import-preview.module.css";
 
@@ -61,7 +69,32 @@ const blockLabels = {
         "Jadval qatori",
 } as const;
 
+function mixedQuestionTypeLabel(
+    question:
+        AdminParsedMixedQuestion |
+        AdminParsedDiagnosticQuestion,
+): string {
+    if (question.type === "multiple-choice") return "Multiple-choice";
+    if (question.type === "matching") return "Matching";
+    if (question.type === "short-answer") return "Short-answer";
+    if (question.type === "essay") return "Esse";
+    if (question.type === "passage-group") return "Passage-group";
+    return "Multipart";
+}
+
+type AdminDocxParserTarget =
+    | "auto"
+    | "standard"
+    | "literary-works"
+    | "scientific-text"
+    | "literary-text"
+    | "ghazal"
+    | "mixed"
+    | "diagnostic";
+
 interface AdminDocxImportPreviewProps {
+    readonly parserTarget?:
+        AdminDocxParserTarget;
     readonly onImportQuestions:
         (
             questions:
@@ -82,13 +115,26 @@ interface AdminDocxImportPreviewProps {
             literaryWorks:
                 AdminLiteraryWorksDocxParseResult,
         ) => void;
+    readonly onImportMixed:
+        (
+            mixed:
+                AdminMixedDocxParseResult,
+        ) => void;
+    readonly onImportDiagnostic:
+        (
+            diagnostic:
+                AdminDiagnosticDocxParseResult,
+        ) => void;
 }
 
 export function AdminDocxImportPreview({
+    parserTarget = "auto",
     onImportQuestions,
     onImportPassage,
     onImportGhazal,
     onImportLiteraryWorks,
+    onImportMixed,
+    onImportDiagnostic,
 }: AdminDocxImportPreviewProps) {
     const [
         state,
@@ -306,6 +352,11 @@ export function AdminDocxImportPreview({
                     styles.uploadForm
                 }
             >
+                <input
+                    type="hidden"
+                    name="parserTarget"
+                    value={parserTarget}
+                />
                 <label
                     className={
                         styles.fileField
@@ -547,6 +598,250 @@ export function AdminDocxImportPreview({
                         </div>
                     </div>
 
+
+
+                    {state.parsedDiagnostic && (
+                        <section className={styles.mixedParserSection}>
+                            <div className={styles.mixedParserHeader}>
+                                <div>
+                                    <span>DIAGNOSTIC PARSER · STEP 6.7A</span>
+                                    <h3>Diagnostika test strukturasi aniqlandi</h3>
+                                    <p>
+                                        Variantli, matnli, matching, qisqa javob,
+                                        multipart va esse savollari draft importi
+                                        uchun tekshirildi.
+                                    </p>
+                                </div>
+                                <span className={`${styles.passageConfidence} ${styles[`passageConfidence_${state.parsedDiagnostic.confidence}`]}`}>
+                                    {state.parsedDiagnostic.confidenceScore}%
+                                </span>
+                            </div>
+
+                            <div className={styles.mixedMetaGrid}>
+                                <article><span>Sarlavha</span><strong>{state.parsedDiagnostic.metadata.title ?? "Topilmadi"}</strong></article>
+                                <article><span>Savol bloklari</span><strong>{state.parsedDiagnostic.questions.length}</strong></article>
+                                <article><span>Topshiriqlar</span><strong>{state.parsedDiagnostic.taskCount}</strong></article>
+                                <article><span>Yakuniy maksimal ball</span><strong>{state.parsedDiagnostic.maximumScore}</strong></article>
+                                <article><span>Xom ball yig‘indisi</span><strong>{state.parsedDiagnostic.rawMaximumScore}</strong></article>
+                                <article><span>Yuqori</span><strong>{state.parsedDiagnostic.highConfidenceCount}</strong></article>
+                                <article><span>Tekshirish</span><strong>{state.parsedDiagnostic.reviewCount}</strong></article>
+                                <article><span>Invalid</span><strong>{state.parsedDiagnostic.invalidCount}</strong></article>
+                            </div>
+
+                            <div className={styles.mixedQuestionList}>
+                                {state.parsedDiagnostic.questions.map((question) => (
+                                    <article key={question.id} className={`${styles.mixedQuestionCard} ${styles[`confidence_${question.confidence}`]}`}>
+                                        <div className={styles.mixedQuestionTop}>
+                                            <div>
+                                                <strong>{question.sourceOrder}-savol</strong>
+                                                <span>{mixedQuestionTypeLabel(question)} · {question.maximumScore} ball</span>
+                                            </div>
+                                            <span>{question.confidenceScore}%</span>
+                                        </div>
+
+                                        <p>
+                                            {question.type ===
+                                            "passage-group"
+                                                ? question.title ??
+                                                  `${question.sourceOrder}-savollar uchun matn`
+                                                : question.question}
+                                        </p>
+
+                                        {"context" in question && question.context && (
+                                            <blockquote>{question.context}</blockquote>
+                                        )}
+
+                                        {question.type === "essay" && question.situation && (
+                                            <blockquote>{question.situation}</blockquote>
+                                        )}
+
+                                        {question.type === "passage-group" && (
+                                            <div className={styles.mixedCompactList}>
+                                                <span>Bo‘lim: {question.section}</span>
+                                                <span>Matn bloklari: {question.passage.length}</span>
+                                                <span>Ichki savollar: {question.questions.length}</span>
+                                            </div>
+                                        )}
+
+                                        {question.type === "multiple-choice" && (
+                                            <div className={styles.parsedOptions}>
+                                                {question.options.map((option) => (
+                                                    <div key={option.id}>
+                                                        <strong>{option.id}</strong>
+                                                        <span>{option.text}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {question.type === "matching" && (
+                                            <div className={styles.mixedCompactList}>
+                                                {question.items.map((item) => (
+                                                    <span key={item.id}>
+                                                        {item.sourceOrder}. {item.prompt} → {item.correctChoiceId ?? "?"}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {question.type === "short-answer" && (
+                                            <div className={styles.mixedCompactList}>
+                                                <span>Javoblar: {question.acceptedAnswers.join("; ") || "topilmadi"}</span>
+                                                <span>Taqqoslash: {question.comparison}</span>
+                                            </div>
+                                        )}
+
+                                        {question.type === "multipart" && (
+                                            <div className={styles.mixedCompactList}>
+                                                {question.parts.map((part) => (
+                                                    <span key={part.id}>
+                                                        {part.label}) {part.question} · {part.maximumScore} ball
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {question.type === "essay" && (
+                                            <div className={styles.mixedCompactList}>
+                                                <span>
+                                                    So‘zlar: minimum {question.minimumWords ?? "—"}, tavsiya {question.recommendedWords ?? "—"}
+                                                </span>
+                                                <span>
+                                                    Rubrika: {question.rubric.join("; ") || "topilmadi"}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {question.issues.length > 0 && (
+                                            <ul className={styles.issueList}>
+                                                {question.issues.map((issue) => (
+                                                    <li key={issue}>{issue}</li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </article>
+                                ))}
+                            </div>
+
+                            {state.parsedDiagnostic.issues.length > 0 && (
+                                <ul className={styles.passageIssues}>
+                                    {state.parsedDiagnostic.issues.map((issue) => (
+                                        <li key={issue}>{issue}</li>
+                                    ))}
+                                </ul>
+                            )}
+
+                            <div className={styles.passageImportBar}>
+                                <div>
+                                    <strong>Diagnostika draftga tayyor</strong>
+                                    <span>
+                                        Barcha yaroqli savollar va esse bitta
+                                        diagnostika draftiga qo‘shiladi.
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        onImportDiagnostic(
+                                            state.parsedDiagnostic!,
+                                        )
+                                    }
+                                    disabled={
+                                        state.parsedDiagnostic.confidence ===
+                                        "invalid"
+                                    }
+                                >
+                                    Diagnostika testini draftga import qilish
+                                </button>
+                            </div>
+                        </section>
+                    )}
+
+                    {state.parsedMixed && (
+                        <section className={styles.mixedParserSection}>
+                            <div className={styles.mixedParserHeader}>
+                                <div>
+                                    <span>MIXED PARSER · STEP 6.6C</span>
+                                    <h3>Aralash test strukturasi aniqlandi</h3>
+                                    <p>To‘rt xil savol turi, topshiriqlar soni va ballar human review uchun tayyorlandi.</p>
+                                </div>
+                                <span className={`${styles.passageConfidence} ${styles[`passageConfidence_${state.parsedMixed.confidence}`]}`}>
+                                    {state.parsedMixed.confidenceScore}%
+                                </span>
+                            </div>
+
+                            <div className={styles.mixedMetaGrid}>
+                                <article><span>Sarlavha</span><strong>{state.parsedMixed.metadata.title ?? "Topilmadi"}</strong></article>
+                                <article><span>Savol bloklari</span><strong>{state.parsedMixed.questions.length}</strong></article>
+                                <article><span>Topshiriqlar</span><strong>{state.parsedMixed.taskCount}</strong></article>
+                                <article><span>Maksimal ball</span><strong>{state.parsedMixed.maximumScore}</strong></article>
+                                <article><span>Yuqori</span><strong>{state.parsedMixed.highConfidenceCount}</strong></article>
+                                <article><span>Tekshirish</span><strong>{state.parsedMixed.reviewCount}</strong></article>
+                                <article><span>Invalid</span><strong>{state.parsedMixed.invalidCount}</strong></article>
+                            </div>
+
+                            <div className={styles.mixedQuestionList}>
+                                {state.parsedMixed.questions.map((question) => (
+                                    <article key={question.id} className={`${styles.mixedQuestionCard} ${styles[`confidence_${question.confidence}`]}`}>
+                                        <div className={styles.mixedQuestionTop}>
+                                            <div>
+                                                <strong>{question.sourceOrder}-savol</strong>
+                                                <span>{mixedQuestionTypeLabel(question)} · {question.maximumScore} ball</span>
+                                            </div>
+                                            <span>{question.confidenceScore}%</span>
+                                        </div>
+                                        <p>{question.question}</p>
+                                        {question.context && <blockquote>{question.context}</blockquote>}
+                                        {question.type === "multiple-choice" && (
+                                            <div className={styles.parsedOptions}>
+                                                {question.options.map((option) => <div key={option.id}><strong>{option.id}</strong><span>{option.text}</span></div>)}
+                                            </div>
+                                        )}
+                                        {question.type === "matching" && (
+                                            <div className={styles.mixedCompactList}>
+                                                {question.items.map((item) => <span key={item.id}>{item.sourceOrder}. {item.prompt} → {item.correctChoiceId ?? "?"}</span>)}
+                                            </div>
+                                        )}
+                                        {question.type === "short-answer" && (
+                                            <div className={styles.mixedCompactList}><span>Javoblar: {question.acceptedAnswers.join("; ") || "topilmadi"}</span><span>Taqqoslash: {question.comparison}</span></div>
+                                        )}
+                                        {question.type === "multipart" && (
+                                            <div className={styles.mixedCompactList}>
+                                                {question.parts.map((part) => <span key={part.id}>{part.label}) {part.question} · {part.maximumScore} ball</span>)}
+                                            </div>
+                                        )}
+                                        {question.issues.length > 0 && <ul className={styles.issueList}>{question.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}
+                                    </article>
+                                ))}
+                            </div>
+
+                            {state.parsedMixed.issues.length > 0 && <ul className={styles.passageIssues}>{state.parsedMixed.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>}
+                            <div className={styles.passageImportBar}>
+                                <div>
+                                    <strong>Aralash draftga tayyor</strong>
+                                    <span>
+                                        Barcha yaroqli multiple-choice, matching,
+                                        short-answer va multipart savollar birgalikda
+                                        draftga qo‘shiladi.
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        onImportMixed(
+                                            state.parsedMixed!,
+                                        )
+                                    }
+                                    disabled={
+                                        state.parsedMixed.confidence ===
+                                        "invalid"
+                                    }
+                                >
+                                    Aralash testni draftga import qilish
+                                </button>
+                            </div>
+                        </section>
+                    )}
 
                     {state.parsedLiteraryWorks && (
                         <section className={styles.literaryWorksParserSection}>
@@ -1017,14 +1312,44 @@ export function AdminDocxImportPreview({
                                 </ul>
                             )}
 
-                            <p className={styles.passageNextStep}>
-                                Step 6.3B’da ushbu passage-group human review
-                                orqali draftga import qilinadi.
-                            </p>
+                            <div className={styles.passageImportBar}>
+                                <div>
+                                    <strong>
+                                        {state.parsedPassage.metadata.topic ===
+                                        "scientific-text"
+                                            ? "Ilmiy matn draftga tayyor"
+                                            : "Badiiy matn draftga tayyor"}
+                                    </strong>
+                                    <span>
+                                        Matn va 5 ta savol bitta passage-group sifatida
+                                        draftga import qilinadi. Importdan keyin draftni
+                                        saqlang, keyin nashr qiling.
+                                    </span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        onImportPassage(
+                                            state.parsedPassage!,
+                                        )
+                                    }
+                                    disabled={
+                                        state.parsedPassage.confidence ===
+                                        "invalid"
+                                    }
+                                >
+                                    {state.parsedPassage.metadata.topic ===
+                                    "scientific-text"
+                                        ? "Ilmiy matnni draftga import qilish"
+                                        : "Badiiy matnni draftga import qilish"}
+                                </button>
+                            </div>
                         </section>
                     )}
 
                     {state.parsedMcq &&
+                        !state.parsedMixed &&
                         !state.parsedPassage &&
                         !state.parsedGhazal &&
                         !state.parsedLiteraryWorks && (

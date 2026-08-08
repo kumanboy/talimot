@@ -1840,7 +1840,7 @@ function DiagnosticAnswerReview({
     );
 }
 
-function ResultView({
+export function DiagnosticResultView({
                         test,
                         result,
                         answers,
@@ -2081,13 +2081,18 @@ function ResultView({
 
                     <button
                         type="button"
-                        onClick={() =>
-                        router.push("/profil")
-                        }
+                        onClick={() => {
+                            if (certificateRecord) {
+                                setIsCertificateOpen(true);
+                                return;
+                            }
+
+                            router.push("/profil");
+                        }}
                     >
-                {certificateRecord
-                ? "Profilga saqlash"
-                : "Profilni to‘ldirish"}
+                        {certificateRecord
+                            ? "Sertifikatni ko‘rish"
+                            : "Profilni to‘ldirish"}
                     </button>
                 </section>
 
@@ -2550,18 +2555,15 @@ export function DiagnosticTestRunner({
                     nextCertificateRecord,
                 );
 
-                setOpenCertificateOnResult(
-                    Boolean(
-                        nextCertificateRecord,
-                    ),
+                removeTestProgress(
+                    test.id,
                 );
 
-                setView(
-                    "result",
-                );
-
+                // A completed diagnostic exam now has its own result URL.
+                // This keeps the exam runner and the result/certificate flow
+                // separate and makes the browser URL match what the user sees.
                 router.replace(
-                    `/tests/milliy-sertifikat/diagnostika/${test.slug}?attempt=${completed.attemptId}`,
+                    `/tests/milliy-sertifikat/diagnostika/${test.slug}/natija?attempt=${completed.attemptId}`,
                 );
 
                 return;
@@ -2578,6 +2580,7 @@ export function DiagnosticTestRunner({
             answers,
             metadata,
             remainingSeconds,
+            router,
             test,
         ]);
 
@@ -2672,7 +2675,7 @@ export function DiagnosticTestRunner({
         result
     ) {
         return (
-            <ResultView
+            <DiagnosticResultView
                 test={test}
                 result={
                     result

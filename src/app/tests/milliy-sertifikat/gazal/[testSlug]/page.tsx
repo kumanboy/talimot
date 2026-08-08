@@ -5,10 +5,9 @@ import {
 import {
     GhazalTestRunner,
 } from "@/features/national-certificate/components/ghazal-test-runner";
-
 import {
-    ghazalOneTest,
-} from "@/features/national-certificate/model/tests/ghazal-1";
+    getStudentNationalTest,
+} from "@/features/national-certificate/server/get-published-national-test";
 
 type GhazalTestRouteProps = {
     readonly params: Promise<{
@@ -17,22 +16,31 @@ type GhazalTestRouteProps = {
 };
 
 export default async function GhazalTestRoute({
-                                                  params,
-                                              }: GhazalTestRouteProps) {
+    params,
+}: GhazalTestRouteProps) {
     const {
         testSlug,
     } = await params;
 
+    const test =
+        await getStudentNationalTest(
+            "gazal",
+            testSlug,
+        );
+
     if (
-        testSlug !==
-        ghazalOneTest.slug
+        !test ||
+        test.kind !==
+            "ghazal" ||
+        test.topic !==
+            "gazal"
     ) {
         notFound();
     }
 
     return (
         <GhazalTestRunner
-            test={ghazalOneTest}
+            test={test}
         />
     );
 }

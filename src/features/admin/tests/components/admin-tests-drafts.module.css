@@ -213,3 +213,36 @@
         width: 100%;
     }
 }
+
+.rowActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rowActions form {
+    margin: 0;
+}
+
+.deleteButton {
+    min-height: 36px;
+    border: 1px solid color-mix(in srgb, #d92d20 38%, var(--app-border));
+    border-radius: 10px;
+    padding: 0 12px;
+    background: color-mix(in srgb, #d92d20 8%, var(--app-surface));
+    color: #b42318;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.deleteButton:hover {
+    background: color-mix(in srgb, #d92d20 14%, var(--app-surface));
+}
+
+.deleteButton:focus-visible {
+    outline: 3px solid color-mix(in srgb, #d92d20 24%, transparent);
+    outline-offset: 2px;
+}

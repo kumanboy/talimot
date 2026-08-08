@@ -1,6 +1,9 @@
 import type {
     MorphologySubtopicSlug,
 } from "@/features/tests/model/morphology-categories";
+import {
+    isStandardTestRegistered,
+} from "@/features/tests/model/test-registry";
 
 export type MorphologyTestDifficulty =
     | "easy"
@@ -71,7 +74,10 @@ export const morphologyTestCollections:
                 "free",
 
             isAvailable:
-                false,
+                isStandardTestRegistered(
+                    "ot",
+                    "1",
+                ),
 
             href:
                 "/tests/grammatika/morfologiya/ot/1",

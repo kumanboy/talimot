@@ -842,3 +842,145 @@
         grid-column: 2;
     }
 }
+
+.diagnosticSummary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 16px;
+    border: 1px solid color-mix(in srgb, var(--app-primary) 28%, var(--app-border));
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--app-primary) 6%, var(--app-surface));
+}
+
+.diagnosticSummary > div {
+    padding: 13px 14px;
+    border: 1px solid var(--app-border);
+    border-radius: 13px;
+    background: var(--app-surface);
+}
+
+.diagnosticSummary span,
+.diagnosticSummary strong {
+    display: block;
+}
+
+.diagnosticSummary span {
+    color: var(--app-text-muted);
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+}
+
+.diagnosticSummary strong {
+    margin-top: 5px;
+    color: var(--app-text);
+    font-size: 19px;
+}
+
+.diagnosticSummary p {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--app-text-muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+    .diagnosticSummary {
+        grid-template-columns: 1fr;
+    }
+
+    .diagnosticSummary p {
+        grid-column: auto;
+    }
+}
+
+.publishedNotice {
+    display: grid;
+    gap: 5px;
+    margin: 16px 0;
+    padding: 14px 16px;
+    border: 1px solid rgba(48, 118, 190, 0.28);
+    border-radius: 16px;
+    background: rgba(48, 118, 190, 0.08);
+}
+
+.publishedNotice strong {
+    color: #1f5f9f;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.publishedNotice span {
+    color: var(--admin-text-muted, #5f6d79);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.publishPanel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 14px;
+    padding: 18px 20px;
+    border: 1px solid rgba(28, 143, 82, 0.24);
+    border-radius: 18px;
+    background: rgba(28, 143, 82, 0.06);
+}
+
+.publishPanel > div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.publishPanel strong {
+    color: var(--admin-text, #18222d);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.publishPanel span,
+.publishPanel small {
+    color: var(--admin-text-muted, #61707d);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.publishPanel small {
+    color: #b06b12;
+    font-weight: 700;
+}
+
+.publishButton {
+    flex: 0 0 auto;
+    min-height: 48px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 14px;
+    background: #16864d;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.publishButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+
+@media (max-width: 720px) {
+    .publishPanel {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .publishButton {
+        width: 100%;
+    }
+}

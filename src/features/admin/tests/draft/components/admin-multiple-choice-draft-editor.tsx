@@ -5,6 +5,7 @@ import {
     useActionState,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 
@@ -12,18 +13,54 @@ import {
     saveAdminTestDraftAction,
 } from "../actions/save-admin-test-draft-action";
 import {
+    publishAdminTestDraftAction,
+} from "../actions/publish-admin-test-draft-action";
+import {
     AdminDocxImportPreview,
 } from "./admin-docx-import-preview";
 import {
+    AdminQuestionImageUploader,
+} from "./admin-question-image-uploader";
+import {
+    AdminQuestionAudioUploader,
+} from "./admin-question-audio-uploader";
+import {
+    AdminMixedStructuredQuestionEditor,
+} from "./admin-mixed-structured-question-editor";
+import {
+    AdminDiagnosticEssayEditor,
+} from "./admin-diagnostic-essay-editor";
+import {
+    AdminDiagnosticSectionDocxImporter,
+} from "./admin-diagnostic-section-docx-importer";
+import {
+    createEmptyMatchingQuestion,
+    createEmptyMultipartQuestion,
     createEmptyMultipleChoiceQuestion,
+    createEmptyShortAnswerQuestion,
 } from "../model/admin-test-draft-factory";
 import {
     initialSaveAdminTestDraftActionState,
 } from "../model/save-admin-test-draft-action-state";
+import {
+    initialPublishAdminTestDraftActionState,
+} from "../model/publish-admin-test-draft-action-state";
+import {
+    createAdminDiagnosticDraftImport,
+    createAdminDiagnosticQuestionImport,
+} from "../model/admin-diagnostic-draft-import";
+import {
+    calculateAdminDraftMaximumScore,
+    calculateAdminDraftTaskCount,
+} from "../model/admin-test-draft-validation";
 
 import type {
+    AdminDraftEssayQuestion,
+    AdminDraftMatchingQuestion,
+    AdminDraftMultipartQuestion,
     AdminDraftMultipleChoiceQuestion,
     AdminDraftOptionId,
+    AdminDraftShortAnswerQuestion,
     AdminDraftPassageBlock,
     AdminDraftPassageGroupQuestion,
     AdminDraftQuestion,
@@ -44,12 +81,91 @@ import type {
 import type {
     AdminLiteraryWorksDocxParseResult,
 } from "../model/admin-literary-works-docx-parser-types";
+import type {
+    AdminMixedDocxParseResult,
+} from "../model/admin-mixed-docx-parser-types";
+import type {
+    AdminDiagnosticDocxParseResult,
+} from "../model/admin-diagnostic-docx-parser-types";
 
 import styles from "./admin-multiple-choice-draft-editor.module.css";
 
 interface AdminMultipleChoiceDraftEditorProps {
     readonly initialDraft:
         AdminTestDraft;
+}
+
+interface PendingImageRemoval {
+    readonly questionId: string;
+    readonly storagePath: string;
+}
+
+interface PendingAudioRemoval {
+    readonly questionId: string;
+    readonly storagePath: string;
+}
+
+function mergeImageRemovals(
+    existing:
+        readonly PendingImageRemoval[],
+    incoming:
+        readonly PendingImageRemoval[],
+): PendingImageRemoval[] {
+    const removalsByPath =
+        new Map<string, PendingImageRemoval>();
+
+    existing.forEach(
+        (removal) => {
+            removalsByPath.set(
+                removal.storagePath,
+                removal,
+            );
+        },
+    );
+    incoming.forEach(
+        (removal) => {
+            removalsByPath.set(
+                removal.storagePath,
+                removal,
+            );
+        },
+    );
+
+    return [
+        ...removalsByPath.values(),
+    ];
+}
+
+function mergeAudioRemovals(
+    existing:
+        readonly PendingAudioRemoval[],
+    incoming:
+        readonly PendingAudioRemoval[],
+): PendingAudioRemoval[] {
+    const removalsByPath =
+        new Map<string, PendingAudioRemoval>();
+
+    existing.forEach(
+        (removal) => {
+            removalsByPath.set(
+                removal.storagePath,
+                removal,
+            );
+        },
+    );
+
+    incoming.forEach(
+        (removal) => {
+            removalsByPath.set(
+                removal.storagePath,
+                removal,
+            );
+        },
+    );
+
+    return [
+        ...removalsByPath.values(),
+    ];
 }
 
 const sectionOptions:
@@ -103,6 +219,14 @@ const sectionOptions:
         },
     ];
 
+const diagnosticManualImageSourceOrders =
+    new Set([
+        4,
+        8,
+        12,
+    ]);
+
+
 function isMultipleChoice(
     question:
         AdminDraftQuestion,
@@ -120,6 +244,34 @@ function isPassageGroup(
     AdminDraftPassageGroupQuestion {
     return question.type ===
         "passage-group";
+}
+
+
+function isStructuredMixedQuestion(
+    question:
+        AdminDraftQuestion,
+): question is
+    | AdminDraftMatchingQuestion
+    | AdminDraftShortAnswerQuestion
+    | AdminDraftMultipartQuestion {
+    return (
+        question.type ===
+            "matching" ||
+        question.type ===
+            "short-answer" ||
+        question.type ===
+            "multipart"
+    );
+}
+
+
+function isEssayQuestion(
+    question:
+        AdminDraftQuestion,
+): question is
+    AdminDraftEssayQuestion {
+    return question.type ===
+        "essay";
 }
 
 function createClientId(
@@ -165,6 +317,29 @@ export function AdminMultipleChoiceDraftEditor({
         initialDraft,
     );
 
+    const lastPersistedDraftRef =
+        useRef<AdminTestDraft>(
+            initialDraft,
+        );
+
+    const pendingImageRemovalsRef =
+        useRef<
+            PendingImageRemoval[]
+        >([]);
+    const submittedImageRemovalsRef =
+        useRef<
+            PendingImageRemoval[]
+        >([]);
+
+    const pendingAudioRemovalsRef =
+        useRef<
+            PendingAudioRemoval[]
+        >([]);
+    const submittedAudioRemovalsRef =
+        useRef<
+            PendingAudioRemoval[]
+        >([]);
+
 
     const [
         toast,
@@ -188,6 +363,15 @@ export function AdminMultipleChoiceDraftEditor({
         initialSaveAdminTestDraftActionState,
     );
 
+    const [
+        publishState,
+        publishFormAction,
+        publishing,
+    ] = useActionState(
+        publishAdminTestDraftAction,
+        initialPublishAdminTestDraftActionState,
+    );
+
     useEffect(() => {
         if (
             actionState.status ===
@@ -197,6 +381,8 @@ export function AdminMultipleChoiceDraftEditor({
             setDraft(
                 actionState.savedDraft,
             );
+            lastPersistedDraftRef.current =
+                actionState.savedDraft;
 
             setToast({
                 type:
@@ -205,6 +391,156 @@ export function AdminMultipleChoiceDraftEditor({
                     actionState.message ??
                     "Draft muvaffaqiyatli saqlandi.",
             });
+
+            const savedDraftId =
+                actionState.savedDraft.id;
+            const pendingImageRemovals =
+                submittedImageRemovalsRef
+                    .current;
+
+            submittedImageRemovalsRef.current =
+                [];
+
+            if (
+                pendingImageRemovals.length >
+                0
+            ) {
+                void (async () => {
+                    const results =
+                        await Promise.all(
+                            pendingImageRemovals.map(
+                                async (removal) => {
+                                    try {
+                                        const response =
+                                            await fetch(
+                                                "/api/admin/test-drafts/images",
+                                                {
+                                                    method: "DELETE",
+                                                    headers: {
+                                                        "Content-Type":
+                                                            "application/json",
+                                                    },
+                                                    body: JSON.stringify({
+                                                        draftId:
+                                                            savedDraftId,
+                                                        questionId:
+                                                            removal.questionId,
+                                                        storagePath:
+                                                            removal.storagePath,
+                                                    }),
+                                                },
+                                            );
+
+                                        return response.ok
+                                            ? null
+                                            : removal;
+                                    } catch {
+                                        return removal;
+                                    }
+                                },
+                            ),
+                        );
+                    const failedRemovals =
+                        results.filter(
+                            (
+                                removal,
+                            ): removal is PendingImageRemoval =>
+                                removal !==
+                                null,
+                        );
+
+                    if (
+                        failedRemovals.length >
+                        0
+                    ) {
+                        pendingImageRemovalsRef.current =
+                            mergeImageRemovals(
+                                failedRemovals,
+                                pendingImageRemovalsRef.current,
+                            );
+
+                        setToast({
+                            type: "error",
+                            message:
+                                `Draft saqlandi, lekin ${failedRemovals.length} ta eski rasmni Storage’dan o‘chirib bo‘lmadi. Keyingi saqlashda qayta uriniladi.`,
+                        });
+                    }
+                })();
+            }
+
+            const pendingAudioRemovals =
+                submittedAudioRemovalsRef
+                    .current;
+
+            submittedAudioRemovalsRef.current =
+                [];
+
+            if (
+                pendingAudioRemovals.length >
+                0
+            ) {
+                void (async () => {
+                    const results =
+                        await Promise.all(
+                            pendingAudioRemovals.map(
+                                async (removal) => {
+                                    try {
+                                        const response =
+                                            await fetch(
+                                                "/api/admin/test-drafts/audios",
+                                                {
+                                                    method: "DELETE",
+                                                    headers: {
+                                                        "Content-Type":
+                                                            "application/json",
+                                                    },
+                                                    body: JSON.stringify({
+                                                        draftId:
+                                                            savedDraftId,
+                                                        questionId:
+                                                            removal.questionId,
+                                                        storagePath:
+                                                            removal.storagePath,
+                                                    }),
+                                                },
+                                            );
+
+                                        return response.ok
+                                            ? null
+                                            : removal;
+                                    } catch {
+                                        return removal;
+                                    }
+                                },
+                            ),
+                        );
+                    const failedRemovals =
+                        results.filter(
+                            (
+                                removal,
+                            ): removal is PendingAudioRemoval =>
+                                removal !==
+                                null,
+                        );
+
+                    if (
+                        failedRemovals.length >
+                        0
+                    ) {
+                        pendingAudioRemovalsRef.current =
+                            mergeAudioRemovals(
+                                failedRemovals,
+                                pendingAudioRemovalsRef.current,
+                            );
+
+                        setToast({
+                            type: "error",
+                            message:
+                                `Draft saqlandi, lekin ${failedRemovals.length} ta eski audioni Storage’dan o‘chirib bo‘lmadi. Keyingi saqlashda qayta uriniladi.`,
+                        });
+                    }
+                })();
+            }
 
             return;
         }
@@ -215,6 +551,22 @@ export function AdminMultipleChoiceDraftEditor({
             actionState.status ===
                 "conflict"
         ) {
+            pendingImageRemovalsRef.current =
+                mergeImageRemovals(
+                    submittedImageRemovalsRef.current,
+                    pendingImageRemovalsRef.current,
+                );
+            submittedImageRemovalsRef.current =
+                [];
+
+            pendingAudioRemovalsRef.current =
+                mergeAudioRemovals(
+                    submittedAudioRemovalsRef.current,
+                    pendingAudioRemovalsRef.current,
+                );
+            submittedAudioRemovalsRef.current =
+                [];
+
             setToast({
                 type:
                     "error",
@@ -225,6 +577,45 @@ export function AdminMultipleChoiceDraftEditor({
         }
     }, [
         actionState,
+    ]);
+
+    useEffect(() => {
+        if (
+            publishState.status ===
+                "success" &&
+            publishState.publishedDraft
+        ) {
+            setDraft(
+                publishState.publishedDraft,
+            );
+            lastPersistedDraftRef.current =
+                publishState.publishedDraft;
+            setToast({
+                type:
+                    "success",
+                message:
+                    publishState.message ??
+                    "Test muvaffaqiyatli nashr qilindi.",
+            });
+            return;
+        }
+
+        if (
+            publishState.status ===
+                "error" ||
+            publishState.status ===
+                "conflict"
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    publishState.message ??
+                    "Testni nashr qilishda xatolik yuz berdi.",
+            });
+        }
+    }, [
+        publishState,
     ]);
 
     useEffect(() => {
@@ -251,6 +642,119 @@ export function AdminMultipleChoiceDraftEditor({
         toast,
     ]);
 
+    function queueImageStorageRemoval(
+        questionId: string,
+        storagePath: string,
+    ) {
+        pendingImageRemovalsRef.current =
+            mergeImageRemovals(
+                pendingImageRemovalsRef.current,
+                [
+                    {
+                        questionId,
+                        storagePath,
+                    },
+                ],
+            );
+    }
+
+    function queueAudioStorageRemoval(
+        questionId: string,
+        storagePath: string,
+    ) {
+        pendingAudioRemovalsRef.current =
+            mergeAudioRemovals(
+                pendingAudioRemovalsRef.current,
+                [
+                    {
+                        questionId,
+                        storagePath,
+                    },
+                ],
+            );
+    }
+
+    function queueQuestionAudioStorageRemovals(
+        question:
+            AdminDraftQuestion,
+    ) {
+        const queueExplanation = (
+            ownerId: string,
+            storagePath:
+                string | null | undefined,
+        ) => {
+            if (storagePath) {
+                queueAudioStorageRemoval(
+                    ownerId,
+                    storagePath,
+                );
+            }
+        };
+
+        if (
+            question.type ===
+            "passage-group"
+        ) {
+            question.questions.forEach(
+                (nestedQuestion) =>
+                    queueExplanation(
+                        nestedQuestion.id,
+                        nestedQuestion.explanation.audio?.storagePath,
+                    ),
+            );
+            return;
+        }
+
+        queueExplanation(
+            question.id,
+            question.explanation.audio?.storagePath,
+        );
+
+        if (
+            question.type ===
+            "matching"
+        ) {
+            question.items.forEach(
+                (item) =>
+                    queueExplanation(
+                        item.id,
+                        item.explanation?.audio?.storagePath,
+                    ),
+            );
+        }
+
+        if (
+            question.type ===
+            "multipart"
+        ) {
+            question.parts.forEach(
+                (part) =>
+                    queueExplanation(
+                        part.id,
+                        part.explanation?.audio?.storagePath,
+                    ),
+            );
+        }
+    }
+
+    function prepareAssetRemovalsForSave() {
+        submittedImageRemovalsRef.current =
+            mergeImageRemovals(
+                submittedImageRemovalsRef.current,
+                pendingImageRemovalsRef.current,
+            );
+        pendingImageRemovalsRef.current =
+            [];
+
+        submittedAudioRemovalsRef.current =
+            mergeAudioRemovals(
+                submittedAudioRemovalsRef.current,
+                pendingAudioRemovalsRef.current,
+            );
+        pendingAudioRemovalsRef.current =
+            [];
+    }
+
     const unsupportedQuestions =
         useMemo(
             () =>
@@ -261,9 +765,20 @@ export function AdminMultipleChoiceDraftEditor({
                         ) &&
                         !isPassageGroup(
                             question,
+                        ) &&
+                        !isStructuredMixedQuestion(
+                            question,
+                        ) &&
+                        !(
+                            draft.metadata.format ===
+                                "diagnostic" &&
+                            isEssayQuestion(
+                                question,
+                            )
                         ),
                 ),
             [
+                draft.metadata.format,
                 draft.questions,
             ],
         );
@@ -291,6 +806,131 @@ export function AdminMultipleChoiceDraftEditor({
             ],
         );
 
+
+    const structuredQuestions =
+        useMemo(
+            () =>
+                draft.questions.filter(
+                    isStructuredMixedQuestion,
+                ),
+            [
+                draft.questions,
+            ],
+        );
+
+
+    const essayQuestions =
+        useMemo(
+            () =>
+                draft.metadata.format ===
+                    "diagnostic"
+                    ? draft.questions.filter(
+                        isEssayQuestion,
+                    )
+                    : [],
+            [
+                draft.metadata.format,
+                draft.questions,
+            ],
+        );
+
+    function replaceEssayQuestion(
+        nextQuestion:
+            AdminDraftEssayQuestion,
+    ) {
+        setDraft(
+            (currentDraft) => ({
+                ...currentDraft,
+                questions:
+                    currentDraft.questions.map(
+                        (question) =>
+                            question.id ===
+                                nextQuestion.id
+                                ? nextQuestion
+                                : question,
+                    ),
+            }),
+        );
+    }
+
+    function replaceStructuredQuestions(
+        nextQuestions:
+            readonly (
+                | AdminDraftMatchingQuestion
+                | AdminDraftShortAnswerQuestion
+                | AdminDraftMultipartQuestion
+            )[],
+    ) {
+        const nextById =
+            new Map(
+                nextQuestions.map(
+                    (question) => [
+                        question.id,
+                        question,
+                    ],
+                ),
+            );
+
+        structuredQuestions
+            .filter(
+                (question) =>
+                    !nextById.has(
+                        question.id,
+                    ),
+            )
+            .forEach(
+                queueQuestionAudioStorageRemovals,
+            );
+
+        setDraft(
+            (currentDraft) => ({
+                ...currentDraft,
+                questions:
+                    currentDraft.questions
+                        .filter(
+                            (question) =>
+                                !isStructuredMixedQuestion(
+                                    question,
+                                ) ||
+                                nextById.has(
+                                    question.id,
+                                ),
+                        )
+                        .map(
+                            (question) =>
+                                isStructuredMixedQuestion(
+                                    question,
+                                )
+                                    ? nextById.get(
+                                        question.id,
+                                    ) ??
+                                    question
+                                    : question,
+                        ),
+            }),
+        );
+    }
+
+    function updateStructuredQuestionImage(
+        questionId: string,
+        image:
+            AdminDraftShortAnswerQuestion["image"],
+    ) {
+        replaceStructuredQuestions(
+            structuredQuestions.map(
+                (question) =>
+                    question.id ===
+                    questionId
+                        ? {
+                            ...question,
+                            image,
+                        }
+                        : question,
+            ),
+        );
+    }
+
+
     function replaceQuestions(
         nextQuestions:
             readonly AdminDraftMultipleChoiceQuestion[],
@@ -303,6 +943,8 @@ export function AdminMultipleChoiceDraftEditor({
                         nextQuestions,
                     ),
                     ...passageGroups,
+                    ...structuredQuestions,
+                    ...essayQuestions,
                     ...unsupportedQuestions,
                 ],
             }),
@@ -310,6 +952,74 @@ export function AdminMultipleChoiceDraftEditor({
     }
 
     function addQuestion() {
+        if (
+            isDiagnostic
+        ) {
+            const usedSourceOrders =
+                new Set(
+                    questions.flatMap(
+                        (question) =>
+                            question.sourceOrder ===
+                            null
+                                ? []
+                                : [
+                                    question.sourceOrder,
+                                ],
+                    ),
+                );
+
+            const nextSourceOrder =
+                Array.from(
+                    {
+                        length: 17,
+                    },
+                    (
+                        _value,
+                        index,
+                    ) =>
+                        index + 1,
+                ).find(
+                    (sourceOrder) =>
+                        !usedSourceOrders.has(
+                            sourceOrder,
+                        ),
+                ) ?? null;
+
+            if (
+                nextSourceOrder ===
+                null
+            ) {
+                setToast({
+                    type:
+                        "error",
+                    message:
+                        "Diagnostikaning 1–17-savollari allaqachon qo‘shilgan.",
+                });
+                return;
+            }
+
+            const emptyQuestion =
+                createEmptyMultipleChoiceQuestion({
+                    order:
+                        nextSourceOrder,
+                    section:
+                        nextSourceOrder <=
+                        12
+                            ? "grammar"
+                            : "literature",
+                });
+
+            replaceQuestions([
+                ...questions,
+                {
+                    ...emptyQuestion,
+                    sourceOrder:
+                        nextSourceOrder,
+                },
+            ]);
+            return;
+        }
+
         replaceQuestions([
             ...questions,
             createEmptyMultipleChoiceQuestion({
@@ -552,6 +1262,25 @@ export function AdminMultipleChoiceDraftEditor({
         parsedGhazal:
             AdminGhazalDocxParseResult,
     ) {
+        const existingGroup =
+            draft.questions.find(
+                (question) =>
+                    question.type ===
+                    "passage-group",
+            );
+        const existingQuestionsBySourceOrder =
+            new Map(
+                existingGroup?.type ===
+                    "passage-group"
+                    ? existingGroup.questions.map(
+                        (question) => [
+                            question.sourceOrder,
+                            question,
+                        ] as const,
+                    )
+                    : [],
+            );
+
         const nestedQuestions =
             parsedGhazal.questions.map(
                 (
@@ -565,9 +1294,16 @@ export function AdminMultipleChoiceDraftEditor({
                             section:
                                 "ghazal",
                         });
+                    const existingQuestion =
+                        existingQuestionsBySourceOrder.get(
+                            parsedQuestion.sourceNumber,
+                        );
 
                     return {
                         ...emptyQuestion,
+                        id:
+                            existingQuestion?.id ??
+                            emptyQuestion.id,
                         sourceOrder:
                             parsedQuestion.sourceNumber,
                         question:
@@ -588,13 +1324,17 @@ export function AdminMultipleChoiceDraftEditor({
                             ),
                         correctOptionId:
                             parsedQuestion.correctOptionId,
-                        explanation: {
-                            ...emptyQuestion.explanation,
-                            text:
-                                parsedQuestion.correctOptionId
-                                    ? "DOCX g‘azal import orqali qo‘shildi. Javob izohini tekshiring."
-                                    : "DOCX g‘azal import orqali qo‘shildi. To‘g‘ri javob va izohni belgilang.",
-                        },
+                        image:
+                            existingQuestion?.image ??
+                            null,
+                        explanation:
+                            existingQuestion?.explanation ?? {
+                                ...emptyQuestion.explanation,
+                                text:
+                                    parsedQuestion.correctOptionId
+                                        ? "DOCX g‘azal import orqali qo‘shildi. Javob izohini tekshiring."
+                                        : "DOCX g‘azal import orqali qo‘shildi. To‘g‘ri javob va izohni belgilang.",
+                            },
                     } satisfies
                         AdminDraftMultipleChoiceQuestion;
                 },
@@ -698,11 +1438,13 @@ export function AdminMultipleChoiceDraftEditor({
             type:
                 "passage-group",
             id:
-                createClientId(
-                    "ghazal-group",
-                ),
+                existingGroup?.type ===
+                "passage-group"
+                    ? existingGroup.id
+                    : createClientId(
+                        "ghazal-group",
+                    ),
             order:
-                draft.questions.length +
                 1,
             sourceOrder:
                 null,
@@ -715,13 +1457,20 @@ export function AdminMultipleChoiceDraftEditor({
                 parsedGhazal.metadata
                     .source,
             image:
-                null,
-            explanation: {
-                text:
-                    "",
-                audio:
-                    null,
-            },
+                existingGroup?.type ===
+                "passage-group"
+                    ? existingGroup.image
+                    : null,
+            explanation:
+                existingGroup?.type ===
+                "passage-group"
+                    ? existingGroup.explanation
+                    : {
+                        text:
+                            "",
+                        audio:
+                            null,
+                    },
             title:
                 parsedGhazal.metadata
                     .title,
@@ -748,7 +1497,6 @@ export function AdminMultipleChoiceDraftEditor({
                         "gazal",
                 },
                 questions: [
-                    ...currentDraft.questions,
                     passageGroup,
                 ],
             }),
@@ -758,7 +1506,7 @@ export function AdminMultipleChoiceDraftEditor({
             type:
                 "success",
             message:
-                "G‘azal, baytlar, lug‘at va 5 ta savol draftga qo‘shildi.",
+                "G‘azal, baytlar, lug‘at va 5 ta savol draftga import qilindi.",
         });
 
         window.setTimeout(
@@ -786,6 +1534,24 @@ export function AdminMultipleChoiceDraftEditor({
         const section:
             AdminDraftQuestionSection =
             parsedPassage.metadata.topic;
+        const existingGroup =
+            draft.questions.find(
+                (question) =>
+                    question.type ===
+                    "passage-group",
+            );
+        const existingQuestionsBySourceOrder =
+            new Map(
+                existingGroup?.type ===
+                    "passage-group"
+                    ? existingGroup.questions.map(
+                        (question) => [
+                            question.sourceOrder,
+                            question,
+                        ] as const,
+                    )
+                    : [],
+            );
 
         const nestedQuestions =
             parsedPassage.questions.map(
@@ -799,9 +1565,16 @@ export function AdminMultipleChoiceDraftEditor({
                                 index + 1,
                             section,
                         });
+                    const existingQuestion =
+                        existingQuestionsBySourceOrder.get(
+                            parsedQuestion.sourceNumber,
+                        );
 
                     return {
                         ...emptyQuestion,
+                        id:
+                            existingQuestion?.id ??
+                            emptyQuestion.id,
                         sourceOrder:
                             parsedQuestion.sourceNumber,
                         question:
@@ -825,13 +1598,17 @@ export function AdminMultipleChoiceDraftEditor({
                             ),
                         correctOptionId:
                             parsedQuestion.correctOptionId,
-                        explanation: {
-                            ...emptyQuestion.explanation,
-                            text:
-                                parsedQuestion.correctOptionId
-                                    ? "DOCX passage import orqali qo‘shildi. Javob izohini tekshiring."
-                                    : "DOCX passage import orqali qo‘shildi. To‘g‘ri javob va izohni belgilang.",
-                        },
+                        image:
+                            existingQuestion?.image ??
+                            null,
+                        explanation:
+                            existingQuestion?.explanation ?? {
+                                ...emptyQuestion.explanation,
+                                text:
+                                    parsedQuestion.correctOptionId
+                                        ? "DOCX passage import orqali qo‘shildi. Javob izohini tekshiring."
+                                        : "DOCX passage import orqali qo‘shildi. To‘g‘ri javob va izohni belgilang.",
+                            },
                     } satisfies
                         AdminDraftMultipleChoiceQuestion;
                 },
@@ -842,11 +1619,13 @@ export function AdminMultipleChoiceDraftEditor({
             type:
                 "passage-group",
             id:
-                createClientId(
-                    "passage-group",
-                ),
+                existingGroup?.type ===
+                "passage-group"
+                    ? existingGroup.id
+                    : createClientId(
+                        "passage-group",
+                    ),
             order:
-                draft.questions.length +
                 1,
             sourceOrder:
                 null,
@@ -871,13 +1650,20 @@ export function AdminMultipleChoiceDraftEditor({
                     ) ||
                 null,
             image:
-                null,
-            explanation: {
-                text:
-                    "",
-                audio:
-                    null,
-            },
+                existingGroup?.type ===
+                "passage-group"
+                    ? existingGroup.image
+                    : null,
+            explanation:
+                existingGroup?.type ===
+                "passage-group"
+                    ? existingGroup.explanation
+                    : {
+                        text:
+                            "",
+                        audio:
+                            null,
+                    },
             title:
                 parsedPassage.metadata
                     .title,
@@ -927,7 +1713,6 @@ export function AdminMultipleChoiceDraftEditor({
                             : "badiiy-matn",
                 },
                 questions: [
-                    ...currentDraft.questions,
                     passageGroup,
                 ],
             }),
@@ -937,7 +1722,10 @@ export function AdminMultipleChoiceDraftEditor({
             type:
                 "success",
             message:
-                "Passage-group draftga qo‘shildi. Matn va 5 ta savolni tekshiring.",
+                section ===
+                "scientific-text"
+                    ? "Ilmiy matn va 5 ta savol draftga import qilindi."
+                    : "Badiiy matn va 5 ta savol draftga import qilindi.",
         });
 
         window.setTimeout(
@@ -956,6 +1744,1865 @@ export function AdminMultipleChoiceDraftEditor({
             0,
         );
     }
+
+
+    function importParsedMixed(
+        parsedMixed:
+            AdminMixedDocxParseResult,
+    ) {
+        const validQuestions =
+            parsedMixed.questions.filter(
+                (question) =>
+                    question.confidence !==
+                    "invalid",
+            );
+
+        if (
+            validQuestions.length ===
+            0
+        ) {
+            setToast({
+                type: "error",
+                message:
+                    "Import uchun yaroqli aralash savol topilmadi.",
+            });
+            return;
+        }
+
+        const firstOrder =
+            draft.questions.length +
+            1;
+
+        const importedQuestions:
+            AdminDraftQuestion[] =
+            validQuestions.map(
+                (
+                    parsedQuestion,
+                    index,
+                ) => {
+                    const order =
+                        firstOrder +
+                        index;
+
+                    if (
+                        parsedQuestion.type ===
+                        "multiple-choice"
+                    ) {
+                        const emptyQuestion =
+                            createEmptyMultipleChoiceQuestion({
+                                order,
+                                section:
+                                    "grammar",
+                            });
+
+                        return {
+                            ...emptyQuestion,
+                            sourceOrder:
+                                parsedQuestion.sourceOrder,
+                            question:
+                                parsedQuestion.question,
+                            context:
+                                parsedQuestion.context,
+                            maximumScore:
+                                parsedQuestion.maximumScore,
+                            options:
+                                parsedQuestion.options,
+                            correctOptionId:
+                                parsedQuestion.correctOptionId,
+                            visual:
+                                parsedQuestion.visual,
+                            explanation: {
+                                ...emptyQuestion.explanation,
+                                text:
+                                    "DOCX aralash import orqali qo‘shildi. Javob izohini tekshiring.",
+                            },
+                        } satisfies
+                            AdminDraftMultipleChoiceQuestion;
+                    }
+
+                    if (
+                        parsedQuestion.type ===
+                        "matching"
+                    ) {
+                        const emptyQuestion =
+                            createEmptyMatchingQuestion({
+                                order,
+                                section:
+                                    "syntax",
+                            });
+
+                        return {
+                            ...emptyQuestion,
+                            sourceOrder:
+                                parsedQuestion.sourceOrder,
+                            question:
+                                parsedQuestion.question,
+                            instruction:
+                                parsedQuestion.instruction,
+                            context:
+                                parsedQuestion.context,
+                            maximumScore:
+                                parsedQuestion.maximumScore,
+                            title:
+                                parsedQuestion.title,
+                            choices:
+                                parsedQuestion.choices,
+                            items:
+                                parsedQuestion.items.map(
+                                    (item) => ({
+                                        id:
+                                            createClientId(
+                                                "matching-item",
+                                            ),
+                                        order:
+                                            item.order,
+                                        sourceOrder:
+                                            item.sourceOrder,
+                                        prompt:
+                                            item.prompt,
+                                        correctChoiceId:
+                                            item.correctChoiceId,
+                                        maximumScore:
+                                            item.maximumScore,
+                                        explanation: {
+                                            text:
+                                                "DOCX aralash import orqali qo‘shildi. Ushbu matching bandi uchun audio izohni tekshiring.",
+                                            audio:
+                                                null,
+                                        },
+                                    }),
+                                ),
+                            explanation: {
+                                ...emptyQuestion.explanation,
+                                text:
+                                    "DOCX aralash import orqali qo‘shildi. Mosliklarni tekshiring.",
+                            },
+                        } satisfies
+                            AdminDraftMatchingQuestion;
+                    }
+
+                    if (
+                        parsedQuestion.type ===
+                        "short-answer"
+                    ) {
+                        const emptyQuestion =
+                            createEmptyShortAnswerQuestion({
+                                order,
+                                section:
+                                    "written",
+                            });
+
+                        return {
+                            ...emptyQuestion,
+                            sourceOrder:
+                                parsedQuestion.sourceOrder,
+                            question:
+                                parsedQuestion.question,
+                            context:
+                                parsedQuestion.context,
+                            maximumScore:
+                                parsedQuestion.maximumScore,
+                            acceptedAnswers:
+                                parsedQuestion.acceptedAnswers,
+                            requiredKeywords:
+                                parsedQuestion.requiredKeywords,
+                            comparison:
+                                parsedQuestion.comparison,
+                            examples:
+                                parsedQuestion.examples,
+                            explanation: {
+                                ...emptyQuestion.explanation,
+                                text:
+                                    "DOCX aralash import orqali qo‘shildi. Qabul qilinadigan javoblarni tekshiring.",
+                            },
+                        } satisfies
+                            AdminDraftShortAnswerQuestion;
+                    }
+
+                    const emptyQuestion =
+                        createEmptyMultipartQuestion({
+                            order,
+                            section:
+                                "written",
+                        });
+
+                    return {
+                        ...emptyQuestion,
+                        sourceOrder:
+                            parsedQuestion.sourceOrder,
+                        question:
+                            parsedQuestion.question,
+                        context:
+                            parsedQuestion.context,
+                        maximumScore:
+                            parsedQuestion.maximumScore,
+                        parts:
+                            parsedQuestion.parts.map(
+                                (
+                                    part,
+                                    partIndex,
+                                ) => ({
+                                    id:
+                                        createClientId(
+                                            "multipart-part",
+                                        ),
+                                    order:
+                                        partIndex +
+                                        1,
+                                    label:
+                                        part.label,
+                                    prompt:
+                                        part.question,
+                                    acceptedAnswers:
+                                        part.acceptedAnswers,
+                                    requiredKeywords:
+                                        part.requiredKeywords,
+                                    comparison:
+                                        part.comparison,
+                                    maximumScore:
+                                        part.maximumScore,
+                                    explanation: {
+                                        text:
+                                            "DOCX aralash import orqali qo‘shildi. Ushbu qism uchun audio izohni tekshiring.",
+                                        audio:
+                                            null,
+                                    },
+                                }),
+                            ),
+                        explanation: {
+                            ...emptyQuestion.explanation,
+                            text:
+                                "DOCX aralash import orqali qo‘shildi. Har bir qism javobi va ballini tekshiring.",
+                        },
+                    } satisfies
+                        AdminDraftMultipartQuestion;
+                },
+            );
+
+        setDraft(
+            (currentDraft) => ({
+                ...currentDraft,
+                source:
+                    "docx-import",
+                metadata: {
+                    ...currentDraft.metadata,
+                    title:
+                        parsedMixed.metadata.title ??
+                        currentDraft.metadata.title,
+                    description:
+                        parsedMixed.metadata.description ??
+                        currentDraft.metadata.description,
+                    format:
+                        "mixed",
+                    group:
+                        "national-certificate",
+                    category:
+                        "Aralash",
+                    topicSlug:
+                        "aralash",
+                    estimatedMinutes:
+                        parsedMixed.metadata.estimatedMinutes ??
+                        currentDraft.metadata.estimatedMinutes,
+                    access:
+                        parsedMixed.metadata.access ??
+                        currentDraft.metadata.access,
+                },
+                questions: [
+                    ...currentDraft.questions,
+                    ...importedQuestions,
+                ],
+            }),
+        );
+
+        setToast({
+            type:
+                "success",
+            message:
+                `${importedQuestions.length} ta aralash savol draftga qo‘shildi. Saqlashdan oldin tekshiring.`,
+        });
+    }
+
+
+    function importDiagnosticMultipleChoiceSection(
+        parsedDiagnostic:
+            AdminDiagnosticDocxParseResult,
+    ) {
+        if (!isDiagnostic) {
+            return;
+        }
+
+        const validQuestions =
+            parsedDiagnostic.questions.filter(
+                (question) =>
+                    question.confidence !==
+                    "invalid",
+            );
+
+        const sourceOrders =
+            validQuestions.flatMap(
+                (question) =>
+                    question.type ===
+                    "multiple-choice"
+                        ? [
+                            question.sourceOrder,
+                        ]
+                        : [],
+            );
+
+        const expectedSourceOrders =
+            Array.from(
+                {
+                    length:
+                        17,
+                },
+                (
+                    _value,
+                    index,
+                ) =>
+                    index +
+                    1,
+            );
+
+        const sourceOrderSet =
+            new Set(
+                sourceOrders,
+            );
+
+        const missingSourceOrders =
+            expectedSourceOrders.filter(
+                (sourceOrder) =>
+                    !sourceOrderSet.has(
+                        sourceOrder,
+                    ),
+            );
+
+        const outsideSourceOrders =
+            sourceOrders.filter(
+                (sourceOrder) =>
+                    sourceOrder < 1 ||
+                    sourceOrder > 17,
+            );
+
+        if (
+            validQuestions.some(
+                (question) =>
+                    question.type !==
+                    "multiple-choice",
+            ) ||
+            missingSourceOrders.length >
+                0 ||
+            outsideSourceOrders.length >
+                0 ||
+            sourceOrderSet.size !==
+                sourceOrders.length ||
+            sourceOrders.length !==
+                17
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    missingSourceOrders.length >
+                    0
+                        ? `1–17 DOCX to‘liq emas. Yetishmaydi: ${missingSourceOrders.join(
+                            ", ",
+                        )}.`
+                        : outsideSourceOrders.length >
+                          0
+                            ? `1–17 DOCX ichida noto‘g‘ri savol raqamlari bor: ${outsideSourceOrders.join(
+                                ", ",
+                            )}.`
+                            : "1–17 DOCX faylida faqat 17 ta multiple-choice savol bo‘lishi kerak.",
+            });
+            return;
+        }
+
+        setDraft(
+            (currentDraft) => {
+                const existingBySourceOrder =
+                    new Map<
+                        number,
+                        AdminDraftMultipleChoiceQuestion
+                    >();
+
+                currentDraft.questions.forEach(
+                    (question) => {
+                        if (
+                            question.type ===
+                                "multiple-choice" &&
+                            question.sourceOrder !==
+                                null &&
+                            question.sourceOrder >=
+                                1 &&
+                            question.sourceOrder <=
+                                17
+                        ) {
+                            existingBySourceOrder.set(
+                                question.sourceOrder,
+                                question,
+                            );
+                        }
+                    },
+                );
+
+                const importedQuestions =
+                    validQuestions.map(
+                        (parsedQuestion) => {
+                            if (
+                                parsedQuestion.type !==
+                                "multiple-choice"
+                            ) {
+                                throw new Error(
+                                    "Diagnostika 1–17 importida kutilmagan savol turi aniqlandi.",
+                                );
+                            }
+
+                            const importedQuestion =
+                                createAdminDiagnosticQuestionImport(
+                                    parsedQuestion,
+                                );
+
+                            if (
+                                importedQuestion.type !==
+                                "multiple-choice"
+                            ) {
+                                throw new Error(
+                                    "Diagnostika 1–17 savolini multiple-choice draftga aylantirib bo‘lmadi.",
+                                );
+                            }
+
+                            const previous =
+                                existingBySourceOrder.get(
+                                    parsedQuestion.sourceOrder,
+                                );
+
+                            return {
+                                ...importedQuestion,
+                                id:
+                                    previous?.id ??
+                                    importedQuestion.id,
+                                image:
+                                    previous?.image ??
+                                    importedQuestion.image,
+                                explanation:
+                                    previous?.explanation ??
+                                    importedQuestion.explanation,
+                            } satisfies
+                                AdminDraftMultipleChoiceQuestion;
+                        },
+                    );
+
+                const nextQuestions = [
+                    ...currentDraft.questions.filter(
+                        (question) =>
+                            !(
+                                question.type ===
+                                    "multiple-choice" &&
+                                (
+                                    (
+                                        question.sourceOrder !==
+                                            null &&
+                                        question.sourceOrder >=
+                                            1 &&
+                                        question.sourceOrder <=
+                                            17
+                                    ) ||
+                                    (
+                                        question.sourceOrder ===
+                                            null &&
+                                        question.order >=
+                                            1 &&
+                                        question.order <=
+                                            17 &&
+                                        (
+                                            question.section ===
+                                                "grammar" ||
+                                            question.section ===
+                                                "literature"
+                                        )
+                                    )
+                                )
+                            ),
+                    ),
+                    ...importedQuestions,
+                ].sort(
+                    (
+                        left,
+                        right,
+                    ) =>
+                        left.order -
+                        right.order,
+                );
+
+                return {
+                    ...currentDraft,
+                    source:
+                        "docx-import",
+                    questions:
+                        nextQuestions,
+                };
+            },
+        );
+
+        setToast({
+            type:
+                "success",
+            message:
+                "1–17-savollar DOCX faylidan yangilandi. 4, 8 va 12-savol rasmlarini savol kartalarida alohida yuklang.",
+        });
+    }
+
+
+    function importDiagnosticEssaySection(
+        parsedDiagnostic:
+            AdminDiagnosticDocxParseResult,
+    ) {
+        if (!isDiagnostic) {
+            return;
+        }
+
+        const parsedEssays =
+            parsedDiagnostic.questions.filter(
+                (question) =>
+                    question.type ===
+                        "essay" &&
+                    question.sourceOrder ===
+                        45 &&
+                    question.confidence !==
+                        "invalid",
+            );
+
+        const parsedEssay =
+            parsedEssays[0];
+
+        if (
+            parsedEssays.length !==
+                1 ||
+            !parsedEssay
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    "45-savol DOCX faylida aynan bitta yaroqli esse topshirig‘i bo‘lishi kerak.",
+            });
+            return;
+        }
+
+        const importedEssay =
+            createAdminDiagnosticQuestionImport(
+                parsedEssay,
+            );
+
+        if (
+            importedEssay.type !==
+            "essay"
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    "45-savolni esse draftiga aylantirib bo‘lmadi.",
+            });
+            return;
+        }
+
+        setDraft(
+            (currentDraft) => {
+                const existingEssay =
+                    currentDraft.questions.find(
+                        (question) =>
+                            question.type ===
+                                "essay" &&
+                            (
+                                question.sourceOrder ===
+                                    45 ||
+                                (
+                                    question.sourceOrder ===
+                                        null &&
+                                    question.order ===
+                                        45
+                                )
+                            ),
+                    );
+
+                const previousEssay =
+                    existingEssay?.type ===
+                    "essay"
+                        ? existingEssay
+                        : null;
+
+                const nextEssay:
+                    AdminDraftEssayQuestion = {
+                    ...importedEssay,
+                    id:
+                        previousEssay?.id ??
+                        importedEssay.id,
+                    image:
+                        previousEssay?.image ??
+                        importedEssay.image,
+                    explanation:
+                        previousEssay?.explanation ??
+                        importedEssay.explanation,
+                };
+
+                const nextQuestions = [
+                    ...currentDraft.questions.filter(
+                        (question) =>
+                            !(
+                                question.type ===
+                                    "essay" &&
+                                (
+                                    question.sourceOrder ===
+                                        45 ||
+                                    (
+                                        question.sourceOrder ===
+                                            null &&
+                                        question.order ===
+                                            45
+                                    )
+                                )
+                            ),
+                    ),
+                    nextEssay,
+                ].sort(
+                    (
+                        left,
+                        right,
+                    ) =>
+                        left.order -
+                        right.order,
+                );
+
+                return {
+                    ...currentDraft,
+                    source:
+                        "docx-import",
+                    questions:
+                        nextQuestions,
+                };
+            },
+        );
+
+        setToast({
+            type:
+                "success",
+            message:
+                "45-savol esse DOCX faylidan yangilandi.",
+        });
+    }
+
+
+    function importDiagnosticPassageSection(
+        parsedPassage:
+            AdminPassageDocxParseResult,
+        expectedSection:
+            "scientific-text" |
+            "literary-text",
+    ) {
+        if (!isDiagnostic) {
+            return;
+        }
+
+        if (
+            parsedPassage.metadata.topic !==
+            expectedSection
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    expectedSection ===
+                    "scientific-text"
+                        ? "Ilmiy matn bo‘limiga faqat ilmiy matn DOCX faylini yuklang."
+                        : "Badiiy matn bo‘limiga faqat badiiy matn DOCX faylini yuklang.",
+            });
+            return;
+        }
+
+        if (
+            parsedPassage.questions.length !==
+            5
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    `Bu bo‘lim uchun aynan 5 ta savol kutilgan. Parser ${parsedPassage.questions.length} ta savol topdi.`,
+            });
+            return;
+        }
+
+        const sourceStart =
+            expectedSection ===
+            "scientific-text"
+                ? 18
+                : 23;
+
+        const maximumScore =
+            expectedSection ===
+            "scientific-text"
+                ? 1.7
+                : 1.1;
+
+        setDraft(
+            (currentDraft) => {
+                const existingGroup =
+                    currentDraft.questions.find(
+                        (question) =>
+                            question.type ===
+                                "passage-group" &&
+                            (
+                                question.section ===
+                                    expectedSection ||
+                                question.sourceOrder ===
+                                    sourceStart ||
+                                question.questions.some(
+                                    (nestedQuestion) =>
+                                        nestedQuestion.sourceOrder !==
+                                            null &&
+                                        nestedQuestion.sourceOrder >=
+                                            sourceStart &&
+                                        nestedQuestion.sourceOrder <=
+                                            sourceStart + 4,
+                                )
+                            ),
+                    );
+
+                const existingPassageGroup =
+                    existingGroup?.type ===
+                    "passage-group"
+                        ? existingGroup
+                        : null;
+
+                const nestedQuestions =
+                    parsedPassage.questions.map(
+                        (
+                            parsedQuestion,
+                            index,
+                        ) => {
+                            const previous =
+                                existingPassageGroup
+                                    ?.questions[
+                                        index
+                                    ];
+
+                            const emptyQuestion =
+                                createEmptyMultipleChoiceQuestion({
+                                    order:
+                                        index +
+                                        1,
+                                    section:
+                                        expectedSection,
+                                });
+
+                            return {
+                                ...emptyQuestion,
+                                id:
+                                    previous?.id ??
+                                    emptyQuestion.id,
+                                order:
+                                    index + 1,
+                                sourceOrder:
+                                    sourceStart +
+                                    index,
+                                question:
+                                    parsedQuestion.question,
+                                instruction:
+                                    parsedPassage.metadata
+                                        .instruction,
+                                context:
+                                    previous?.context ??
+                                    null,
+                                maximumScore,
+                                options:
+                                    parsedQuestion.options.map(
+                                        (option) => ({
+                                            id:
+                                                option.id,
+                                            text:
+                                                option.text,
+                                        }),
+                                    ),
+                                correctOptionId:
+                                    parsedQuestion.correctOptionId,
+                                image:
+                                    previous?.image ??
+                                    null,
+                                explanation:
+                                    previous?.explanation ??
+                                    {
+                                        text:
+                                            "DOCX diagnostika bo‘lim importi orqali qo‘shildi. Javob izohini tekshiring.",
+                                        audio:
+                                            null,
+                                    },
+                            } satisfies
+                                AdminDraftMultipleChoiceQuestion;
+                        },
+                    );
+
+                const passageBlocks =
+                    parsedPassage.passage.map(
+                        (
+                            block,
+                            index,
+                        ) => ({
+                            id:
+                                existingPassageGroup
+                                    ?.passage[
+                                        index
+                                    ]?.id ??
+                                createClientId(
+                                    "diagnostic-passage-block",
+                                ),
+                            order:
+                                index + 1,
+                            type:
+                                block.type,
+                            marker:
+                                block.marker,
+                            speaker:
+                                block.speaker,
+                            text:
+                                block.text,
+                        }),
+                    );
+
+                const context =
+                    [
+                        parsedPassage.metadata
+                            .subtitle,
+                        parsedPassage.metadata
+                            .author,
+                        parsedPassage.metadata
+                            .source,
+                    ]
+                        .filter(
+                            Boolean,
+                        )
+                        .join(
+                            " · ",
+                        ) ||
+                    null;
+
+                const nextGroup:
+                    AdminDraftPassageGroupQuestion = {
+                    type:
+                        "passage-group",
+                    id:
+                        existingPassageGroup
+                            ?.id ??
+                        createClientId(
+                            `diagnostic-passage-group-${sourceStart}`,
+                        ),
+                    order:
+                        existingPassageGroup
+                            ?.order ??
+                        sourceStart,
+                    sourceOrder:
+                        sourceStart,
+                    section:
+                        expectedSection,
+                    instruction:
+                        parsedPassage.metadata
+                            .instruction,
+                    context,
+                    image:
+                        existingPassageGroup
+                            ?.image ??
+                        null,
+                    explanation:
+                        existingPassageGroup
+                            ?.explanation ??
+                        {
+                            text:
+                                "",
+                            audio:
+                                null,
+                        },
+                    title:
+                        expectedSection ===
+                            "literary-text"
+                            ? parsedPassage.metadata
+                                .subtitle ??
+                              parsedPassage.metadata
+                                .title
+                            : parsedPassage.metadata
+                                .title,
+                    passage:
+                        passageBlocks,
+                    questions:
+                        nestedQuestions,
+                };
+
+                const nextQuestions =
+                    existingPassageGroup
+                        ? currentDraft.questions.map(
+                            (question) =>
+                                question.id ===
+                                existingPassageGroup.id
+                                    ? nextGroup
+                                    : question,
+                        )
+                        : [
+                            ...currentDraft.questions,
+                            nextGroup,
+                        ].sort(
+                            (
+                                left,
+                                right,
+                            ) =>
+                                left.order -
+                                right.order,
+                        );
+
+                return {
+                    ...currentDraft,
+                    source:
+                        "docx-import",
+                    questions:
+                        nextQuestions,
+                };
+            },
+        );
+
+        setToast({
+            type:
+                "success",
+            message:
+                expectedSection ===
+                "scientific-text"
+                    ? "18–22-savollar Ilmiy matn DOCX faylidan yangilandi."
+                    : "23–27-savollar Badiiy matn DOCX faylidan yangilandi.",
+        });
+    }
+
+
+    function importDiagnosticGhazalSection(
+        parsedGhazal:
+            AdminGhazalDocxParseResult,
+    ) {
+        if (!isDiagnostic) {
+            return;
+        }
+
+        if (
+            parsedGhazal.questions.length !==
+            5
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    `G‘azal bo‘limi uchun aynan 5 ta savol kutilgan. Parser ${parsedGhazal.questions.length} ta savol topdi.`,
+            });
+            return;
+        }
+
+        const sourceStart =
+            28;
+
+        setDraft(
+            (currentDraft) => {
+                const existingGroup =
+                    currentDraft.questions.find(
+                        (question) =>
+                            question.type ===
+                                "passage-group" &&
+                            (
+                                question.section ===
+                                    "ghazal" ||
+                                question.sourceOrder ===
+                                    sourceStart ||
+                                question.questions.some(
+                                    (nestedQuestion) =>
+                                        nestedQuestion.sourceOrder !==
+                                            null &&
+                                        nestedQuestion.sourceOrder >=
+                                            28 &&
+                                        nestedQuestion.sourceOrder <=
+                                            32,
+                                )
+                            ),
+                    );
+
+                const existingPassageGroup =
+                    existingGroup?.type ===
+                    "passage-group"
+                        ? existingGroup
+                        : null;
+
+                const nestedQuestions =
+                    parsedGhazal.questions.map(
+                        (
+                            parsedQuestion,
+                            index,
+                        ) => {
+                            const previous =
+                                existingPassageGroup
+                                    ?.questions[
+                                        index
+                                    ];
+
+                            const emptyQuestion =
+                                createEmptyMultipleChoiceQuestion({
+                                    order:
+                                        index +
+                                        1,
+                                    section:
+                                        "ghazal",
+                                });
+
+                            return {
+                                ...emptyQuestion,
+                                id:
+                                    previous?.id ??
+                                    emptyQuestion.id,
+                                order:
+                                    index + 1,
+                                sourceOrder:
+                                    sourceStart +
+                                    index,
+                                question:
+                                    parsedQuestion.question,
+                                instruction:
+                                    parsedGhazal.metadata
+                                        .instruction,
+                                maximumScore:
+                                    2.5,
+                                options:
+                                    parsedQuestion.options.map(
+                                        (option) => ({
+                                            id:
+                                                option.id,
+                                            text:
+                                                option.text,
+                                        }),
+                                    ),
+                                correctOptionId:
+                                    parsedQuestion.correctOptionId,
+                                image:
+                                    previous?.image ??
+                                    null,
+                                explanation:
+                                    previous?.explanation ??
+                                    {
+                                        text:
+                                            "DOCX diagnostika G‘azal importi orqali qo‘shildi. Javob izohini tekshiring.",
+                                        audio:
+                                            null,
+                                    },
+                            } satisfies
+                                AdminDraftMultipleChoiceQuestion;
+                        },
+                    );
+
+                const rawPassageBlocks:
+                    Omit<
+                        AdminDraftPassageBlock,
+                        "id" |
+                        "order"
+                    >[] = [
+                    ...(parsedGhazal.metadata.author
+                        ? [
+                            {
+                                type:
+                                    "heading" as const,
+                                marker:
+                                    null,
+                                speaker:
+                                    null,
+                                text:
+                                    parsedGhazal.metadata.author,
+                            },
+                        ]
+                        : []),
+                    ...parsedGhazal.couplets.map(
+                        (couplet) => ({
+                            type:
+                                "poetry" as const,
+                            marker:
+                                String(
+                                    couplet.order,
+                                ),
+                            speaker:
+                                null,
+                            text:
+                                `${couplet.firstLine}\n${couplet.secondLine}`,
+                        }),
+                    ),
+                    ...(parsedGhazal.vocabulary.length >
+                    0
+                        ? [
+                            {
+                                type:
+                                    "heading" as const,
+                                marker:
+                                    null,
+                                speaker:
+                                    null,
+                                text:
+                                    "LUG‘AT",
+                            },
+                            ...parsedGhazal.vocabulary.map(
+                                (item) => ({
+                                    type:
+                                        "paragraph" as const,
+                                    marker:
+                                        item.marker,
+                                    speaker:
+                                        null,
+                                    text:
+                                        `${item.term} — ${item.meaning}`,
+                                }),
+                            ),
+                        ]
+                        : []),
+                ];
+
+                const passage =
+                    rawPassageBlocks.map(
+                        (
+                            block,
+                            index,
+                        ) => ({
+                            ...block,
+                            id:
+                                existingPassageGroup
+                                    ?.passage[
+                                        index
+                                    ]?.id ??
+                                createClientId(
+                                    "diagnostic-ghazal-block",
+                                ),
+                            order:
+                                index + 1,
+                        }),
+                    );
+
+                const nextGroup:
+                    AdminDraftPassageGroupQuestion = {
+                    type:
+                        "passage-group",
+                    id:
+                        existingPassageGroup
+                            ?.id ??
+                        createClientId(
+                            "diagnostic-passage-group-28",
+                        ),
+                    order:
+                        existingPassageGroup
+                            ?.order ??
+                        28,
+                    sourceOrder:
+                        28,
+                    section:
+                        "ghazal",
+                    instruction:
+                        parsedGhazal.metadata
+                            .instruction,
+                    context:
+                        [
+                            parsedGhazal.metadata
+                                .author,
+                            parsedGhazal.metadata
+                                .source,
+                        ]
+                            .filter(
+                                Boolean,
+                            )
+                            .join(
+                                " · ",
+                            ) ||
+                        null,
+                    image:
+                        existingPassageGroup
+                            ?.image ??
+                        null,
+                    explanation:
+                        existingPassageGroup
+                            ?.explanation ??
+                        {
+                            text:
+                                "",
+                            audio:
+                                null,
+                        },
+                    title:
+                        parsedGhazal.metadata
+                            .title,
+                    passage,
+                    questions:
+                        nestedQuestions,
+                };
+
+                const nextQuestions =
+                    existingPassageGroup
+                        ? currentDraft.questions.map(
+                            (question) =>
+                                question.id ===
+                                existingPassageGroup.id
+                                    ? nextGroup
+                                    : question,
+                        )
+                        : [
+                            ...currentDraft.questions,
+                            nextGroup,
+                        ].sort(
+                            (
+                                left,
+                                right,
+                            ) =>
+                                left.order -
+                                right.order,
+                        );
+
+                return {
+                    ...currentDraft,
+                    source:
+                        "docx-import",
+                    questions:
+                        nextQuestions,
+                };
+            },
+        );
+
+        setToast({
+            type:
+                "success",
+            message:
+                "28–32-savollar G‘azal DOCX faylidan yangilandi.",
+        });
+    }
+
+
+    function diagnosticStructuredSourceOrders(
+        question:
+            AdminDraftQuestion,
+    ): readonly number[] {
+        if (
+            question.type ===
+            "matching"
+        ) {
+            return question.items.flatMap(
+                (item) =>
+                    item.sourceOrder ===
+                        null ||
+                    item.sourceOrder ===
+                        undefined
+                        ? []
+                        : [
+                            item.sourceOrder,
+                        ],
+            );
+        }
+
+        return question.sourceOrder ===
+            null
+            ? []
+            : [
+                question.sourceOrder,
+            ];
+    }
+
+
+    function importDiagnosticStructuredSection(
+        parsedMixed:
+            AdminMixedDocxParseResult,
+    ) {
+        if (!isDiagnostic) {
+            return;
+        }
+
+        const validQuestions =
+            parsedMixed.questions.filter(
+                (question) =>
+                    question.confidence !==
+                    "invalid",
+            );
+
+        const unsupportedType =
+            validQuestions.find(
+                (question) =>
+                    question.type ===
+                    "multiple-choice",
+            );
+
+        if (unsupportedType) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    "33–44 DOCX faylida multiple-choice savol bo‘lmasligi kerak. Matching, short-answer va multipart strukturalarini ishlating.",
+            });
+            return;
+        }
+
+        const parsedSourceOrders =
+            validQuestions.flatMap(
+                (question) => {
+                    if (
+                        question.type ===
+                        "matching"
+                    ) {
+                        return question.items.map(
+                            (item) =>
+                                item.sourceOrder,
+                        );
+                    }
+
+                    return [
+                        question.sourceOrder,
+                    ];
+                },
+            );
+
+        const expectedSourceOrders =
+            Array.from(
+                {
+                    length:
+                        12,
+                },
+                (
+                    _value,
+                    index,
+                ) =>
+                    33 + index,
+            );
+
+        const parsedSourceOrderSet =
+            new Set(
+                parsedSourceOrders,
+            );
+
+        const missingSourceOrders =
+            expectedSourceOrders.filter(
+                (sourceOrder) =>
+                    !parsedSourceOrderSet.has(
+                        sourceOrder,
+                    ),
+            );
+
+        const outsideSourceOrders =
+            parsedSourceOrders.filter(
+                (sourceOrder) =>
+                    sourceOrder < 33 ||
+                    sourceOrder > 44,
+            );
+
+        if (
+            missingSourceOrders.length >
+                0 ||
+            outsideSourceOrders.length >
+                0 ||
+            parsedSourceOrderSet.size !==
+                parsedSourceOrders.length
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    missingSourceOrders.length >
+                    0
+                        ? `33–44 DOCX to‘liq emas. Yetishmaydi: ${missingSourceOrders.join(
+                            ", ",
+                        )}.`
+                        : outsideSourceOrders.length >
+                          0
+                            ? `33–44 DOCX ichida noto‘g‘ri savol raqamlari bor: ${outsideSourceOrders.join(
+                                ", ",
+                            )}.`
+                            : "33–44 DOCX ichida savol raqamlari takrorlangan.",
+            });
+            return;
+        }
+
+        setDraft(
+            (currentDraft) => {
+                const existingStructured =
+                    currentDraft.questions.filter(
+                        (question) =>
+                            diagnosticStructuredSourceOrders(
+                                question,
+                            ).some(
+                                (sourceOrder) =>
+                                    sourceOrder >=
+                                        33 &&
+                                    sourceOrder <=
+                                        44,
+                            ) ||
+                            (
+                                question.type ===
+                                    "matching" &&
+                                question.section ===
+                                    "syntax"
+                            ),
+                    );
+
+                const existingBySourceOrder =
+                    new Map<
+                        number,
+                        AdminDraftQuestion
+                    >();
+
+                existingStructured.forEach(
+                    (question) => {
+                        diagnosticStructuredSourceOrders(
+                            question,
+                        ).forEach(
+                            (sourceOrder) => {
+                                existingBySourceOrder.set(
+                                    sourceOrder,
+                                    question,
+                                );
+                            },
+                        );
+                    },
+                );
+
+                const importedQuestions:
+                    AdminDraftQuestion[] =
+                    validQuestions.map(
+                        (parsedQuestion) => {
+                            if (
+                                parsedQuestion.type ===
+                                "matching"
+                            ) {
+                                const existing =
+                                    existingBySourceOrder.get(
+                                        33,
+                                    );
+                                const existingMatching =
+                                    existing?.type ===
+                                    "matching"
+                                        ? existing
+                                        : null;
+
+                                const emptyQuestion =
+                                    createEmptyMatchingQuestion({
+                                        order:
+                                            existingMatching
+                                                ?.order ??
+                                            33,
+                                        section:
+                                            "syntax",
+                                    });
+
+                                return {
+                                    ...emptyQuestion,
+                                    id:
+                                        existingMatching
+                                            ?.id ??
+                                        emptyQuestion.id,
+                                    order:
+                                        existingMatching
+                                            ?.order ??
+                                        33,
+                                    sourceOrder:
+                                        33,
+                                    question:
+                                        parsedQuestion.question,
+                                    instruction:
+                                        parsedQuestion.instruction,
+                                    context:
+                                        parsedQuestion.context,
+                                    maximumScore:
+                                        parsedQuestion.maximumScore,
+                                    image:
+                                        existingMatching
+                                            ?.image ??
+                                        null,
+                                    title:
+                                        parsedQuestion.title,
+                                    choices:
+                                        parsedQuestion.choices,
+                                    items:
+                                        parsedQuestion.items.map(
+                                            (
+                                                item,
+                                                index,
+                                            ) => {
+                                                const previousItem =
+                                                    existingMatching
+                                                        ?.items.find(
+                                                            (candidate) =>
+                                                                candidate.sourceOrder ===
+                                                                item.sourceOrder,
+                                                        ) ??
+                                                    existingMatching
+                                                        ?.items[
+                                                            index
+                                                        ];
+
+                                                return {
+                                                    id:
+                                                        previousItem
+                                                            ?.id ??
+                                                        createClientId(
+                                                            "matching-item",
+                                                        ),
+                                                    order:
+                                                        item.order,
+                                                    sourceOrder:
+                                                        item.sourceOrder,
+                                                    prompt:
+                                                        item.prompt,
+                                                    correctChoiceId:
+                                                        item.correctChoiceId,
+                                                    maximumScore:
+                                                        item.maximumScore,
+                                                    explanation:
+                                                        previousItem
+                                                            ?.explanation ??
+                                                        {
+                                                            text:
+                                                                "DOCX diagnostika 33–35 importi orqali qo‘shildi. Ushbu matching bandi uchun audio izohni tekshiring.",
+                                                            audio:
+                                                                null,
+                                                        },
+                                                };
+                                            },
+                                        ),
+                                    explanation:
+                                        existingMatching
+                                            ?.explanation ??
+                                        {
+                                            text:
+                                                "DOCX diagnostika 33–35 matching importi orqali qo‘shildi. Mosliklarni tekshiring.",
+                                            audio:
+                                                null,
+                                        },
+                                } satisfies
+                                    AdminDraftMatchingQuestion;
+                            }
+
+                            if (
+                                parsedQuestion.type ===
+                                "short-answer"
+                            ) {
+                                const existing =
+                                    existingBySourceOrder.get(
+                                        parsedQuestion.sourceOrder,
+                                    );
+                                const existingShortAnswer =
+                                    existing?.type ===
+                                    "short-answer"
+                                        ? existing
+                                        : null;
+
+                                const emptyQuestion =
+                                    createEmptyShortAnswerQuestion({
+                                        order:
+                                            existingShortAnswer
+                                                ?.order ??
+                                            parsedQuestion.sourceOrder,
+                                        section:
+                                            "written",
+                                    });
+
+                                return {
+                                    ...emptyQuestion,
+                                    id:
+                                        existingShortAnswer
+                                            ?.id ??
+                                        emptyQuestion.id,
+                                    order:
+                                        existingShortAnswer
+                                            ?.order ??
+                                        parsedQuestion.sourceOrder,
+                                    sourceOrder:
+                                        parsedQuestion.sourceOrder,
+                                    question:
+                                        parsedQuestion.question,
+                                    context:
+                                        parsedQuestion.context,
+                                    maximumScore:
+                                        parsedQuestion.maximumScore,
+                                    acceptedAnswers:
+                                        parsedQuestion.acceptedAnswers,
+                                    requiredKeywords:
+                                        parsedQuestion.requiredKeywords,
+                                    comparison:
+                                        parsedQuestion.comparison,
+                                    examples:
+                                        parsedQuestion.examples,
+                                    image:
+                                        existingShortAnswer
+                                            ?.image ??
+                                        null,
+                                    explanation:
+                                        existingShortAnswer
+                                            ?.explanation ??
+                                        {
+                                            text:
+                                                "DOCX diagnostika yozma importi orqali qo‘shildi. Qabul qilinadigan javoblarni tekshiring.",
+                                            audio:
+                                                null,
+                                        },
+                                } satisfies
+                                    AdminDraftShortAnswerQuestion;
+                            }
+
+                            if (
+                                parsedQuestion.type !==
+                                "multipart"
+                            ) {
+                                throw new Error(
+                                    "Diagnostika 33–44 importida kutilmagan savol turi aniqlandi.",
+                                );
+                            }
+
+                            const existing =
+                                existingBySourceOrder.get(
+                                    parsedQuestion.sourceOrder,
+                                );
+                            const existingMultipart =
+                                existing?.type ===
+                                "multipart"
+                                    ? existing
+                                    : null;
+
+                            const emptyQuestion =
+                                createEmptyMultipartQuestion({
+                                    order:
+                                        existingMultipart
+                                            ?.order ??
+                                        parsedQuestion.sourceOrder,
+                                    section:
+                                        "written",
+                                });
+
+                            return {
+                                ...emptyQuestion,
+                                id:
+                                    existingMultipart
+                                        ?.id ??
+                                    emptyQuestion.id,
+                                order:
+                                    existingMultipart
+                                        ?.order ??
+                                    parsedQuestion.sourceOrder,
+                                sourceOrder:
+                                    parsedQuestion.sourceOrder,
+                                question:
+                                    parsedQuestion.question,
+                                context:
+                                    parsedQuestion.context,
+                                maximumScore:
+                                    parsedQuestion.maximumScore,
+                                parts:
+                                    parsedQuestion.parts.map(
+                                        (
+                                            part,
+                                            partIndex,
+                                        ) => ({
+                                            id:
+                                                existingMultipart
+                                                    ?.parts.find(
+                                                        (candidate) =>
+                                                            candidate.label ===
+                                                            part.label,
+                                                    )?.id ??
+                                                existingMultipart
+                                                    ?.parts[
+                                                        partIndex
+                                                    ]?.id ??
+                                                createClientId(
+                                                    "multipart-part",
+                                                ),
+                                            order:
+                                                partIndex +
+                                                1,
+                                            label:
+                                                part.label,
+                                            prompt:
+                                                part.question,
+                                            acceptedAnswers:
+                                                part.acceptedAnswers,
+                                            requiredKeywords:
+                                                part.requiredKeywords,
+                                            comparison:
+                                                part.comparison,
+                                            maximumScore:
+                                                part.maximumScore,
+                                            explanation:
+                                                existingMultipart
+                                                    ?.parts.find(
+                                                        (candidate) =>
+                                                            candidate.label ===
+                                                            part.label,
+                                                    )?.explanation ??
+                                                existingMultipart
+                                                    ?.parts[
+                                                        partIndex
+                                                    ]?.explanation ??
+                                                {
+                                                    text:
+                                                        "DOCX diagnostika multipart importi orqali qo‘shildi. Ushbu qism uchun audio izohni tekshiring.",
+                                                    audio:
+                                                        null,
+                                                },
+                                        }),
+                                    ),
+                                image:
+                                    existingMultipart
+                                        ?.image ??
+                                    null,
+                                explanation:
+                                    existingMultipart
+                                        ?.explanation ??
+                                    {
+                                        text:
+                                            "DOCX diagnostika multipart importi orqali qo‘shildi. Har bir qismni tekshiring.",
+                                        audio:
+                                            null,
+                                    },
+                            } satisfies
+                                AdminDraftMultipartQuestion;
+                        },
+                    );
+
+                const existingIds =
+                    new Set(
+                        existingStructured.map(
+                            (question) =>
+                                question.id,
+                        ),
+                    );
+
+                const nextQuestions = [
+                    ...currentDraft.questions.filter(
+                        (question) =>
+                            !existingIds.has(
+                                question.id,
+                            ),
+                    ),
+                    ...importedQuestions,
+                ].sort(
+                    (
+                        left,
+                        right,
+                    ) =>
+                        left.order -
+                        right.order,
+                );
+
+                return {
+                    ...currentDraft,
+                    source:
+                        "docx-import",
+                    questions:
+                        nextQuestions,
+                };
+            },
+        );
+
+        setToast({
+            type:
+                "success",
+            message:
+                "33–44-savollar DOCX faylidan yangilandi. Matching 33–35 bitta blok bo‘lib qoldi.",
+        });
+    }
+
+
+    function importParsedDiagnostic(
+        parsedDiagnostic:
+            AdminDiagnosticDocxParseResult,
+    ) {
+        const imported =
+            createAdminDiagnosticDraftImport(
+                parsedDiagnostic,
+            );
+
+        if (
+            imported.questions.length ===
+            0
+        ) {
+            setToast({
+                type:
+                    "error",
+                message:
+                    "Import uchun yaroqli diagnostika savoli topilmadi.",
+            });
+            return;
+        }
+
+        draft.questions.forEach(
+            (question) => {
+                queueQuestionAudioStorageRemovals(
+                    question,
+                );
+
+                if (
+                    question.image?.storagePath
+                ) {
+                    queueImageStorageRemoval(
+                        question.id,
+                        question.image.storagePath,
+                    );
+                }
+
+                if (
+                    question.type ===
+                    "passage-group"
+                ) {
+                    question.questions.forEach(
+                        (nestedQuestion) => {
+                            if (
+                                nestedQuestion.image
+                                    ?.storagePath
+                            ) {
+                                queueImageStorageRemoval(
+                                    nestedQuestion.id,
+                                    nestedQuestion.image.storagePath,
+                                );
+                            }
+                        },
+                    );
+                }
+            },
+        );
+
+        setDraft(
+            (currentDraft) => ({
+                ...currentDraft,
+                source:
+                    "docx-import",
+                metadata: {
+                    ...currentDraft.metadata,
+                    ...imported.metadata,
+                },
+                questions:
+                    imported.questions,
+            }),
+        );
+
+        setToast({
+            type:
+                "success",
+            message:
+                `${parsedDiagnostic.taskCount} ta diagnostika topshirig‘i import qilindi. Oldingi savollar aralashmasligi uchun almashtirildi.`,
+        });
+
+        window.setTimeout(
+            () => {
+                document
+                    .getElementById(
+                        "admin-diagnostic-summary",
+                    )
+                    ?.scrollIntoView({
+                        behavior:
+                            "smooth",
+                        block:
+                            "start",
+                    });
+            },
+            0,
+        );
+    }
+
 
     function updatePassageGroup(
         passageGroupId:
@@ -990,6 +3637,37 @@ export function AdminMultipleChoiceDraftEditor({
         passageGroupId:
             string,
     ) {
+        const passageGroup =
+            passageGroups.find(
+                (question) =>
+                    question.id ===
+                    passageGroupId,
+            );
+
+        if (passageGroup) {
+            queueQuestionAudioStorageRemovals(
+                passageGroup,
+            );
+        }
+
+        if (passageGroup?.image?.storagePath) {
+            queueImageStorageRemoval(
+                passageGroup.id,
+                passageGroup.image.storagePath,
+            );
+        }
+
+        passageGroup?.questions.forEach(
+            (question) => {
+                if (question.image?.storagePath) {
+                    queueImageStorageRemoval(
+                        question.id,
+                        question.image.storagePath,
+                    );
+                }
+            },
+        );
+
         setDraft(
             (currentDraft) => ({
                 ...currentDraft,
@@ -1189,10 +3867,30 @@ export function AdminMultipleChoiceDraftEditor({
         questionId:
             string,
     ) {
+        const question =
+            questions.find(
+                (candidate) =>
+                    candidate.id ===
+                    questionId,
+            );
+
+        if (question) {
+            queueQuestionAudioStorageRemovals(
+                question,
+            );
+        }
+
+        if (question?.image?.storagePath) {
+            queueImageStorageRemoval(
+                question.id,
+                question.image.storagePath,
+            );
+        }
+
         replaceQuestions(
             questions.filter(
-                (question) =>
-                    question.id !==
+                (candidate) =>
+                    candidate.id !==
                     questionId,
             ),
         );
@@ -1279,6 +3977,126 @@ export function AdminMultipleChoiceDraftEditor({
             0,
         );
 
+
+    const isDiagnostic =
+        draft.metadata.format ===
+        "diagnostic";
+
+    const docxParserTarget =
+        draft.metadata.group ===
+            "national-certificate"
+            ? draft.metadata.topicSlug ===
+                "ilmiy-matn"
+                ? "scientific-text"
+                : draft.metadata.topicSlug ===
+                    "badiiy-matn"
+                  ? "literary-text"
+                  : draft.metadata.topicSlug ===
+                      "gazal"
+                    ? "ghazal"
+                    : draft.metadata.topicSlug ===
+                        "badiiy-asarlar"
+                      ? "literary-works"
+                      : draft.metadata.topicSlug ===
+                          "aralash"
+                        ? "mixed"
+                        : draft.metadata.topicSlug ===
+                            "diagnostika"
+                          ? "diagnostic"
+                          : "auto"
+            : draft.metadata.format ===
+                  "standard" ||
+              draft.metadata.format ===
+                  "morphology-standard"
+              ? "standard"
+              : "auto";
+
+    const displayedQuestionCount =
+        isDiagnostic
+            ? calculateAdminDraftTaskCount(
+                draft,
+            )
+            : questions.length +
+                passageGroups.reduce(
+                    (
+                        total,
+                        group,
+                    ) =>
+                        total +
+                        group.questions.length,
+                    0,
+                );
+
+    const displayedMaximumScore =
+        isDiagnostic
+            ? draft.metadata.diagnostic
+                ?.finalMaximumScore ??
+                maximumScore
+            : maximumScore;
+
+    const diagnosticRawMaximumScore =
+        isDiagnostic
+            ? calculateAdminDraftMaximumScore(
+                draft,
+            )
+            : maximumScore;
+
+    const draftForSave:
+        AdminTestDraft =
+        isDiagnostic
+            ? {
+                ...draft,
+                metadata: {
+                    ...draft.metadata,
+                    diagnostic: {
+                        taskCount:
+                            displayedQuestionCount,
+                        finalMaximumScore:
+                            100,
+                        rawMaximumScore:
+                            diagnosticRawMaximumScore,
+                    },
+                },
+            }
+            : draft;
+
+    const persistedDraftForComparison:
+        AdminTestDraft =
+        isDiagnostic
+            ? {
+                ...lastPersistedDraftRef.current,
+                metadata: {
+                    ...lastPersistedDraftRef.current.metadata,
+                    diagnostic: {
+                        taskCount:
+                            calculateAdminDraftTaskCount(
+                                lastPersistedDraftRef.current,
+                            ),
+                        finalMaximumScore:
+                            100,
+                        rawMaximumScore:
+                            calculateAdminDraftMaximumScore(
+                                lastPersistedDraftRef.current,
+                            ),
+                    },
+                },
+            }
+            : lastPersistedDraftRef.current;
+
+    const hasUnsavedChanges =
+        JSON.stringify(
+            draftForSave,
+        ) !==
+        JSON.stringify(
+            persistedDraftForComparison,
+        );
+
+    const isLocked =
+        draft.status ===
+            "published" ||
+        draft.status ===
+            "archived";
+
     return (
         <>
             {toast && (
@@ -1351,7 +4169,9 @@ export function AdminMultipleChoiceDraftEditor({
                             styles.eyebrow
                         }
                     >
-                        MULTIPLE-CHOICE MUHARRIRI
+                        {isDiagnostic
+                            ? "DIAGNOSTIKA MUHARRIRI"
+                            : "MULTIPLE-CHOICE MUHARRIRI"}
                     </span>
 
                     <h1>
@@ -1359,9 +4179,9 @@ export function AdminMultipleChoiceDraftEditor({
                     </h1>
 
                     <p>
-                        Savollarni tahrirlang,
-                        tartiblang va Supabase
-                        bazasiga saqlang.
+                        {isDiagnostic
+                            ? "45 ta topshiriq, uchta matn bloki, yozma savollar va esseni tekshiring."
+                            : "Savollarni tahrirlang, tartiblang va Supabase bazasiga saqlang."}
                     </p>
                 </div>
 
@@ -1375,16 +4195,7 @@ export function AdminMultipleChoiceDraftEditor({
                             Savollar
                         </span>
                         <strong>
-                            {questions.length +
-                            passageGroups.reduce(
-                                (
-                                    total,
-                                    group,
-                                ) =>
-                                    total +
-                                    group.questions.length,
-                                0,
-                            )}
+                            {displayedQuestionCount}
                         </strong>
                     </div>
 
@@ -1393,11 +4204,116 @@ export function AdminMultipleChoiceDraftEditor({
                             Maksimal ball
                         </span>
                         <strong>
-                            {maximumScore}
+                            {displayedMaximumScore}
                         </strong>
                     </div>
                 </div>
             </header>
+
+            {isDiagnostic && (
+                <section
+                    id="admin-diagnostic-summary"
+                    className={
+                        styles.diagnosticSummary
+                    }
+                >
+                    <div>
+                        <span>
+                            Diagnostika topshiriqlari
+                        </span>
+                        <strong>
+                            {displayedQuestionCount} / 45
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>
+                            Yakuniy shkala
+                        </span>
+                        <strong>
+                            {displayedMaximumScore} / 100
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>
+                            Savol og‘irliklari yig‘indisi
+                        </span>
+                        <strong>
+                            {diagnosticRawMaximumScore}
+                        </strong>
+                    </div>
+
+                    <p>
+                        Yakuniy 100 ball normalizatsiya qilingan shkala.
+                        Savol og‘irliklari yig‘indisi alohida saqlanadi.
+                    </p>
+                </section>
+            )}
+
+            {isDiagnostic && (
+                <>
+                    <AdminDiagnosticSectionDocxImporter
+                        target="multiple-choice"
+                        title="1–17 test savollari"
+                        rangeLabel="1–17"
+                        onImportDiagnostic={
+                            importDiagnosticMultipleChoiceSection
+                        }
+                    />
+
+                    <AdminDiagnosticSectionDocxImporter
+                        target="scientific-text"
+                        title="Ilmiy matn DOCX import"
+                        rangeLabel="18–22"
+                        onImportPassage={(parsedPassage) =>
+                            importDiagnosticPassageSection(
+                                parsedPassage,
+                                "scientific-text",
+                            )
+                        }
+                    />
+
+                    <AdminDiagnosticSectionDocxImporter
+                        target="literary-text"
+                        title="Badiiy matn DOCX import"
+                        rangeLabel="23–27"
+                        onImportPassage={(parsedPassage) =>
+                            importDiagnosticPassageSection(
+                                parsedPassage,
+                                "literary-text",
+                            )
+                        }
+                    />
+
+                    <AdminDiagnosticSectionDocxImporter
+                        target="ghazal"
+                        title="G‘azal DOCX import"
+                        rangeLabel="28–32"
+                        onImportGhazal={
+                            importDiagnosticGhazalSection
+                        }
+                    />
+
+                    <AdminDiagnosticSectionDocxImporter
+                        target="structured"
+                        title="33–44 yozma va matching savollar"
+                        rangeLabel="33–44"
+                        onImportMixed={
+                            importDiagnosticStructuredSection
+                        }
+                    />
+
+                    <AdminDiagnosticSectionDocxImporter
+                        target="essay"
+                        title="45-savol · Esse"
+                        rangeLabel="45"
+                        onImportDiagnostic={
+                            importDiagnosticEssaySection
+                        }
+                    />
+                </>
+            )}
 
             {unsupportedQuestions.length >
                 0 && (
@@ -1416,20 +4332,31 @@ export function AdminMultipleChoiceDraftEditor({
                 </div>
             )}
 
-            <AdminDocxImportPreview
-                onImportQuestions={
-                    importParsedQuestions
-                }
-                onImportPassage={
-                    importParsedPassage
-                }
-                onImportGhazal={
-                    importParsedGhazal
-                }
-                onImportLiteraryWorks={
-                    importParsedLiteraryWorks
-                }
-            />
+            {!isDiagnostic && (
+                <AdminDocxImportPreview
+                    parserTarget={
+                        docxParserTarget
+                    }
+                    onImportQuestions={
+                        importParsedQuestions
+                    }
+                    onImportPassage={
+                        importParsedPassage
+                    }
+                    onImportGhazal={
+                        importParsedGhazal
+                    }
+                    onImportLiteraryWorks={
+                        importParsedLiteraryWorks
+                    }
+                    onImportMixed={
+                        importParsedMixed
+                    }
+                    onImportDiagnostic={
+                        importParsedDiagnostic
+                    }
+                />
+            )}
 
             {actionState.message && (
                 <div
@@ -1442,6 +4369,39 @@ export function AdminMultipleChoiceDraftEditor({
                     role="status"
                 >
                     {actionState.message}
+                </div>
+            )}
+
+            {publishState.message && (
+                <div
+                    className={
+                        publishState.status ===
+                        "success"
+                            ? styles.successBanner
+                            : styles.errorBanner
+                    }
+                    role="status"
+                >
+                    {publishState.message}
+                </div>
+            )}
+
+            {isLocked && (
+                <div
+                    className={
+                        styles.publishedNotice
+                    }
+                    role="status"
+                >
+                    <strong>
+                        {draft.status ===
+                        "published"
+                            ? "Test nashr qilingan"
+                            : "Test arxivlangan"}
+                    </strong>
+                    <span>
+                        Ushbu versiyani oddiy draft saqlash orqali o‘zgartirib bo‘lmaydi.
+                    </span>
                 </div>
             )}
 
@@ -1531,6 +4491,9 @@ export function AdminMultipleChoiceDraftEditor({
                                         Guruhni o‘chirish
                                     </button>
                                 </div>
+
+
+
 
                                 <div
                                     className={
@@ -1656,6 +4619,30 @@ export function AdminMultipleChoiceDraftEditor({
                                         />
                                     </label>
                                 </div>
+
+                                <AdminQuestionImageUploader
+                                    draftId={draft.id}
+                                    questionId={
+                                        passageGroup.id
+                                    }
+                                    image={
+                                        passageGroup.image
+                                    }
+                                    onChange={(image) =>
+                                        updatePassageGroup(
+                                            passageGroup.id,
+                                            {
+                                                image,
+                                            },
+                                        )
+                                    }
+                                    onQueueStorageRemoval={(storagePath) =>
+                                        queueImageStorageRemoval(
+                                            passageGroup.id,
+                                            storagePath,
+                                        )
+                                    }
+                                />
 
                                 <div
                                     className={
@@ -1821,8 +4808,12 @@ export function AdminMultipleChoiceDraftEditor({
                                                 }
                                             >
                                                 <strong>
-                                                    {questionIndex +
-                                                    1}-savol
+                                                    {isDiagnostic
+                                                        ? question.sourceOrder ??
+                                                          questionIndex +
+                                                              1
+                                                        : questionIndex +
+                                                          1}-savol
                                                 </strong>
 
                                                 <textarea
@@ -1843,6 +4834,60 @@ export function AdminMultipleChoiceDraftEditor({
                                                         )
                                                     }
                                                     rows={3}
+                                                />
+
+                                                <AdminQuestionImageUploader
+                                                    draftId={
+                                                        draft.id
+                                                    }
+                                                    questionId={
+                                                        question.id
+                                                    }
+                                                    image={
+                                                        question.image
+                                                    }
+                                                    onChange={(image) =>
+                                                        updatePassageQuestion(
+                                                            passageGroup.id,
+                                                            question.id,
+                                                            {
+                                                                image,
+                                                            },
+                                                        )
+                                                    }
+                                                    onQueueStorageRemoval={(storagePath) =>
+                                                        queueImageStorageRemoval(
+                                                            question.id,
+                                                            storagePath,
+                                                        )
+                                                    }
+                                                />
+
+                                                <AdminQuestionAudioUploader
+                                                    draftId={draft.id}
+                                                    questionId={question.id}
+                                                    audio={
+                                                        question.explanation.audio
+                                                    }
+                                                    compact
+                                                    onChange={(audio) =>
+                                                        updatePassageQuestion(
+                                                            passageGroup.id,
+                                                            question.id,
+                                                            {
+                                                                explanation: {
+                                                                    ...question.explanation,
+                                                                    audio,
+                                                                },
+                                                            },
+                                                        )
+                                                    }
+                                                    onQueueStorageRemoval={(storagePath) =>
+                                                        queueAudioStorageRemoval(
+                                                            question.id,
+                                                            storagePath,
+                                                        )
+                                                    }
                                                 />
 
                                                 <div
@@ -1917,13 +4962,83 @@ export function AdminMultipleChoiceDraftEditor({
                 </section>
             )}
 
-            <form action={formAction}>
+            <AdminMixedStructuredQuestionEditor
+                questions={
+                    structuredQuestions
+                }
+                onChange={
+                    replaceStructuredQuestions
+                }
+                draftId={
+                    draft.id
+                }
+                imageUploadSourceOrders={
+                    isDiagnostic
+                        ? [36]
+                        : []
+                }
+                allowImageUploadForAll={
+                    draft.metadata.format ===
+                    "mixed"
+                }
+                onQuestionImageChange={(
+                    questionId,
+                    image,
+                ) =>
+                    updateStructuredQuestionImage(
+                        questionId,
+                        image,
+                    )
+                }
+                onQueueImageStorageRemoval={(
+                    questionId,
+                    storagePath,
+                ) =>
+                    queueImageStorageRemoval(
+                        questionId,
+                        storagePath,
+                    )
+                }
+                onQueueAudioStorageRemoval={(
+                    questionId,
+                    storagePath,
+                ) =>
+                    queueAudioStorageRemoval(
+                        questionId,
+                        storagePath,
+                    )
+                }
+            />
+
+            {isDiagnostic &&
+                essayQuestions.map(
+                    (essayQuestion) => (
+                        <AdminDiagnosticEssayEditor
+                            key={
+                                essayQuestion.id
+                            }
+                            question={
+                                essayQuestion
+                            }
+                            onChange={
+                                replaceEssayQuestion
+                            }
+                        />
+                    ),
+                )}
+
+            <form
+                action={formAction}
+                onSubmit={
+                    prepareAssetRemovalsForSave
+                }
+            >
                 <input
                     type="hidden"
                     name="draft"
                     value={
                         JSON.stringify(
-                            draft,
+                            draftForSave,
                         )
                     }
                 />
@@ -1995,7 +5110,12 @@ export function AdminMultipleChoiceDraftEditor({
                                                 styles.questionNumber
                                             }
                                         >
-                                            {index + 1}
+                                            {isDiagnostic
+                                                ? question.sourceOrder ??
+                                                  index +
+                                                      1
+                                                : index +
+                                                  1}
                                         </span>
 
                                         <div>
@@ -2234,6 +5354,37 @@ export function AdminMultipleChoiceDraftEditor({
                                     </label>
                                 </div>
 
+                                {(!isDiagnostic ||
+                                    (question.sourceOrder !==
+                                        null &&
+                                        diagnosticManualImageSourceOrders.has(
+                                            question.sourceOrder,
+                                        ))) && (
+                                    <AdminQuestionImageUploader
+                                        draftId={draft.id}
+                                        questionId={
+                                            question.id
+                                        }
+                                        image={
+                                            question.image
+                                        }
+                                        onChange={(image) =>
+                                            updateQuestion(
+                                                question.id,
+                                                {
+                                                    image,
+                                                },
+                                            )
+                                        }
+                                        onQueueStorageRemoval={(storagePath) =>
+                                            queueImageStorageRemoval(
+                                                question.id,
+                                                storagePath,
+                                            )
+                                        }
+                                    />
+                                )}
+
                                 <div
                                     className={
                                         styles.optionGrid
@@ -2331,6 +5482,31 @@ export function AdminMultipleChoiceDraftEditor({
                                         placeholder="Nima sababdan ushbu javob to‘g‘ri?"
                                     />
                                 </label>
+
+                                <AdminQuestionAudioUploader
+                                    draftId={draft.id}
+                                    questionId={question.id}
+                                    audio={
+                                        question.explanation.audio
+                                    }
+                                    onChange={(audio) =>
+                                        updateQuestion(
+                                            question.id,
+                                            {
+                                                explanation: {
+                                                    ...question.explanation,
+                                                    audio,
+                                                },
+                                            },
+                                        )
+                                    }
+                                    onQueueStorageRemoval={(storagePath) =>
+                                        queueAudioStorageRemoval(
+                                            question.id,
+                                            storagePath,
+                                        )
+                                    }
+                                />
                             </article>
                         ),
                     )}
@@ -2386,16 +5562,86 @@ export function AdminMultipleChoiceDraftEditor({
 
                     <button
                         type="submit"
-                        disabled={pending}
+                        disabled={
+                            pending ||
+                            publishing ||
+                            isLocked
+                        }
                         className={
                             styles.saveButton
                         }
                     >
                         {pending
                             ? "Saqlanmoqda..."
-                            : "Draftni saqlash"}
+                            : isLocked
+                                ? "Saqlash yopilgan"
+                                : "Draftni saqlash"}
                     </button>
                 </div>
+            </form>
+
+            <form
+                action={
+                    publishFormAction
+                }
+                className={
+                    styles.publishPanel
+                }
+            >
+                <input
+                    type="hidden"
+                    name="draft"
+                    value={
+                        JSON.stringify(
+                            draftForSave,
+                        )
+                    }
+                />
+                <input
+                    type="hidden"
+                    name="expectedUpdatedAt"
+                    value={
+                        draft.audit.updatedAt
+                    }
+                />
+
+                <div>
+                    <strong>
+                        Student testini faollashtirish
+                    </strong>
+                    <span>
+                        Avval barcha o‘zgarishlarni draftga saqlang. Nashrdan keyin shu route studentlar uchun database versiyasini ochadi.
+                    </span>
+                    {hasUnsavedChanges &&
+                    !isLocked ? (
+                        <small>
+                            Nashr qilishdan oldin “Draftni saqlash” tugmasini bosing.
+                        </small>
+                    ) : null}
+                </div>
+
+                <button
+                    type="submit"
+                    disabled={
+                        pending ||
+                        publishing ||
+                        hasUnsavedChanges ||
+                        isLocked
+                    }
+                    className={
+                        styles.publishButton
+                    }
+                >
+                    {publishing
+                        ? "Nashr qilinmoqda..."
+                        : draft.status ===
+                          "published"
+                            ? "Nashr qilingan"
+                            : draft.status ===
+                              "archived"
+                                ? "Arxivlangan"
+                                : "Testni nashr qilish"}
+                </button>
             </form>
         </>
     );

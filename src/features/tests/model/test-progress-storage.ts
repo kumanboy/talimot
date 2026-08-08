@@ -1,3 +1,7 @@
+import {
+    repairLegacyStoredTestHref,
+} from "./test-navigation";
+
 export type StoredTestOptionId =
     | "A"
     | "B"
@@ -494,7 +498,36 @@ export function readTestProgress(
             return null;
         }
 
-        return parsedProgress;
+        const repairedHref =
+            repairLegacyStoredTestHref(
+                parsedProgress.metadata.href,
+                parsedProgress.metadata.category,
+            );
+
+        if (
+            repairedHref ===
+            parsedProgress.metadata.href
+        ) {
+            return parsedProgress;
+        }
+
+        const repairedProgress:
+            StoredTestProgress = {
+            ...parsedProgress,
+            metadata: {
+                ...parsedProgress.metadata,
+                href: repairedHref,
+            },
+        };
+
+        window.localStorage.setItem(
+            storageKey,
+            JSON.stringify(
+                repairedProgress,
+            ),
+        );
+
+        return repairedProgress;
     } catch {
         return null;
     }
@@ -659,15 +692,57 @@ export function readCompletedTests():
             return [];
         }
 
-        return parsed
-            .filter(
+        const validAttempts =
+            parsed.filter(
                 isStoredCompletedTest,
-            )
-            .sort(
-                (first, second) =>
-                    second.completedAt -
-                    first.completedAt,
             );
+
+        let didRepairHref =
+            false;
+
+        const repairedAttempts =
+            validAttempts.map(
+                (attempt) => {
+                    const repairedHref =
+                        repairLegacyStoredTestHref(
+                            attempt.metadata.href,
+                            attempt.metadata.category,
+                        );
+
+                    if (
+                        repairedHref ===
+                        attempt.metadata.href
+                    ) {
+                        return attempt;
+                    }
+
+                    didRepairHref =
+                        true;
+
+                    return {
+                        ...attempt,
+                        metadata: {
+                            ...attempt.metadata,
+                            href: repairedHref,
+                        },
+                    } satisfies StoredCompletedTest;
+                },
+            );
+
+        if (didRepairHref) {
+            window.localStorage.setItem(
+                COMPLETED_TESTS_KEY,
+                JSON.stringify(
+                    repairedAttempts,
+                ),
+            );
+        }
+
+        return repairedAttempts.sort(
+            (first, second) =>
+                second.completedAt -
+                first.completedAt,
+        );
     } catch {
         return [];
     }

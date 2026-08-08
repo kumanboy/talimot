@@ -25,6 +25,7 @@ import type {
     MixedMultipartAnswers,
     MixedOptionId,
     MixedQuestion,
+    MixedQuestionImage,
     MixedQuestionScoreResult,
     MixedTestDefinition,
     MixedTestScoreResult,
@@ -605,6 +606,57 @@ function FinishDialog({
                 </div>
             </section>
         </div>
+    );
+}
+
+function QuestionImage({
+    image,
+    compact = false,
+}: {
+    readonly image:
+        MixedQuestionImage | undefined;
+    readonly compact?: boolean;
+}) {
+    if (!image) {
+        return null;
+    }
+
+    const width =
+        image.width && image.width > 0
+            ? image.width
+            : undefined;
+
+    const height =
+        image.height && image.height > 0
+            ? image.height
+            : undefined;
+
+    return (
+        <figure
+            className={[
+                styles.questionImage,
+                compact
+                    ? styles.questionImageCompact
+                    : "",
+            ]
+                .filter(Boolean)
+                .join(" ")}
+        >
+            <img
+                src={image.src}
+                alt={image.alt}
+                width={width}
+                height={height}
+                loading="lazy"
+                decoding="async"
+            />
+
+            {image.caption ? (
+                <figcaption>
+                    {image.caption}
+                </figcaption>
+            ) : null}
+        </figure>
     );
 }
 
@@ -1419,6 +1471,13 @@ function MixedAnswerReview({
                                         </strong>
                                     </header>
 
+                                    <QuestionImage
+                                        image={
+                                            question.image
+                                        }
+                                        compact
+                                    />
+
                                     <div
                                         className={
                                             styles.reviewSubList
@@ -1618,6 +1677,13 @@ function MixedAnswerReview({
                                             }
                                         </strong>
                                     </header>
+
+                                    <QuestionImage
+                                        image={
+                                            question.image
+                                        }
+                                        compact
+                                    />
 
                                     {question.context ? (
                                         <p
@@ -1836,6 +1902,13 @@ function MixedAnswerReview({
                                         }
                                     </h3>
 
+                                    <QuestionImage
+                                        image={
+                                            question.image
+                                        }
+                                        compact
+                                    />
+
                                     <p
                                         className={
                                             styles.verdictText
@@ -1932,6 +2005,13 @@ function MixedAnswerReview({
                                         question.question
                                     }
                                 </h3>
+
+                                <QuestionImage
+                                    image={
+                                        question.image
+                                    }
+                                    compact
+                                />
 
                                 {question.context ? (
                                     <p
@@ -3100,6 +3180,12 @@ export function MixedTestRunner({
                                 }
                             </p>
 
+                            <QuestionImage
+                                image={
+                                    currentQuestion.image
+                                }
+                            />
+
                             <MatchingGroupBody
                                 question={
                                     currentQuestion
@@ -3128,6 +3214,12 @@ export function MixedTestRunner({
                                     currentQuestion.question
                                 }
                             </h2>
+
+                            <QuestionImage
+                                image={
+                                    currentQuestion.image
+                                }
+                            />
 
                             {currentQuestion.type ===
                             "multiple-choice" ? (

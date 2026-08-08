@@ -55,6 +55,49 @@ JAVOBLAR
         expect(result?.confidence).toBe("high");
     });
 
+    it("normalizes four scientific sections when the first block is unnumbered and source Roman labels are stale", () => {
+        const result = parsePassageDocxDocument(`
+TEST TURI: ILMIY MATN
+SARLAVHA: Merkuriy
+MATN
+Birinchi ilmiy bo‘lim matni.
+I. Ikkinchi ilmiy bo‘lim matni.
+II. Uchinchi ilmiy bo‘lim matni.
+V. To‘rtinchi ilmiy bo‘lim matni.
+SAVOLLAR
+1. Savol?
+A) A
+B) B
+C) C
+D) D
+JAVOBLAR
+1=A
+        `);
+
+        expect(
+            result?.passage.map(
+                (block) =>
+                    block.marker,
+            ),
+        ).toEqual([
+            "I",
+            "II",
+            "III",
+            "IV",
+        ]);
+        expect(
+            result?.passage.map(
+                (block) =>
+                    block.text,
+            ),
+        ).toEqual([
+            "Birinchi ilmiy bo‘lim matni.",
+            "Ikkinchi ilmiy bo‘lim matni.",
+            "Uchinchi ilmiy bo‘lim matni.",
+            "To‘rtinchi ilmiy bo‘lim matni.",
+        ]);
+    });
+
     it("parses literary headings, paragraphs and dialogue", () => {
         const result = parsePassageDocxDocument(`
 TEST TURI: BADIIY MATN

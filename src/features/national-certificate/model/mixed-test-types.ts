@@ -29,6 +29,15 @@ export type WrittenAnswerVerdict =
     | "incorrect"
     | "needs-review";
 
+
+export interface MixedQuestionImage {
+    readonly src: string;
+    readonly alt: string;
+    readonly caption?: string;
+    readonly width?: number;
+    readonly height?: number;
+}
+
 export interface MixedOption {
     readonly id:
         MixedOptionId;
@@ -103,6 +112,9 @@ export interface MixedMultipleChoiceQuestion {
 
     readonly question: string;
 
+    readonly image?:
+        MixedQuestionImage;
+
     /**
      * 4-savoldagi diagramma yoki
      * 12-savoldagi raqamlangan gaplar.
@@ -162,6 +174,9 @@ export interface MixedMatchingGroup {
     readonly title?: string;
     readonly instruction: string;
 
+    readonly image?:
+        MixedQuestionImage;
+
     /**
      * Masalan:
      * 33, 34 va 35-savollar.
@@ -186,6 +201,9 @@ export interface MixedShortAnswerQuestion {
     readonly sourceOrder?: number;
 
     readonly question: string;
+
+    readonly image?:
+        MixedQuestionImage;
 
     /**
      * Savoldan oldin ko‘rsatiladigan
@@ -254,6 +272,9 @@ export interface MixedMultipartQuestion {
     readonly sourceOrder?: number;
 
     readonly question: string;
+
+    readonly image?:
+        MixedQuestionImage;
 
     /**
      * Tahlil qilinadigan gap,

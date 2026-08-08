@@ -70,6 +70,41 @@ export interface AdminDraftOption {
     readonly text: string;
 }
 
+export interface AdminDraftNumberedStatement {
+    readonly number: number;
+    readonly text: string;
+}
+
+export interface AdminDraftWordDiagramNode {
+    readonly id: string;
+    readonly text: string;
+    readonly role:
+        | "root"
+        | "branch"
+        | "leaf";
+}
+
+export interface AdminDraftWordDiagramConnection {
+    readonly from: string;
+    readonly to: string;
+}
+
+export type AdminDraftQuestionVisual =
+    | {
+        readonly type:
+            "numbered-statements";
+        readonly statements:
+            readonly AdminDraftNumberedStatement[];
+    }
+    | {
+        readonly type:
+            "word-diagram";
+        readonly nodes:
+            readonly AdminDraftWordDiagramNode[];
+        readonly connections:
+            readonly AdminDraftWordDiagramConnection[];
+    };
+
 export interface AdminDraftBaseQuestion {
     readonly id: string;
     readonly order: number;
@@ -98,6 +133,8 @@ export interface AdminDraftMultipleChoiceQuestion
         readonly AdminDraftOption[];
     readonly correctOptionId:
         AdminDraftOptionId | null;
+    readonly visual?:
+        AdminDraftQuestionVisual | null;
 }
 
 export interface AdminDraftShortAnswerQuestion
@@ -110,6 +147,8 @@ export interface AdminDraftShortAnswerQuestion
         readonly string[];
     readonly comparison:
         AdminDraftAnswerComparison;
+    readonly examples?:
+        readonly string[];
 }
 
 export interface AdminDraftMatchingChoice {
@@ -121,17 +160,23 @@ export interface AdminDraftMatchingChoice {
 export interface AdminDraftMatchingItem {
     readonly id: string;
     readonly order: number;
+    readonly sourceOrder?:
+        number | null;
     readonly prompt: string;
     readonly correctChoiceId:
         AdminDraftOptionId | null;
     readonly maximumScore:
         number;
+    readonly explanation?:
+        AdminDraftQuestionExplanation;
 }
 
 export interface AdminDraftMatchingQuestion
     extends AdminDraftBaseQuestion {
     readonly type:
         "matching";
+    readonly title?:
+        string | null;
     readonly choices:
         readonly AdminDraftMatchingChoice[];
     readonly items:
@@ -151,6 +196,8 @@ export interface AdminDraftMultipartPart {
         AdminDraftAnswerComparison;
     readonly maximumScore:
         number;
+    readonly explanation?:
+        AdminDraftQuestionExplanation;
 }
 
 export interface AdminDraftMultipartQuestion
@@ -195,10 +242,20 @@ export interface AdminDraftPassageGroupQuestion
 export interface AdminDraftEssayRequirements {
     readonly minimumWords:
         number | null;
+    readonly recommendedWords?:
+        number | null;
     readonly maximumWords:
         number | null;
     readonly recommendedParagraphs:
         number | null;
+    readonly introduction?:
+        readonly string[];
+    readonly body?:
+        readonly string[];
+    readonly conclusion?:
+        readonly string[];
+    readonly warnings?:
+        readonly string[];
     readonly rubric:
         readonly string[];
 }

@@ -164,6 +164,12 @@
     line-height: 1.4;
 }
 
+.fieldHint {
+    color: var(--app-text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
 .actions {
     display: flex;
     justify-content: flex-end;
@@ -223,4 +229,31 @@
     .submitButton {
         width: 100%;
     }
+}
+
+
+.routePreview {
+    display: grid;
+    gap: 6px;
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--app-primary) 22%, var(--app-border));
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--app-primary) 5%, var(--app-background));
+}
+
+.routePreview > span {
+    color: var(--app-text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.routePreview code {
+    overflow-wrap: anywhere;
+    color: var(--app-primary);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
 }

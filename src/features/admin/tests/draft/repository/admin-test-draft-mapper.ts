@@ -4,36 +4,12 @@ import type {
 } from "../model";
 import {
     calculateAdminDraftMaximumScore,
+    calculateAdminDraftTaskCount,
 } from "../model";
 
 import type {
     AdminTestDraftStorageRecord,
 } from "./admin-test-draft-storage-record";
-
-function countDraftQuestions(
-    draft:
-        AdminTestDraft,
-): number {
-    return draft.questions.reduce(
-        (
-            total,
-            question,
-        ) => {
-            if (
-                question.type ===
-                "passage-group"
-            ) {
-                return (
-                    total +
-                    question.questions.length
-                );
-            }
-
-            return total + 1;
-        },
-        0,
-    );
-}
 
 export function mapDraftToStorageRecord(
     draft:
@@ -61,7 +37,7 @@ export function mapDraftToStorageRecord(
         access:
             draft.metadata.access,
         questionCount:
-            countDraftQuestions(
+            calculateAdminDraftTaskCount(
                 draft,
             ),
         maximumScore:
@@ -97,16 +73,32 @@ export function mapStorageRecordToSummary(
             record.id,
         title:
             record.title,
+        description:
+            record.payload.metadata.description,
         status:
             record.status,
         source:
             record.source,
         group:
             record.groupName,
+        category:
+            record.payload.metadata.category,
+        topicSlug:
+            record.topicSlug,
+        slug:
+            record.slug,
         format:
             record.format,
+        difficulty:
+            record.payload.metadata.difficulty,
+        access:
+            record.access,
+        estimatedMinutes:
+            record.payload.metadata.estimatedMinutes,
         questionCount:
-            record.questionCount,
+            calculateAdminDraftTaskCount(
+                record.payload,
+            ),
         maximumScore:
             Number(
                 record.maximumScore,

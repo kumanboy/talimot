@@ -25,6 +25,12 @@ import {
 import {
     parseLiteraryWorksDocxDocument,
 } from "@/features/admin/tests/draft/model/admin-literary-works-docx-parser";
+import {
+    parseMixedDocxDocument,
+} from "@/features/admin/tests/draft/model/admin-mixed-docx-parser";
+import {
+    parseDiagnosticDocxDocument,
+} from "@/features/admin/tests/draft/model/admin-diagnostic-docx-parser";
 
 const maximumDocxBytes =
     10 * 1024 * 1024;
@@ -40,6 +46,18 @@ const docxMimeTypes =
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/octet-stream",
         "",
+    ]);
+
+const parserTargets =
+    new Set([
+        "auto",
+        "standard",
+        "literary-works",
+        "scientific-text",
+        "literary-text",
+        "ghazal",
+        "mixed",
+        "diagnostic",
     ]);
 
 function decodeHtmlEntities(
@@ -268,6 +286,31 @@ export async function previewAdminDocxImportAction(
             "docxFile",
         );
 
+    const rawParserTarget =
+        formData.get(
+            "parserTarget",
+        );
+
+    const parserTarget =
+        typeof rawParserTarget ===
+            "string" &&
+        parserTargets.has(
+            rawParserTarget,
+        )
+            ? rawParserTarget
+            : "auto";
+
+    const rawDiagnosticSectionTarget =
+        formData.get(
+            "diagnosticSectionTarget",
+        );
+
+    const diagnosticSectionTarget =
+        typeof rawDiagnosticSectionTarget ===
+        "string"
+            ? rawDiagnosticSectionTarget
+            : null;
+
     if (
         !(input instanceof File)
     ) {
@@ -421,34 +464,181 @@ export async function previewAdminDocxImportAction(
                     "table-row",
             ).length;
 
-        const parsedLiteraryWorks =
-            parseLiteraryWorksDocxDocument(
-                rawTextResult.value,
-            );
+        let parsedDiagnostic:
+            ReturnType<
+                typeof parseDiagnosticDocxDocument
+            > = null;
 
-        const parsedGhazal =
-            parsedLiteraryWorks
-                ? null
-                : parseGhazalDocxDocument(
-                    rawTextResult.value,
+        let parsedMixed:
+            ReturnType<
+                typeof parseMixedDocxDocument
+            > = null;
+
+        let parsedLiteraryWorks:
+            ReturnType<
+                typeof parseLiteraryWorksDocxDocument
+            > = null;
+
+        let parsedGhazal:
+            ReturnType<
+                typeof parseGhazalDocxDocument
+            > = null;
+
+        let parsedPassage:
+            ReturnType<
+                typeof parsePassageDocxDocument
+            > = null;
+
+        let parsedMcq:
+            ReturnType<
+                typeof parseStandardMcqDocument
+            > | null = null;
+
+        const rawText =
+            rawTextResult.value;
+
+        if (
+            diagnosticSectionTarget ===
+                "multiple-choice" ||
+            diagnosticSectionTarget ===
+                "essay"
+        ) {
+            parsedDiagnostic =
+                parseDiagnosticDocxDocument(
+                    rawText,
+                );
+        } else if (
+            diagnosticSectionTarget ===
+                "scientific-text" ||
+            diagnosticSectionTarget ===
+                "literary-text"
+        ) {
+            parsedPassage =
+                parsePassageDocxDocument(
+                    rawText,
+                );
+        } else if (
+            diagnosticSectionTarget ===
+            "ghazal"
+        ) {
+            parsedGhazal =
+                parseGhazalDocxDocument(
+                    rawText,
+                );
+        } else if (
+            diagnosticSectionTarget ===
+            "structured"
+        ) {
+            parsedMixed =
+                parseMixedDocxDocument(
+                    rawText,
+                );
+        } else if (
+            parserTarget ===
+            "diagnostic"
+        ) {
+            parsedDiagnostic =
+                parseDiagnosticDocxDocument(
+                    rawText,
+                );
+        } else if (
+            parserTarget ===
+            "mixed"
+        ) {
+            parsedMixed =
+                parseMixedDocxDocument(
+                    rawText,
+                );
+        } else if (
+            parserTarget ===
+            "literary-works"
+        ) {
+            parsedLiteraryWorks =
+                parseLiteraryWorksDocxDocument(
+                    rawText,
+                );
+        } else if (
+            parserTarget ===
+            "ghazal"
+        ) {
+            parsedGhazal =
+                parseGhazalDocxDocument(
+                    rawText,
+                );
+        } else if (
+            parserTarget ===
+                "scientific-text" ||
+            parserTarget ===
+                "literary-text"
+        ) {
+            parsedPassage =
+                parsePassageDocxDocument(
+                    rawText,
                 );
 
-        const parsedPassage =
-            parsedLiteraryWorks ||
-            parsedGhazal
-                ? null
-                : parsePassageDocxDocument(
-                    rawTextResult.value,
+            if (
+                parsedPassage &&
+                parsedPassage.metadata.topic !==
+                    parserTarget
+            ) {
+                parsedPassage =
+                    null;
+            }
+        } else if (
+            parserTarget ===
+            "standard"
+        ) {
+            parsedMcq =
+                parseStandardMcqDocument(
+                    rawText,
+                );
+        } else {
+            parsedDiagnostic =
+                parseDiagnosticDocxDocument(
+                    rawText,
                 );
 
-        const parsedMcq =
-            parsedLiteraryWorks ||
-            parsedGhazal ||
-            parsedPassage
-                ? null
-                : parseStandardMcqDocument(
-                    rawTextResult.value,
-                );
+            parsedMixed =
+                parsedDiagnostic
+                    ? null
+                    : parseMixedDocxDocument(
+                        rawText,
+                    );
+
+            parsedLiteraryWorks =
+                parsedDiagnostic ||
+                parsedMixed
+                    ? null
+                    : parseLiteraryWorksDocxDocument(
+                        rawText,
+                    );
+
+            parsedGhazal =
+                parsedLiteraryWorks
+                    ? null
+                    : parseGhazalDocxDocument(
+                        rawText,
+                    );
+
+            parsedPassage =
+                parsedLiteraryWorks ||
+                parsedGhazal
+                    ? null
+                    : parsePassageDocxDocument(
+                        rawText,
+                    );
+
+            parsedMcq =
+                parsedDiagnostic ||
+                parsedMixed ||
+                parsedLiteraryWorks ||
+                parsedGhazal ||
+                parsedPassage
+                    ? null
+                    : parseStandardMcqDocument(
+                        rawText,
+                    );
+        }
 
         return {
             status:
@@ -481,6 +671,8 @@ export async function previewAdminDocxImportAction(
                     )
                     .trim(),
             warnings,
+            parsedDiagnostic,
+            parsedMixed,
             parsedMcq,
             parsedPassage,
             parsedGhazal,
@@ -508,6 +700,10 @@ export async function previewAdminDocxImportAction(
                 "",
             warnings:
                 [],
+            parsedDiagnostic:
+                null,
+            parsedMixed:
+                null,
             parsedMcq:
                 null,
             parsedPassage:

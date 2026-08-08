@@ -5,26 +5,25 @@ import {
 import {
     StandardFiveTestRunner,
 } from "@/features/national-certificate/components/standard-five-test-runner";
-
 import {
-    getNationalTest,
-} from "@/features/national-certificate/model/national-test-registry";
+    getStudentNationalTest,
+} from "@/features/national-certificate/server/get-published-national-test";
 
-type LiteraryWorksTestRouteProps = {
+type LiteraryWorksRouteProps = {
     readonly params: Promise<{
         testSlug: string;
     }>;
 };
 
-export default async function LiteraryWorksTestRoute({
-                                                         params,
-                                                     }: LiteraryWorksTestRouteProps) {
+export default async function LiteraryWorksRoute({
+    params,
+}: LiteraryWorksRouteProps) {
     const {
         testSlug,
     } = await params;
 
     const test =
-        getNationalTest(
+        await getStudentNationalTest(
             "badiiy-asarlar",
             testSlug,
         );
@@ -32,9 +31,9 @@ export default async function LiteraryWorksTestRoute({
     if (
         !test ||
         test.kind !==
-        "standard-five" ||
+            "standard-five" ||
         test.topic !==
-        "badiiy-asarlar"
+            "badiiy-asarlar"
     ) {
         notFound();
     }

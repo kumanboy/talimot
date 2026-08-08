@@ -1,9 +1,21 @@
 import type {
     AdminDraftQuestion,
+    AdminDraftQuestionExplanation,
 } from "./admin-question-types";
 import type {
     AdminTestDraft,
 } from "./admin-test-draft-types";
+import {
+    ADMIN_TEST_IMAGE_MAX_BYTES,
+    isAdminTestImageStoragePath,
+} from "./admin-test-image-validation";
+import {
+    ADMIN_TEST_AUDIO_MAX_BYTES,
+    isAdminTestAudioStoragePath,
+} from "./admin-test-audio-validation";
+import {
+    isMorphologySubtopicSlug,
+} from "@/features/tests/model/morphology-categories";
 
 export type AdminDraftValidationSeverity =
     | "error"
@@ -402,11 +414,35 @@ function validateQuestionSpecific(
             );
         }
 
+        if (
+            question.question.trim()
+                .length === 0
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code:
+                        "ESSAY_PROMPT_REQUIRED",
+                    message:
+                        "Esse topshirig‘i kiritilishi kerak.",
+                    path:
+                        `${path}.question`,
+                    questionId:
+                        question.id,
+                }),
+            );
+        }
+
         const {
             minimumWords,
             maximumWords,
         } =
             question.requirements;
+
+        const recommendedWords =
+            question.requirements
+                .recommendedWords ??
+            null;
 
         if (
             minimumWords !== null &&
@@ -428,29 +464,404 @@ function validateQuestionSpecific(
                 }),
             );
         }
+
+        if (
+            recommendedWords !==
+                null &&
+            minimumWords !==
+                null &&
+            recommendedWords <
+                minimumWords
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code:
+                        "ESSAY_RECOMMENDED_WORDS_TOO_LOW",
+                    message:
+                        "Tavsiya etilgan so‘zlar soni minimal qiymatdan kam bo‘la olmaydi.",
+                    path:
+                        `${path}.requirements.recommendedWords`,
+                    questionId:
+                        question.id,
+                }),
+            );
+        }
+
+        if (
+            recommendedWords !==
+                null &&
+            maximumWords !==
+                null &&
+            recommendedWords >
+                maximumWords
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code:
+                        "ESSAY_RECOMMENDED_WORDS_TOO_HIGH",
+                    message:
+                        "Tavsiya etilgan so‘zlar soni maksimal qiymatdan katta bo‘la olmaydi.",
+                    path:
+                        `${path}.requirements.recommendedWords`,
+                    questionId:
+                        question.id,
+                }),
+            );
+        }
+    }
+
+    return issues;
+}
+
+function validateQuestionAudio({
+    explanation,
+    path,
+    draftId,
+    questionId,
+}: {
+    readonly explanation:
+        AdminDraftQuestionExplanation |
+        undefined;
+    readonly path: string;
+    readonly draftId: string;
+    readonly questionId: string;
+}): readonly AdminDraftValidationIssue[] {
+    const audio =
+        explanation?.audio;
+
+    if (!audio) {
+        return [];
+    }
+
+    const issues:
+        AdminDraftValidationIssue[] = [];
+
+    if (
+        !Number.isInteger(
+            audio.sizeBytes,
+        ) ||
+        audio.sizeBytes <= 0 ||
+        audio.sizeBytes >
+            ADMIN_TEST_AUDIO_MAX_BYTES
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code:
+                    "AUDIO_SIZE_INVALID",
+                message:
+                    "Audio hajmi 0 dan katta va 25 MB dan oshmagan bo‘lishi kerak.",
+                path:
+                    `${path}.sizeBytes`,
+                questionId,
+            }),
+        );
     }
 
     if (
-        question.explanation.audio &&
-        question.explanation.audio
-            .storagePath === null
+        audio.mimeType !==
+            "audio/mpeg" &&
+        audio.mimeType !==
+            "audio/mp4" &&
+        audio.mimeType !==
+            "audio/wav"
     ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code:
+                    "AUDIO_MIME_TYPE_INVALID",
+                message:
+                    "Faqat MP3, M4A yoki WAV audioga ruxsat beriladi.",
+                path:
+                    `${path}.mimeType`,
+                questionId,
+            }),
+        );
+    }
+
+    if (
+        audio.durationSeconds !==
+            null &&
+        (
+            !Number.isFinite(
+                audio.durationSeconds,
+            ) ||
+            audio.durationSeconds < 0 ||
+            audio.durationSeconds >
+                6 * 60 * 60
+        )
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code:
+                    "AUDIO_DURATION_INVALID",
+                message:
+                    "Audio davomiyligi noto‘g‘ri.",
+                path:
+                    `${path}.durationSeconds`,
+                questionId,
+            }),
+        );
+    }
+
+    if (audio.storagePath === null) {
         issues.push(
             issue({
                 severity: "warning",
                 code:
                     "AUDIO_NOT_UPLOADED",
                 message:
-                    "Audio metadata mavjud, lekin storage manzili hali belgilanmagan.",
+                    "Audio metadata mavjud, lekin Storage manzili belgilanmagan.",
                 path:
-                    `${path}.explanation.audio`,
-                questionId:
-                    question.id,
+                    `${path}.storagePath`,
+                questionId,
+            }),
+        );
+    } else if (
+        !isAdminTestAudioStoragePath(
+            audio.storagePath,
+            {
+                draftId,
+                questionId,
+            },
+        )
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code:
+                    "AUDIO_STORAGE_PATH_INVALID",
+                message:
+                    "Audio Storage manzili ushbu draft va savol yoki savol qismiga tegishli emas.",
+                path:
+                    `${path}.storagePath`,
+                questionId,
             }),
         );
     }
 
     return issues;
+}
+
+function validateQuestionImage({
+    image,
+    path,
+    draftId,
+    questionId,
+}: {
+    readonly image:
+        AdminDraftQuestion["image"];
+    readonly path: string;
+    readonly draftId: string;
+    readonly questionId: string;
+}): readonly AdminDraftValidationIssue[] {
+    if (!image) {
+        return [];
+    }
+
+    const issues:
+        AdminDraftValidationIssue[] = [];
+
+    const normalizedAlt =
+        image.alt.trim();
+
+    if (normalizedAlt.length === 0) {
+        issues.push(
+            issue({
+                severity: "error",
+                code: "IMAGE_ALT_REQUIRED",
+                message:
+                    "Rasm uchun alt matn kiritilishi kerak.",
+                path: `${path}.alt`,
+                questionId,
+            }),
+        );
+    } else if (normalizedAlt.length > 300) {
+        issues.push(
+            issue({
+                severity: "error",
+                code: "IMAGE_ALT_TOO_LONG",
+                message:
+                    "Rasm alt matni 300 belgidan oshmasligi kerak.",
+                path: `${path}.alt`,
+                questionId,
+            }),
+        );
+    }
+
+    if (
+        image.caption !== null &&
+        image.caption.trim().length > 500
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code: "IMAGE_CAPTION_TOO_LONG",
+                message:
+                    "Rasm izohi 500 belgidan oshmasligi kerak.",
+                path: `${path}.caption`,
+                questionId,
+            }),
+        );
+    }
+
+    if (
+        !Number.isInteger(
+            image.sizeBytes,
+        ) ||
+        image.sizeBytes <= 0 ||
+        image.sizeBytes >
+            ADMIN_TEST_IMAGE_MAX_BYTES
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code: "IMAGE_SIZE_INVALID",
+                message:
+                    "Rasm hajmi 0 dan katta va 5 MB dan oshmagan bo‘lishi kerak.",
+                path: `${path}.sizeBytes`,
+                questionId,
+            }),
+        );
+    }
+
+    if (
+        image.mimeType !== "image/jpeg" &&
+        image.mimeType !== "image/png" &&
+        image.mimeType !== "image/webp"
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code: "IMAGE_MIME_TYPE_INVALID",
+                message:
+                    "Faqat JPEG, PNG yoki WebP rasmga ruxsat beriladi.",
+                path: `${path}.mimeType`,
+                questionId,
+            }),
+        );
+    }
+
+    if (image.storagePath === null) {
+        issues.push(
+            issue({
+                severity: "warning",
+                code: "IMAGE_NOT_UPLOADED",
+                message:
+                    "Rasm metama’lumoti mavjud, lekin Storage manzili belgilanmagan.",
+                path: `${path}.storagePath`,
+                questionId,
+            }),
+        );
+    } else if (
+        !isAdminTestImageStoragePath(
+            image.storagePath,
+            {
+                draftId,
+                questionId,
+            },
+        )
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code: "IMAGE_STORAGE_PATH_INVALID",
+                message:
+                    "Rasm Storage manzili ushbu draft va savolga tegishli emas.",
+                path: `${path}.storagePath`,
+                questionId,
+            }),
+        );
+    }
+
+    return issues;
+}
+
+export function calculateAdminDraftTaskCount(
+    draft:
+        AdminTestDraft,
+): number {
+    return draft.questions.reduce(
+        (
+            total,
+            question,
+        ) => {
+            if (
+                question.type ===
+                "passage-group"
+            ) {
+                return (
+                    total +
+                    question.questions.length
+                );
+            }
+
+            if (
+                question.type ===
+                "matching"
+            ) {
+                return (
+                    total +
+                    question.items.length
+                );
+            }
+
+            return total + 1;
+        },
+        0,
+    );
+}
+
+function diagnosticSourceOrders(
+    draft:
+        AdminTestDraft,
+): readonly number[] {
+    return draft.questions.flatMap(
+        (question) => {
+            if (
+                question.type ===
+                "passage-group"
+            ) {
+                return question.questions.flatMap(
+                    (nestedQuestion) =>
+                        nestedQuestion.sourceOrder ===
+                        null
+                            ? []
+                            : [
+                                nestedQuestion.sourceOrder,
+                            ],
+                );
+            }
+
+            if (
+                question.type ===
+                "matching"
+            ) {
+                return question.items.flatMap(
+                    (item) =>
+                        item.sourceOrder ===
+                            null ||
+                        item.sourceOrder ===
+                            undefined
+                            ? []
+                            : [
+                                item.sourceOrder,
+                            ],
+                );
+            }
+
+            return question.sourceOrder ===
+                null
+                ? []
+                : [
+                    question.sourceOrder,
+                ];
+        },
+    );
 }
 
 export function validateAdminTestDraft(
@@ -534,6 +945,248 @@ export function validateAdminTestDraft(
         );
     }
 
+
+    if (
+        draft.metadata.group ===
+        "morphology"
+    ) {
+        if (
+            draft.metadata.category !==
+                "Morfologiya" ||
+            draft.metadata.format !==
+                "morphology-standard" ||
+            !isMorphologySubtopicSlug(
+                draft.metadata.topicSlug,
+            )
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code:
+                        "MORPHOLOGY_ROUTE_INVALID",
+                    message:
+                        "Morfologiya ichki testi Morfologiya kategoriyasida, morphology-standard formatida va to‘g‘ri bo‘lim slugida bo‘lishi kerak.",
+                    path:
+                        "metadata.topicSlug",
+                }),
+            );
+        }
+    }
+
+    if (
+        draft.metadata.format ===
+        "diagnostic"
+    ) {
+        const taskCount =
+            calculateAdminDraftTaskCount(
+                draft,
+            );
+
+        const rawMaximumScore =
+            calculateAdminDraftMaximumScore(
+                draft,
+            );
+
+        const diagnostic =
+            draft.metadata.diagnostic;
+
+        if (
+            draft.metadata.group !==
+                "national-certificate" ||
+            draft.metadata.topicSlug !==
+                "diagnostika"
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code:
+                        "DIAGNOSTIC_ROUTE_INVALID",
+                    message:
+                        "Diagnostika testi milliy sertifikat guruhida va diagnostika yo‘nalishida bo‘lishi kerak.",
+                    path:
+                        "metadata.topicSlug",
+                }),
+            );
+        }
+
+        const shouldValidateDiagnosticContent =
+            draft.questions.length >
+                0 ||
+            diagnostic !==
+                null &&
+            diagnostic !==
+                undefined;
+
+        if (
+            shouldValidateDiagnosticContent
+        ) {
+            if (
+                taskCount !==
+                45
+            ) {
+                issues.push(
+                    issue({
+                        severity: "error",
+                        code:
+                            "DIAGNOSTIC_TASK_COUNT_INVALID",
+                        message:
+                            `Diagnostika testida 45 ta topshiriq bo‘lishi kerak. Hozir: ${taskCount}.`,
+                        path:
+                            "questions",
+                    }),
+                );
+            }
+
+            if (
+                !diagnostic
+            ) {
+                issues.push(
+                    issue({
+                        severity: "error",
+                        code:
+                            "DIAGNOSTIC_METADATA_REQUIRED",
+                        message:
+                            "Diagnostika uchun yakuniy ball va topshiriqlar metama’lumoti mavjud emas.",
+                        path:
+                            "metadata.diagnostic",
+                    }),
+                );
+            } else {
+                if (
+                    diagnostic.taskCount !==
+                    taskCount
+                ) {
+                    issues.push(
+                        issue({
+                            severity: "error",
+                            code:
+                                "DIAGNOSTIC_METADATA_TASK_COUNT_MISMATCH",
+                            message:
+                                `Diagnostika metama’lumotidagi topshiriqlar soni (${diagnostic.taskCount}) haqiqiy son (${taskCount}) bilan mos emas.`,
+                            path:
+                                "metadata.diagnostic.taskCount",
+                        }),
+                    );
+                }
+
+                if (
+                    diagnostic.finalMaximumScore !==
+                    100
+                ) {
+                    issues.push(
+                        issue({
+                            severity: "error",
+                            code:
+                                "DIAGNOSTIC_FINAL_SCORE_INVALID",
+                            message:
+                                "Diagnostika testining yakuniy maksimal balli 100 bo‘lishi kerak.",
+                            path:
+                                "metadata.diagnostic.finalMaximumScore",
+                        }),
+                    );
+                }
+
+                if (
+                    Math.abs(
+                        diagnostic.rawMaximumScore -
+                        rawMaximumScore,
+                    ) >
+                    0.01
+                ) {
+                    issues.push(
+                        issue({
+                            severity: "warning",
+                            code:
+                                "DIAGNOSTIC_RAW_SCORE_CHANGED",
+                            message:
+                                `Savol og‘irliklari yig‘indisi ${rawMaximumScore} ball. Import vaqtida ${diagnostic.rawMaximumScore} ball edi.`,
+                            path:
+                                "metadata.diagnostic.rawMaximumScore",
+                        }),
+                    );
+                }
+            }
+
+            const sourceOrders =
+                diagnosticSourceOrders(
+                    draft,
+                );
+
+            const uniqueSourceOrders =
+                new Set(
+                    sourceOrders,
+                );
+
+            const missingSourceOrders =
+                Array.from(
+                    {
+                        length:
+                            45,
+                    },
+                    (
+                        _value,
+                        index,
+                    ) =>
+                        index +
+                        1,
+                ).filter(
+                    (sourceOrder) =>
+                        !uniqueSourceOrders.has(
+                            sourceOrder,
+                        ),
+                );
+
+            if (
+                sourceOrders.length !==
+                    uniqueSourceOrders.size ||
+                missingSourceOrders.length >
+                    0
+            ) {
+                issues.push(
+                    issue({
+                        severity: "error",
+                        code:
+                            "DIAGNOSTIC_SOURCE_ORDER_INVALID",
+                        message:
+                            missingSourceOrders.length >
+                                0
+                                ? `Diagnostika savol raqamlari to‘liq emas. Yetishmaydi: ${missingSourceOrders.join(", ")}.`
+                                : "Diagnostika savol raqamlari takrorlangan.",
+                        path:
+                            "questions",
+                    }),
+                );
+            }
+
+            const essayQuestions =
+                draft.questions.filter(
+                    (question) =>
+                        question.type ===
+                        "essay",
+                );
+
+            if (
+                essayQuestions.length !==
+                    1 ||
+                essayQuestions[0]
+                    ?.sourceOrder !==
+                    45
+            ) {
+                issues.push(
+                    issue({
+                        severity: "error",
+                        code:
+                            "DIAGNOSTIC_ESSAY_INVALID",
+                        message:
+                            "Diagnostika testida 45-savol sifatida bitta esse bo‘lishi kerak.",
+                        path:
+                            "questions",
+                    }),
+                );
+            }
+        }
+    }
+
     if (
         draft.questions.length === 0
     ) {
@@ -610,7 +1263,109 @@ export function validateAdminTestDraft(
                     question,
                     index,
                 ),
+                ...validateQuestionImage({
+                    image: question.image,
+                    path:
+                        `questions.${index}.image`,
+                    draftId: draft.id,
+                    questionId:
+                        question.id,
+                }),
+                ...validateQuestionAudio({
+                    explanation:
+                        question.explanation,
+                    path:
+                        `questions.${index}.explanation.audio`,
+                    draftId: draft.id,
+                    questionId:
+                        question.id,
+                }),
             );
+
+            if (
+                question.type ===
+                "passage-group"
+            ) {
+                question.questions.forEach(
+                    (
+                        nestedQuestion,
+                        nestedIndex,
+                    ) => {
+                        issues.push(
+                            ...validateQuestionImage({
+                                image:
+                                    nestedQuestion.image,
+                                path:
+                                    `questions.${index}.questions.${nestedIndex}.image`,
+                                draftId:
+                                    draft.id,
+                                questionId:
+                                    nestedQuestion.id,
+                            }),
+                            ...validateQuestionAudio({
+                                explanation:
+                                    nestedQuestion.explanation,
+                                path:
+                                    `questions.${index}.questions.${nestedIndex}.explanation.audio`,
+                                draftId:
+                                    draft.id,
+                                questionId:
+                                    nestedQuestion.id,
+                            }),
+                        );
+                    },
+                );
+            }
+
+            if (
+                question.type ===
+                "matching"
+            ) {
+                question.items.forEach(
+                    (
+                        item,
+                        itemIndex,
+                    ) => {
+                        issues.push(
+                            ...validateQuestionAudio({
+                                explanation:
+                                    item.explanation,
+                                path:
+                                    `questions.${index}.items.${itemIndex}.explanation.audio`,
+                                draftId:
+                                    draft.id,
+                                questionId:
+                                    item.id,
+                            }),
+                        );
+                    },
+                );
+            }
+
+            if (
+                question.type ===
+                "multipart"
+            ) {
+                question.parts.forEach(
+                    (
+                        part,
+                        partIndex,
+                    ) => {
+                        issues.push(
+                            ...validateQuestionAudio({
+                                explanation:
+                                    part.explanation,
+                                path:
+                                    `questions.${index}.parts.${partIndex}.explanation.audio`,
+                                draftId:
+                                    draft.id,
+                                questionId:
+                                    part.id,
+                            }),
+                        );
+                    },
+                );
+            }
         },
     );
 
