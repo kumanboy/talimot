@@ -49,7 +49,7 @@ const adminNavigationItems:
         {
             key: "users",
             label: "Foydalanuvchilar",
-            disabled: true,
+            href: "/admin/users",
         },
         {
             key: "certificates",

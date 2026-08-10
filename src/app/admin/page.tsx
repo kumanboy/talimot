@@ -30,9 +30,10 @@ const dashboardSections = [
     {
         title: "Foydalanuvchilar",
         description:
-            "Profil va faoliyat ma’lumotlari.",
-        status: "Backend kerak",
-        enabled: false,
+            "Profil, Telegram tasdiqlashi va akkaunt holati.",
+        status: "Ishlayapti",
+        href: "/admin/users",
+        enabled: true,
     },
     {
         title: "Sertifikatlar",

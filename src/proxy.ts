@@ -14,6 +14,7 @@ import {
     verifyTelegramAccessToken,
 } from "@/features/auth/model/telegram-access";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
+import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 
 export async function proxy(
     request: NextRequest,
@@ -65,6 +66,22 @@ export async function proxy(
         const url = new URL("/access-required", request.url);
         url.searchParams.set("reason", "subscription");
         url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+
+        const response = NextResponse.redirect(url);
+        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        return response;
+    }
+
+    // Registered users can be blocked from the admin panel. New users do not
+    // have a database record yet, so they must still be allowed to complete
+    // onboarding and registration.
+    const registeredUser = await getUserByTelegramId(
+        telegramAccess.telegramUserId,
+    );
+
+    if (registeredUser?.status === "blocked") {
+        const url = new URL("/access-required", request.url);
+        url.searchParams.set("reason", "blocked");
 
         const response = NextResponse.redirect(url);
         response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
