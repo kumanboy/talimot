@@ -8,6 +8,7 @@ import {
     ilike,
     ne,
     or,
+    sql,
 } from "drizzle-orm";
 
 import {
@@ -26,7 +27,6 @@ import {
 import {
     mapDraftToStorageRecord,
     mapStorageRecordToDraft,
-    mapStorageRecordToSummary,
 } from "./admin-test-draft-mapper";
 
 import type {
@@ -323,58 +323,97 @@ export class DrizzleAdminTestDraftRepository
                 filters.offset,
             );
 
-        const [
-            rows,
-            totalRows,
-        ] =
-            await Promise.all([
-                db
-                    .select()
-                    .from(
-                        adminTestDrafts,
-                    )
-                    .where(
-                        whereClause,
-                    )
-                    .orderBy(
-                        desc(
-                            adminTestDrafts
-                                .updatedAt,
-                        ),
-                    )
-                    .limit(
-                        limit,
-                    )
-                    .offset(
-                        offset,
-                    ),
+        /*
+         * IMPORTANT PERFORMANCE NOTE
+         *
+         * The old list query used `select()` and therefore downloaded the
+         * complete JSONB `payload` for every test draft. Diagnostic tests can
+         * contain dozens of questions, rich text and media metadata, so the
+         * admin catalogue was transferring far more data than it displayed.
+         *
+         * The catalogue needs metadata only. PostgreSQL extracts the few
+         * metadata values directly from JSONB and leaves the questions payload
+         * in the database. This keeps /admin/tests small and fast.
+         */
+        const queryStartedAt = Date.now();
+        console.info("[admin/tests] summary query started");
 
-                db
-                    .select({
-                        value:
-                            count(),
-                    })
-                    .from(
-                        adminTestDrafts,
-                    )
-                    .where(
-                        whereClause,
-                    ),
-            ]);
+        const rows = await db
+            .select({
+                id: adminTestDrafts.id,
+                status: adminTestDrafts.status,
+                source: adminTestDrafts.source,
+                title: adminTestDrafts.title,
+                groupName: adminTestDrafts.groupName,
+                topicSlug: adminTestDrafts.topicSlug,
+                slug: adminTestDrafts.slug,
+                format: adminTestDrafts.format,
+                access: adminTestDrafts.access,
+                questionCount: adminTestDrafts.questionCount,
+                maximumScore: adminTestDrafts.maximumScore,
+                updatedAt: adminTestDrafts.updatedAt,
+                description: sql<string>`coalesce(${adminTestDrafts.payload}->'metadata'->>'description', '')`,
+                category: sql<string>`coalesce(${adminTestDrafts.payload}->'metadata'->>'category', '')`,
+                difficulty: sql<"easy" | "medium" | "hard">`coalesce(${adminTestDrafts.payload}->'metadata'->>'difficulty', 'medium')`,
+                estimatedMinutes: sql<number>`coalesce((${adminTestDrafts.payload}->'metadata'->>'estimatedMinutes')::int, 0)`.mapWith(Number),
+            })
+            .from(adminTestDrafts)
+            .where(whereClause)
+            .orderBy(
+                desc(adminTestDrafts.updatedAt),
+            )
+            .limit(limit)
+            .offset(offset);
+
+        console.info(
+            "[admin/tests] summary query completed",
+            {
+                durationMs: Date.now() - queryStartedAt,
+                rowCount: rows.length,
+            },
+        );
+
+        const items = rows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            description: row.description,
+            status: row.status,
+            source: row.source,
+            group: row.groupName,
+            category: row.category,
+            topicSlug: row.topicSlug,
+            slug: row.slug,
+            format: row.format,
+            difficulty: row.difficulty,
+            access: row.access,
+            estimatedMinutes: row.estimatedMinutes,
+            questionCount: row.questionCount,
+            maximumScore: Number(row.maximumScore),
+            updatedAt: row.updatedAt,
+        }));
+
+        /*
+         * Most admin catalogues are below one page. Avoid a second COUNT(*)
+         * query in that common case. Only ask PostgreSQL for the total when a
+         * full page means there may be more records.
+         */
+        if (rows.length < limit) {
+            return {
+                items,
+                total: offset + rows.length,
+            };
+        }
+
+        const [totalRow] = await db
+            .select({
+                value: count(),
+            })
+            .from(adminTestDrafts)
+            .where(whereClause);
 
         return {
-            items:
-                rows.map(
-                    (row) =>
-                        mapStorageRecordToSummary(
-                            toStorageRecord(
-                                row,
-                            ),
-                        ),
-                ),
-            total:
-                totalRows[0]?.value ??
-                0,
+            items,
+            total: totalRow?.value ?? offset + rows.length,
         };
     }
 

@@ -1,12 +1,8 @@
 import "server-only";
 
 import {
-    and,
     desc,
     eq,
-    ilike,
-    or,
-    type SQL,
 } from "drizzle-orm";
 
 import { db } from "@/lib/database/db";
@@ -48,10 +44,22 @@ export type AdminUsersOverview = {
 function cleanSearch(value: string): string {
     return value
         .trim()
-        .replace(/[%_]/g, "")
+        .toLocaleLowerCase("uz-UZ")
         .slice(0, 80);
 }
 
+/**
+ * Admin users currently fit comfortably in a single lightweight query.
+ *
+ * The previous implementation opened two DB operations at the same time
+ * (stats + records). With a serverless Transaction Pooler and a one-
+ * connection postgres.js client that could queue unnecessarily when the
+ * pool was under pressure. We fetch the small user directory once and
+ * derive counters + filters in memory.
+ *
+ * When the platform reaches thousands of users this should be replaced by
+ * cursor pagination + a dedicated aggregate query/API endpoint.
+ */
 export async function getAdminUsersOverview(options?: {
     search?: string;
     status?: AdminUserStatusFilter;
@@ -61,64 +69,63 @@ export async function getAdminUsersOverview(options?: {
     const status = options?.status ?? "all";
     const role = options?.role ?? "all";
 
-    const conditions: SQL[] = [];
+    const queryStartedAt = Date.now();
+    console.info("[admin/users] directory query started");
 
-    if (search) {
-        const pattern = `%${search}%`;
-        const searchCondition = or(
-            ilike(users.firstName, pattern),
-            ilike(users.lastName, pattern),
-            ilike(users.fatherName, pattern),
-            ilike(users.phone, pattern),
-            ilike(users.telegramUsername, pattern),
-            ilike(users.id, pattern),
-        );
+    const allUsers = await db
+        .select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            fatherName: users.fatherName,
+            phone: users.phone,
+            role: users.role,
+            status: users.status,
+            telegramUserId: users.telegramUserId,
+            telegramUsername: users.telegramUsername,
+            phoneVerifiedAt: users.phoneVerifiedAt,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+        })
+        .from(users)
+        .orderBy(desc(users.createdAt))
+        .limit(1000);
 
-        if (searchCondition) {
-            conditions.push(searchCondition);
+    console.info(
+        "[admin/users] directory query completed",
+        {
+            durationMs: Date.now() - queryStartedAt,
+            rowCount: allUsers.length,
+        },
+    );
+
+    const records = allUsers.filter((user) => {
+        if (status !== "all" && user.status !== status) {
+            return false;
         }
-    }
 
-    if (status !== "all") {
-        conditions.push(eq(users.status, status));
-    }
+        if (role !== "all" && user.role !== role) {
+            return false;
+        }
 
-    if (role !== "all") {
-        conditions.push(eq(users.role, role));
-    }
+        if (!search) {
+            return true;
+        }
 
-    const whereCondition =
-        conditions.length > 0
-            ? and(...conditions)
-            : undefined;
+        const haystack = [
+            user.id,
+            user.firstName,
+            user.lastName,
+            user.fatherName,
+            user.phone,
+            user.telegramUsername ?? "",
+            user.telegramUserId ? String(user.telegramUserId) : "",
+        ]
+            .join(" ")
+            .toLocaleLowerCase("uz-UZ");
 
-    const [allUsers, records] = await Promise.all([
-        db
-            .select({
-                status: users.status,
-                phoneVerifiedAt: users.phoneVerifiedAt,
-            })
-            .from(users),
-        db
-            .select({
-                id: users.id,
-                firstName: users.firstName,
-                lastName: users.lastName,
-                fatherName: users.fatherName,
-                phone: users.phone,
-                role: users.role,
-                status: users.status,
-                telegramUserId: users.telegramUserId,
-                telegramUsername: users.telegramUsername,
-                phoneVerifiedAt: users.phoneVerifiedAt,
-                createdAt: users.createdAt,
-                updatedAt: users.updatedAt,
-            })
-            .from(users)
-            .where(whereCondition)
-            .orderBy(desc(users.createdAt))
-            .limit(250),
-    ]);
+        return haystack.includes(search);
+    });
 
     return {
         records,
