@@ -56,20 +56,43 @@ export function validateTelegramInitData(
 
     params.delete("hash");
 
-    const dataCheckString = Array.from(params.entries())
-        .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
-        .map(([key, value]) => `${key}=${value}`)
-        .join("\n");
-
     const secretKey = createHmac("sha256", "WebAppData")
         .update(botToken)
         .digest();
 
-    const expectedHash = createHmac("sha256", secretKey)
-        .update(dataCheckString)
+    const createDataCheckString = (
+        values: URLSearchParams,
+        excludeSignature: boolean,
+    ) => Array.from(values.entries())
+        .filter(([key]) => !(excludeSignature && key === "signature"))
+        .sort(([firstKey], [secondKey]) => firstKey.localeCompare(secondKey))
+        .map(([key, value]) => `${key}=${value}`)
+        .join("\n");
+
+    const expectedHashWithoutSignature = createHmac("sha256", secretKey)
+        .update(createDataCheckString(params, true))
         .digest("hex");
 
-    if (!safeHexEqual(receivedHash, expectedHash)) {
+    // Telegram added the `signature` init-data field for third-party
+    // verification. Current clients may include it in initData while the bot
+    // token HMAC was produced from the original fields. Exclude it first, but
+    // also accept the legacy/all-fields form for compatibility with clients
+    // that include it in their HMAC data-check-string. Both branches still
+    // require a valid HMAC made with this bot's secret token.
+    let hashIsValid = safeHexEqual(
+        receivedHash,
+        expectedHashWithoutSignature,
+    );
+
+    if (!hashIsValid && params.has("signature")) {
+        const expectedHashWithSignature = createHmac("sha256", secretKey)
+            .update(createDataCheckString(params, false))
+            .digest("hex");
+
+        hashIsValid = safeHexEqual(receivedHash, expectedHashWithSignature);
+    }
+
+    if (!hashIsValid) {
         return null;
     }
 
