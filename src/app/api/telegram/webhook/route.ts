@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { createTelegramAccessToken } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 
@@ -132,24 +131,24 @@ async function setWebsiteMenuButtonSafely(
     }
 }
 
-async function resetWebsiteMenuButton(chatId: number) {
+async function setWebsiteEntryMenuButton(chatId: number) {
     const appUrl = getAppUrl();
 
     await setWebsiteMenuButtonSafely(
         chatId,
-        `${appUrl}/access-required`,
+        `${appUrl}/telegram-entry`,
     );
 }
 
 async function sendSubscriptionPrompt(chatId: number) {
-  await telegramApi("sendMessage", {
-    chat_id: chatId,
-    text:
-      "Assalomu alaykum! 👋\n\n" +
-      "TA’LIMOT platformasidan foydalanish uchun avval quyidagi sahifalarga obuna bo‘ling!",
-    reply_markup: subscriptionKeyboard(),
-    disable_web_page_preview: true,
-  });
+    await telegramApi("sendMessage", {
+        chat_id: chatId,
+        text:
+            "Assalomu alaykum! 👋\n\n" +
+            "TA’LIMOT platformasidan foydalanish uchun avval quyidagi sahifalarga obuna bo‘ling!",
+        reply_markup: subscriptionKeyboard(),
+        disable_web_page_preview: true,
+    });
 }
 
 async function answerCallbackQuery(
@@ -167,21 +166,9 @@ async function answerCallbackQuery(
 async function sendContinueMessage(chatId: number, telegramUserId: number) {
     const user = await getUserByTelegramId(telegramUserId);
     const appUrl = getAppUrl();
-    const accessToken = createTelegramAccessToken(telegramUserId);
+    const entryUrl = `${appUrl}/telegram-entry`;
 
-    const createAccessUrl = (destination: string) => {
-        const params = new URLSearchParams({
-            token: accessToken,
-            next: destination,
-        });
-
-        return `${appUrl}/api/telegram/access?${params.toString()}`;
-    };
-
-    await setWebsiteMenuButtonSafely(
-        chatId,
-        createAccessUrl("/"),
-    );
+    await setWebsiteEntryMenuButton(chatId);
 
     if (user && user.status === "active") {
         await telegramApi("sendMessage", {
@@ -194,7 +181,9 @@ async function sendContinueMessage(chatId: number, telegramUserId: number) {
                     [
                         {
                             text: "🔐 TA’LIMOTga kirish",
-                            url: createAccessUrl("/auth/login?next=%2F"),
+                            web_app: {
+                                url: entryUrl,
+                            },
                         },
                     ],
                 ],
@@ -213,7 +202,9 @@ async function sendContinueMessage(chatId: number, telegramUserId: number) {
                 [
                     {
                         text: "🚀 Onboardingni boshlash",
-                        url: createAccessUrl("/onboarding"),
+                        web_app: {
+                            url: entryUrl,
+                        },
                     },
                 ],
             ],
@@ -248,7 +239,7 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
         );
 
         // Keep the Website menu blocked for users who are not subscribed.
-        await resetWebsiteMenuButton(chatId);
+        await setWebsiteEntryMenuButton(chatId);
 
         await telegramApi("sendMessage", {
             chat_id: chatId,
@@ -272,7 +263,7 @@ async function handleMessage(message: TelegramMessage) {
         // Send the visible reply first. If Telegram rejects a per-chat menu
         // button update for any reason, /start must still always respond.
         await sendSubscriptionPrompt(message.chat.id);
-        await resetWebsiteMenuButton(message.chat.id);
+        await setWebsiteEntryMenuButton(message.chat.id);
         return;
     }
 }
