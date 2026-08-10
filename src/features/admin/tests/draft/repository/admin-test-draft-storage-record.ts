@@ -15,6 +15,11 @@ export interface AdminTestDraftStorageRecord {
     readonly source:
         AdminTestDraftSource;
     readonly title: string;
+    readonly description: string;
+    readonly category: string;
+    readonly difficulty:
+        AdminTestDraft["metadata"]["difficulty"];
+    readonly estimatedMinutes: number;
     readonly groupName:
         AdminTestDraftGroup;
     readonly topicSlug: string;

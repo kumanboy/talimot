@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import "server-only";
 
 import {
@@ -140,6 +142,8 @@ function formatTestCount(
 export async function getStudentTestCategories(): Promise<
     StudentTestCategories
 > {
+    await connection();
+
     const [
         publishedGrammar,
         publishedMorphology,

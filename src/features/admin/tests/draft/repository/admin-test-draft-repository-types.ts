@@ -1,6 +1,7 @@
 import type {
     AdminTestDraft,
     AdminTestDraftGroup,
+    AdminTestDraftFormat,
     AdminTestDraftSource,
     AdminTestDraftStatus,
     AdminTestDraftSummary,
@@ -13,6 +14,9 @@ export interface AdminTestDraftListFilters {
         AdminTestDraftGroup;
     readonly source?:
         AdminTestDraftSource;
+    readonly topicSlug?: string;
+    readonly format?:
+        AdminTestDraftFormat;
     readonly search?: string;
     readonly limit?: number;
     readonly offset?: number;

@@ -44,6 +44,33 @@ export const adminTestDrafts =
                 text("title")
                     .notNull(),
 
+            description:
+                text("description")
+                    .notNull()
+                    .default(""),
+
+            category:
+                text("category")
+                    .notNull()
+                    .default(""),
+
+            difficulty:
+                text("difficulty")
+                    .$type<
+                        AdminTestDraft[
+                            "metadata"
+                        ]["difficulty"]
+                    >()
+                    .notNull()
+                    .default("medium"),
+
+            estimatedMinutes:
+                integer(
+                    "estimated_minutes",
+                )
+                    .notNull()
+                    .default(0),
+
             groupName:
                 text("group_name")
                     .$type<
@@ -139,6 +166,16 @@ export const adminTestDrafts =
                 "admin_test_drafts_status_idx",
             ).on(
                 table.status,
+            ),
+
+            index(
+                "admin_test_drafts_listing_idx",
+            ).on(
+                table.status,
+                table.groupName,
+                table.topicSlug,
+                table.format,
+                table.updatedAt,
             ),
 
             index(

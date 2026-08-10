@@ -13,6 +13,7 @@ import {
 
 import type {
     AdminTestDraft,
+    AdminTestDraftFormat,
     AdminTestDraftGroup,
     AdminTestDraftSummary,
 } from "../model";
@@ -98,6 +99,10 @@ export class AdminTestDraftService {
     async listPublished(
         group:
             AdminTestDraftGroup,
+        filters?: {
+            readonly topicSlug?: string;
+            readonly format?: AdminTestDraftFormat;
+        },
     ): Promise<readonly AdminTestDraftSummary[]> {
         const pageSize =
             100;
@@ -117,6 +122,10 @@ export class AdminTestDraftService {
                     status:
                         "published",
                     group,
+                    topicSlug:
+                        filters?.topicSlug,
+                    format:
+                        filters?.format,
                     limit:
                         pageSize,
                     offset,

@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import {
     adminTestDraftService,
 } from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
@@ -50,9 +52,17 @@ export async function getStandardTestsByTopic(
 ): Promise<
     readonly StandardTestSummary[]
 > {
+    // Do not query the external database during `next build`.
+    // Next.js will continue from here only for a real request.
+    await connection();
+
     const publishedDrafts =
         await adminTestDraftService.listPublished(
             "grammar",
+            {
+                topicSlug,
+                format: "standard",
+            },
         );
 
     return publishedDrafts

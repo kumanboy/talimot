@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import {
     adminTestDraftService,
 } from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
@@ -52,9 +54,15 @@ export async function getStudentMorphologyTestsBySubtopic(
 ): Promise<
     readonly MorphologyTestCollection[]
 > {
+    await connection();
+
     const publishedDrafts =
         await adminTestDraftService.listPublished(
             "morphology",
+            {
+                topicSlug: subtopic,
+                format: "morphology-standard",
+            },
         );
 
     return publishedDrafts

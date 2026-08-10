@@ -8,7 +8,6 @@ import {
     ilike,
     ne,
     or,
-    sql,
 } from "drizzle-orm";
 
 import {
@@ -109,6 +108,14 @@ function toStorageRecord(
             row.source,
         title:
             row.title,
+        description:
+            row.description,
+        category:
+            row.category,
+        difficulty:
+            row.difficulty,
+        estimatedMinutes:
+            row.estimatedMinutes,
         groupName:
             row.groupName,
         topicSlug:
@@ -295,6 +302,20 @@ export class DrizzleAdminTestDraftRepository
                     )
                     : undefined,
 
+                filters.topicSlug
+                    ? eq(
+                        adminTestDrafts.topicSlug,
+                        filters.topicSlug,
+                    )
+                    : undefined,
+
+                filters.format
+                    ? eq(
+                        adminTestDrafts.format,
+                        filters.format,
+                    )
+                    : undefined,
+
                 search
                     ? or(
                         ilike(
@@ -352,10 +373,10 @@ export class DrizzleAdminTestDraftRepository
                 questionCount: adminTestDrafts.questionCount,
                 maximumScore: adminTestDrafts.maximumScore,
                 updatedAt: adminTestDrafts.updatedAt,
-                description: sql<string>`coalesce(${adminTestDrafts.payload}->'metadata'->>'description', '')`,
-                category: sql<string>`coalesce(${adminTestDrafts.payload}->'metadata'->>'category', '')`,
-                difficulty: sql<"easy" | "medium" | "hard">`coalesce(${adminTestDrafts.payload}->'metadata'->>'difficulty', 'medium')`,
-                estimatedMinutes: sql<number>`coalesce((${adminTestDrafts.payload}->'metadata'->>'estimatedMinutes')::int, 0)`.mapWith(Number),
+                description: adminTestDrafts.description,
+                category: adminTestDrafts.category,
+                difficulty: adminTestDrafts.difficulty,
+                estimatedMinutes: adminTestDrafts.estimatedMinutes,
             })
             .from(adminTestDrafts)
             .where(whereClause)
@@ -441,6 +462,14 @@ export class DrizzleAdminTestDraftRepository
                             record.source,
                         title:
                             record.title,
+                        description:
+                            record.description,
+                        category:
+                            record.category,
+                        difficulty:
+                            record.difficulty,
+                        estimatedMinutes:
+                            record.estimatedMinutes,
                         groupName:
                             record.groupName,
                         topicSlug:

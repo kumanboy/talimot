@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import {
     adminTestDraftService,
 } from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
@@ -81,6 +83,8 @@ export async function getNationalTestsByTopic(
 ): Promise<
     readonly NationalTestSummary[]
 > {
+    await connection();
+
     const requiredFormat =
         expectedFormat(
             topic,
@@ -88,6 +92,10 @@ export async function getNationalTestsByTopic(
     const publishedDrafts =
         await adminTestDraftService.listPublished(
             "national-certificate",
+            {
+                topicSlug: topic,
+                format: requiredFormat,
+            },
         );
 
     return publishedDrafts

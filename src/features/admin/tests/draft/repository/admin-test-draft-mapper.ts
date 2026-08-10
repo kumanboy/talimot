@@ -26,6 +26,14 @@ export function mapDraftToStorageRecord(
             draft.source,
         title:
             draft.metadata.title,
+        description:
+            draft.metadata.description,
+        category:
+            draft.metadata.category,
+        difficulty:
+            draft.metadata.difficulty,
+        estimatedMinutes:
+            draft.metadata.estimatedMinutes,
         groupName:
             draft.metadata.group,
         topicSlug:
@@ -74,7 +82,7 @@ export function mapStorageRecordToSummary(
         title:
             record.title,
         description:
-            record.payload.metadata.description,
+            record.description,
         status:
             record.status,
         source:
@@ -82,7 +90,7 @@ export function mapStorageRecordToSummary(
         group:
             record.groupName,
         category:
-            record.payload.metadata.category,
+            record.category,
         topicSlug:
             record.topicSlug,
         slug:
@@ -90,15 +98,13 @@ export function mapStorageRecordToSummary(
         format:
             record.format,
         difficulty:
-            record.payload.metadata.difficulty,
+            record.difficulty,
         access:
             record.access,
         estimatedMinutes:
-            record.payload.metadata.estimatedMinutes,
+            record.estimatedMinutes,
         questionCount:
-            calculateAdminDraftTaskCount(
-                record.payload,
-            ),
+            record.questionCount,
         maximumScore:
             Number(
                 record.maximumScore,

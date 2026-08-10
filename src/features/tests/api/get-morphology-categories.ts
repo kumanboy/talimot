@@ -1,3 +1,5 @@
+import { connection } from "next/server";
+
 import {
     adminTestDraftService,
 } from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
@@ -17,6 +19,8 @@ import type {
 export async function getStudentMorphologyCategories(): Promise<
     readonly MorphologyCategory[]
 > {
+    await connection();
+
     const publishedDrafts =
         await adminTestDraftService.listPublished(
             "morphology",
