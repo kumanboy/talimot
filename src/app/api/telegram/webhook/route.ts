@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createTelegramAccessToken } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
+import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TELEGRAM_CHANNEL_USERNAME = "@sardortoshmuhammad_onatili";
 const TELEGRAM_CHANNEL_URL = "https://t.me/sardortoshmuhammad_onatili";
 const INSTAGRAM_URL = "https://www.instagram.com/sardor_toshmuhammadov/";
 const CHECK_SUBSCRIPTIONS_CALLBACK = "check_required_subscriptions";
@@ -110,6 +110,23 @@ function subscriptionKeyboard() {
     };
 }
 
+async function resetWebsiteMenuButton(chatId: number) {
+    const appUrl = getAppUrl();
+
+    // Until subscription is verified, this chat must not have a direct
+    // Website button to the protected homepage.
+    await telegramApi("setChatMenuButton", {
+        chat_id: chatId,
+        menu_button: {
+            type: "web_app",
+            text: "Web Site",
+            web_app: {
+                url: `${appUrl}/access-required`,
+            },
+        },
+    });
+}
+
 async function sendSubscriptionPrompt(chatId: number) {
   await telegramApi("sendMessage", {
     chat_id: chatId,
@@ -119,21 +136,6 @@ async function sendSubscriptionPrompt(chatId: number) {
     reply_markup: subscriptionKeyboard(),
     disable_web_page_preview: true,
   });
-}
-
-async function isTelegramChannelMember(userId: number) {
-    try {
-        const member = await telegramApi<{ status: string }>("getChatMember", {
-            chat_id: TELEGRAM_CHANNEL_USERNAME,
-            user_id: userId,
-        });
-
-        return ["creator", "administrator", "member", "restricted"].includes(
-            member.status,
-        );
-    } catch {
-        return false;
-    }
 }
 
 async function answerCallbackQuery(
@@ -256,6 +258,7 @@ async function handleMessage(message: TelegramMessage) {
     const text = message.text?.trim() ?? "";
 
     if (text === "/start" || text.startsWith("/start ")) {
+        await resetWebsiteMenuButton(message.chat.id);
         await sendSubscriptionPrompt(message.chat.id);
         return;
     }

@@ -5,6 +5,7 @@ import {
     telegramAccessCookieOptions,
     verifyTelegramAccessToken,
 } from "@/features/auth/model/telegram-access";
+import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,9 +23,23 @@ export async function GET(request: NextRequest) {
     const access = verifyTelegramAccessToken(token);
 
     if (!access || !token) {
-        return NextResponse.redirect(
+        const response = NextResponse.redirect(
             new URL("/access-required?reason=invalid", request.url),
         );
+        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        return response;
+    }
+
+    // Re-check membership when the Mini App/menu button is opened. A token
+    // created earlier must not grant access after the user leaves the channel.
+    const subscribed = await isTelegramChannelMember(access.telegramUserId);
+
+    if (!subscribed) {
+        const response = NextResponse.redirect(
+            new URL("/access-required?reason=subscription", request.url),
+        );
+        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        return response;
     }
 
     const destination = getSafeDestination(

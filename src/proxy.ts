@@ -13,8 +13,9 @@ import {
     TELEGRAM_ACCESS_COOKIE,
     verifyTelegramAccessToken,
 } from "@/features/auth/model/telegram-access";
+import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 
-export function proxy(
+export async function proxy(
     request: NextRequest,
 ) {
     const {
@@ -48,7 +49,26 @@ export function proxy(
         const url = new URL("/access-required", request.url);
         url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
 
-        return NextResponse.redirect(url);
+        const response = NextResponse.redirect(url);
+        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        return response;
+    }
+
+    // IMPORTANT: a valid signed cookie alone is not enough. The user may have
+    // left the required Telegram channel after an earlier verification.
+    // Re-check current membership before every protected request.
+    const subscribed = await isTelegramChannelMember(
+        telegramAccess.telegramUserId,
+    );
+
+    if (!subscribed) {
+        const url = new URL("/access-required", request.url);
+        url.searchParams.set("reason", "subscription");
+        url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+
+        const response = NextResponse.redirect(url);
+        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        return response;
     }
 
     return NextResponse.next();
