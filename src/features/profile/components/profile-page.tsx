@@ -30,6 +30,9 @@ import {
 import type {
     UserProfile,
 } from "@/features/profile/model/profile-storage";
+import {
+    useTangaWallet,
+} from "@/features/tanga/hooks/use-tanga-wallet";
 
 import styles from "./profile-page.module.css";
 
@@ -99,6 +102,7 @@ function getLevel(
 
 export function ProfilePage() {
     const router = useRouter();
+    const { balance: tangaBalance, isLoading: isTangaLoading } = useTangaWallet();
 
     const [values, setValues] =
         useState<UserProfile>(defaultUserProfile);
@@ -243,7 +247,7 @@ export function ProfilePage() {
 
                     <div>
                         <span>TANGA BALANSI</span>
-                        <strong>0 Tanga</strong>
+                        <strong>{isTangaLoading ? "… Tanga" : `${tangaBalance} Tanga`}</strong>
                         <p>
                             Xizmatlardan foydalanish uchun
                             Tanga kerak bo‘ladi.

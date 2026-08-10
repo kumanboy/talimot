@@ -18,6 +18,7 @@ import type {
     TangaPackageId,
 } from "@/features/tanga/model/tanga-package-types";
 
+import { useTangaWallet } from "@/features/tanga/hooks/use-tanga-wallet";
 import styles from "./tanga-packages-page.module.css";
 
 const DEMO_CARD_NUMBER = "8600 0000 0000 0000";
@@ -146,6 +147,7 @@ async function copyText(value: string): Promise<boolean> {
 
 export function TangaPackagesPage() {
     const router = useRouter();
+    const { balance: tangaBalance, isLoading: isTangaLoading } = useTangaWallet();
 
     const [selectedId, setSelectedId] =
         useState<TangaPackageId>("standard");
@@ -214,7 +216,7 @@ export function TangaPackagesPage() {
 
                     <div>
                         <span>JORIY BALANS</span>
-                        <h1>0 Tanga</h1>
+                        <h1>{isTangaLoading ? "… Tanga" : `${tangaBalance} Tanga`}</h1>
                         <p>
                             Testlar, esse tekshiruvi va boshqa
                             xizmatlar uchun Tanga ishlatiladi.
