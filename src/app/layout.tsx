@@ -4,6 +4,8 @@ import type {
 
 import Script from "next/script";
 
+import { TelegramWebAppSetup } from "@/components/telegram-webapp-setup";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,9 +35,16 @@ export default function RootLayout({
                     src="/theme-bootstrap.js"
                     strategy="beforeInteractive"
                 />
+
+                <Script
+                    id="telegram-web-app-sdk"
+                    src="https://telegram.org/js/telegram-web-app.js"
+                    strategy="beforeInteractive"
+                />
             </head>
 
             <body>
+                <TelegramWebAppSetup />
                 {children}
             </body>
         </html>
