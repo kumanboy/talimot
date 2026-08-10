@@ -224,6 +224,7 @@ export function AdminTestsPage({
                 <div className={draftStyles.headerActions}>
                     <Link
                         href="/admin/tests/new"
+                        prefetch={false}
                         className={draftStyles.createButton}
                     >
                         + Yangi test yaratish
@@ -409,6 +410,7 @@ export function AdminTestsPage({
                                                     href={`/admin/tests/${encodeURIComponent(
                                                         record.id,
                                                     )}/edit`}
+                                                    prefetch={false}
                                                     className={draftStyles.editButton}
                                                 >
                                                     {record.status ===
