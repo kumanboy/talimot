@@ -9,6 +9,10 @@ import {
     ADMIN_SESSION_COOKIE,
     verifyAdminSessionToken,
 } from "@/features/admin/model/admin-session";
+import {
+    TELEGRAM_ACCESS_COOKIE,
+    verifyTelegramAccessToken,
+} from "@/features/auth/model/telegram-access";
 
 export function proxy(
     request: NextRequest,
@@ -17,40 +21,34 @@ export function proxy(
         pathname,
     } = request.nextUrl;
 
-    const isLoginRoute =
-        pathname === "/admin/login";
+    if (pathname.startsWith("/admin")) {
+        const isLoginRoute = pathname === "/admin/login";
+        const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+        const authenticated = verifyAdminSessionToken(token);
 
-    const token =
-        request.cookies.get(
-            ADMIN_SESSION_COOKIE,
-        )?.value;
+        if (!isLoginRoute && !authenticated) {
+            return NextResponse.redirect(
+                new URL("/admin/login", request.url),
+            );
+        }
 
-    const authenticated =
-        verifyAdminSessionToken(token);
+        if (isLoginRoute && authenticated) {
+            return NextResponse.redirect(
+                new URL("/admin", request.url),
+            );
+        }
 
-    if (
-        pathname.startsWith("/admin") &&
-        !isLoginRoute &&
-        !authenticated
-    ) {
-        return NextResponse.redirect(
-            new URL(
-                "/admin/login",
-                request.url,
-            ),
-        );
+        return NextResponse.next();
     }
 
-    if (
-        isLoginRoute &&
-        authenticated
-    ) {
-        return NextResponse.redirect(
-            new URL(
-                "/admin",
-                request.url,
-            ),
-        );
+    const accessToken = request.cookies.get(TELEGRAM_ACCESS_COOKIE)?.value;
+    const telegramAccess = verifyTelegramAccessToken(accessToken);
+
+    if (!telegramAccess) {
+        const url = new URL("/access-required", request.url);
+        url.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+
+        return NextResponse.redirect(url);
     }
 
     return NextResponse.next();
@@ -58,6 +56,17 @@ export function proxy(
 
 export const config = {
     matcher: [
+        "/",
+        "/onboarding/:path*",
+        "/auth/:path*",
+        "/tests/:path*",
+        "/yol-xaritasi/:path*",
+        "/natijalar/:path*",
+        "/profil/:path*",
+        "/kurslar/:path*",
+        "/kitoblar/:path*",
+        "/esse-tekshirish/:path*",
+        "/packages/:path*",
         "/admin/:path*",
     ],
 };

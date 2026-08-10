@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { createTelegramAccessToken } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 
 export const runtime = "nodejs";
@@ -150,19 +151,40 @@ async function answerCallbackQuery(
 async function sendContinueMessage(chatId: number, telegramUserId: number) {
     const user = await getUserByTelegramId(telegramUserId);
     const appUrl = getAppUrl();
+    const accessToken = createTelegramAccessToken(telegramUserId);
+
+    const createAccessUrl = (destination: string) => {
+        const params = new URLSearchParams({
+            token: accessToken,
+            next: destination,
+        });
+
+        return `${appUrl}/api/telegram/access?${params.toString()}`;
+    };
+
+    await telegramApi("setChatMenuButton", {
+        chat_id: chatId,
+        menu_button: {
+            type: "web_app",
+            text: "Web Site",
+            web_app: {
+                url: createAccessUrl("/"),
+            },
+        },
+    });
 
     if (user && user.status === "active") {
         await telegramApi("sendMessage", {
             chat_id: chatId,
             text:
-                "✅ Telegram obunangiz tasdiqlandi.\n\n" +
+                "✅ Obuna tasdiqlandi.\n\n" +
                 "Hisobingiz mavjud. TA’LIMOTga kirishni davom ettiring.",
             reply_markup: {
                 inline_keyboard: [
                     [
                         {
                             text: "🔐 TA’LIMOTga kirish",
-                            url: `${appUrl}/auth/login?next=%2F`,
+                            url: createAccessUrl("/auth/login?next=%2F"),
                         },
                     ],
                 ],
@@ -174,14 +196,14 @@ async function sendContinueMessage(chatId: number, telegramUserId: number) {
     await telegramApi("sendMessage", {
         chat_id: chatId,
         text:
-            "✅ Telegram obunangiz tasdiqlandi.\n\n" +
+            "✅ Obuna tasdiqlandi.\n\n" +
             "TA’LIMOTga birinchi marta kirayotganingiz uchun onboardingdan boshlaymiz.",
         reply_markup: {
             inline_keyboard: [
                 [
                     {
                         text: "🚀 Onboardingni boshlash",
-                        url: `${appUrl}/onboarding`,
+                        url: createAccessUrl("/onboarding"),
                     },
                 ],
             ],
