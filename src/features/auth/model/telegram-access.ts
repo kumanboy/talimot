@@ -9,7 +9,6 @@ const ACCESS_DURATION_SECONDS = 60 * 60 * 24 * 7;
 
 type TelegramAccessPayload = {
     readonly telegramUserId: number;
-    readonly issuedAt: number;
     readonly expiresAt: number;
 };
 
@@ -25,17 +24,9 @@ function getAccessSecret(): string {
     return value;
 }
 
-function encodeBase64Url(value: string): string {
-    return Buffer.from(value, "utf8").toString("base64url");
-}
-
-function decodeBase64Url(value: string): string {
-    return Buffer.from(value, "base64url").toString("utf8");
-}
-
-function createSignature(encodedPayload: string): string {
+function createSignature(value: string): string {
     return createHmac("sha256", getAccessSecret())
-        .update(encodedPayload)
+        .update(value)
         .digest("base64url");
 }
 
@@ -50,18 +41,24 @@ function signaturesMatch(first: string, second: string): boolean {
     return timingSafeEqual(firstBuffer, secondBuffer);
 }
 
+/**
+ * Compact signed token used in Telegram inline URLs.
+ * Format: telegramUserId.expiresAtSeconds.signature
+ *
+ * Keeping the token compact makes Telegram URL buttons more reliable while
+ * the HMAC signature prevents a user from changing the Telegram id/expiry.
+ */
 export function createTelegramAccessToken(telegramUserId: number): string {
-    const issuedAt = Date.now();
-    const payload: TelegramAccessPayload = {
-        telegramUserId,
-        issuedAt,
-        expiresAt: issuedAt + ACCESS_DURATION_SECONDS * 1000,
-    };
+    if (!Number.isSafeInteger(telegramUserId) || telegramUserId <= 0) {
+        throw new Error("Telegram user ID noto‘g‘ri.");
+    }
 
-    const encodedPayload = encodeBase64Url(JSON.stringify(payload));
-    const signature = createSignature(encodedPayload);
+    const expiresAtSeconds = Math.floor(Date.now() / 1000) +
+        ACCESS_DURATION_SECONDS;
+    const unsigned = `${telegramUserId}.${expiresAtSeconds}`;
+    const signature = createSignature(unsigned);
 
-    return `${encodedPayload}.${signature}`;
+    return `${unsigned}.${signature}`;
 }
 
 export function verifyTelegramAccessToken(
@@ -71,36 +68,37 @@ export function verifyTelegramAccessToken(
         return null;
     }
 
-    const [encodedPayload, providedSignature] = token.split(".");
+    const parts = token.split(".");
 
-    if (!encodedPayload || !providedSignature) {
+    if (parts.length !== 3) {
         return null;
     }
 
-    const expectedSignature = createSignature(encodedPayload);
+    const [telegramUserIdValue, expiresAtValue, providedSignature] = parts;
+    const telegramUserId = Number(telegramUserIdValue);
+    const expiresAtSeconds = Number(expiresAtValue);
+
+    if (
+        !Number.isSafeInteger(telegramUserId) ||
+        telegramUserId <= 0 ||
+        !Number.isSafeInteger(expiresAtSeconds) ||
+        expiresAtSeconds <= Math.floor(Date.now() / 1000) ||
+        !providedSignature
+    ) {
+        return null;
+    }
+
+    const unsigned = `${telegramUserId}.${expiresAtSeconds}`;
+    const expectedSignature = createSignature(unsigned);
 
     if (!signaturesMatch(providedSignature, expectedSignature)) {
         return null;
     }
 
-    try {
-        const payload = JSON.parse(
-            decodeBase64Url(encodedPayload),
-        ) as Partial<TelegramAccessPayload>;
-
-        if (
-            typeof payload.telegramUserId !== "number" ||
-            !Number.isSafeInteger(payload.telegramUserId) ||
-            typeof payload.expiresAt !== "number" ||
-            payload.expiresAt <= Date.now()
-        ) {
-            return null;
-        }
-
-        return payload as TelegramAccessPayload;
-    } catch {
-        return null;
-    }
+    return {
+        telegramUserId,
+        expiresAt: expiresAtSeconds * 1000,
+    };
 }
 
 export const telegramAccessCookieOptions = {

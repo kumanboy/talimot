@@ -182,24 +182,6 @@ function createVerifiedEntryUrl(
     return `${appUrl}/api/telegram/access?${params.toString()}`;
 }
 
-async function showWebsiteMenuButton(
-    chatId: number,
-    telegramUserId: number,
-    destination: string,
-) {
-    const entryUrl = createVerifiedEntryUrl(telegramUserId, destination);
-
-    await setMenuButtonSafely(chatId, {
-        type: "web_app",
-        text: "Web Site",
-        web_app: {
-            url: entryUrl,
-        },
-    });
-
-    return entryUrl;
-}
-
 async function sendSubscriptionPrompt(chatId: number) {
     await telegramApi("sendMessage", {
         chat_id: chatId,
@@ -246,8 +228,9 @@ async function resolveDestinationSafely(telegramUserId: number) {
     } as const;
 }
 
-async function sendOpenWebsiteMessage(
+async function sendVerifiedAccessMessage(
     chatId: number,
+    messageId: number,
     entryUrl: string,
     registered: boolean,
 ) {
@@ -263,66 +246,65 @@ TA’LIMOT platformasini ochishingiz mumkin.`;
         ? "🔐 TA’LIMOTga kirish"
         : "🌐 TA’LIMOTni ochish";
 
-    try {
-        // This button is rendered directly under the bot message, so it does
-        // not depend on Telegram refreshing the persistent chat menu.
-        await telegramApi("sendMessage", {
-            chat_id: chatId,
-            text,
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        {
-                            text: buttonText,
-                            web_app: {
-                                url: entryUrl,
-                            },
-                        },
-                    ],
-                ],
-            },
-        });
-    } catch (error) {
-        console.error(
-            "Telegram Web App inline button failed; using URL fallback",
-            error,
-        );
+    const replyMarkup = {
+        inline_keyboard: [
+            [
+                {
+                    text: buttonText,
+                    // Intentionally use a normal HTTPS URL button here.
+                    // It works without Telegram Mini App/BotFather domain
+                    // configuration. The access endpoint still re-checks
+                    // channel membership before setting the website cookie.
+                    url: entryUrl,
+                },
+            ],
+        ],
+    };
 
-        // Fallback for clients/configurations that reject a Web App button.
-        await telegramApi("sendMessage", {
+    try {
+        // Re-use the existing subscription message. This avoids depending on
+        // Telegram refreshing a persistent menu button or creating a Web App
+        // button after the callback.
+        await telegramApi("editMessageText", {
             chat_id: chatId,
+            message_id: messageId,
             text,
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        {
-                            text: buttonText,
-                            url: entryUrl,
-                        },
-                    ],
-                ],
-            },
+            reply_markup: replyMarkup,
+            disable_web_page_preview: true,
         });
+        return;
+    } catch (editError) {
+        console.error(
+            "Telegram access message edit failed; falling back to sendMessage",
+            editError,
+        );
     }
+
+    // Standard URL inline buttons are the widest-compatible Telegram option.
+    await telegramApi("sendMessage", {
+        chat_id: chatId,
+        text,
+        reply_markup: replyMarkup,
+        disable_web_page_preview: true,
+    });
 }
 
-async function sendContinueMessage(chatId: number, telegramUserId: number) {
+async function sendContinueMessage(
+    chatId: number,
+    messageId: number,
+    telegramUserId: number,
+) {
     const { destination, registered } = await resolveDestinationSafely(
         telegramUserId,
     );
-
     const entryUrl = createVerifiedEntryUrl(telegramUserId, destination);
 
-    // Keep the bottom Web Site menu only as a best-effort convenience.
-    // Telegram may not refresh a changed menu while the chat is already open.
-    void showWebsiteMenuButton(
+    await sendVerifiedAccessMessage(
         chatId,
-        telegramUserId,
-        destination,
+        messageId,
+        entryUrl,
+        registered,
     );
-
-    // This inline button is the reliable primary entry point.
-    await sendOpenWebsiteMessage(chatId, entryUrl, registered);
 }
 
 async function handleCallbackQuery(callback: TelegramCallbackQuery) {
@@ -366,16 +348,27 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
     }
 
     try {
-        // Send the visible website button first. Only then show success.
-        await sendContinueMessage(chatId, callback.from.id);
-        await answerCallbackQuery(callback.id, "Obuna tasdiqlandi ✅");
+        await sendContinueMessage(
+            chatId,
+            callback.message!.message_id,
+            callback.from.id,
+        );
     } catch (error) {
-        console.error("Could not send TA’LIMOT access button", error);
+        console.error("Could not create TA’LIMOT access link", error);
         await answerCallbackQuery(
             callback.id,
-            "Obuna tasdiqlandi, ammo sayt tugmasini yuborishda xatolik yuz berdi. Qayta urinib ko‘ring.",
+            "Sayt havolasini yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.",
             true,
         );
+        return;
+    }
+
+    // The callback confirmation is best-effort. The actual success state is
+    // now visible in the edited bot message itself.
+    try {
+        await answerCallbackQuery(callback.id, "Obuna tasdiqlandi ✅");
+    } catch (error) {
+        console.error("Telegram callback confirmation failed", error);
     }
 }
 
