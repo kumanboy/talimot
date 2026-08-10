@@ -261,15 +261,32 @@ async function sendVerifiedAccessMessage(
         ? "🔐 TA’LIMOTga kirish"
         : "🌐 TA’LIMOTni ochish";
 
-    const replyMarkup = {
+    const inlineWebAppMarkup = {
         inline_keyboard: [
             [
                 {
                     text: buttonText,
-                    url: entryUrl,
+                    web_app: {
+                        url: entryUrl,
+                    },
                 },
             ],
         ],
+    };
+
+    const replyKeyboardWebAppMarkup = {
+        keyboard: [
+            [
+                {
+                    text: buttonText,
+                    web_app: {
+                        url: entryUrl,
+                    },
+                },
+            ],
+        ],
+        resize_keyboard: true,
+        one_time_keyboard: true,
     };
 
     // First try the cleanest UX: replace the verification message itself.
@@ -278,7 +295,7 @@ async function sendVerifiedAccessMessage(
             chat_id: chatId,
             message_id: messageId,
             text,
-            reply_markup: replyMarkup,
+            reply_markup: inlineWebAppMarkup,
             disable_web_page_preview: true,
         });
         return;
@@ -289,29 +306,45 @@ async function sendVerifiedAccessMessage(
         );
     }
 
-    // Some Telegram clients/messages cannot be edited after a callback. Send
-    // a brand-new inline URL button instead.
+    // Some Telegram messages cannot be edited after a callback. Send a fresh
+    // inline Web App button. Because this is `web_app` (not `url`), Telegram
+    // opens TA’LIMOT inside its Mini App webview instead of an external browser.
     try {
         await telegramApi("sendMessage", {
             chat_id: chatId,
             text,
-            reply_markup: replyMarkup,
+            reply_markup: inlineWebAppMarkup,
             disable_web_page_preview: true,
         });
         return;
-    } catch (buttonError) {
+    } catch (inlineWebAppError) {
         console.error(
-            "Telegram inline URL button failed; sending a plain HTTPS link",
-            buttonError,
+            "Telegram inline Web App button failed; trying reply keyboard Web App",
+            inlineWebAppError,
         );
     }
 
-    // Last-resort compatibility path. Telegram auto-detects HTTPS links in
-    // normal messages, so the user still receives a working entry link even
-    // if the current client/API rejects the inline keyboard for any reason.
+    // Final Mini App-only fallback: a reply-keyboard Web App button. This also
+    // launches the site inside Telegram and avoids exposing an external URL.
+    try {
+        await telegramApi("sendMessage", {
+            chat_id: chatId,
+            text,
+            reply_markup: replyKeyboardWebAppMarkup,
+            disable_web_page_preview: true,
+        });
+        return;
+    } catch (replyKeyboardError) {
+        console.error(
+            "Telegram reply keyboard Web App button failed",
+            replyKeyboardError,
+        );
+    }
+
     await telegramApi("sendMessage", {
         chat_id: chatId,
-        text: `${text}\n\n${buttonText}:\n${entryUrl}`,
+        text:
+            "✅ Obuna tasdiqlandi, ammo Telegram Mini App tugmasini yaratishda xatolik yuz berdi. /start buyrug‘ini qayta yuboring.",
         disable_web_page_preview: true,
     });
 }
