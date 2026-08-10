@@ -1,4 +1,5 @@
 import {
+    createHash,
     createHmac,
     timingSafeEqual,
 } from "node:crypto";
@@ -12,16 +13,36 @@ type TelegramAccessPayload = {
     readonly expiresAt: number;
 };
 
+/**
+ * Prefer the dedicated app-session secret, but never make Telegram access
+ * depend on it being present. The bot token is already a production secret,
+ * so a derived SHA-256 key is a safe deterministic fallback shared by both
+ * token creation and verification on Vercel.
+ */
 function getAccessSecret(): string {
-    const value = process.env.AUTH_SESSION_SECRET?.trim();
+    const authSecret = process.env.AUTH_SESSION_SECRET?.trim();
 
-    if (!value || value.length < 32) {
-        throw new Error(
-            "AUTH_SESSION_SECRET kamida 32 belgidan iborat bo‘lishi kerak.",
-        );
+    if (authSecret && authSecret.length >= 32) {
+        return authSecret;
     }
 
-    return value;
+    const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim();
+
+    if (webhookSecret && webhookSecret.length >= 32) {
+        return webhookSecret;
+    }
+
+    const botToken = process.env.TELEGRAM_VERIFICATION_BOT_TOKEN?.trim();
+
+    if (botToken) {
+        return createHash("sha256")
+            .update(`talimot-telegram-access:${botToken}`)
+            .digest("hex");
+    }
+
+    throw new Error(
+        "Telegram access uchun server secret topilmadi.",
+    );
 }
 
 function createSignature(value: string): string {
@@ -42,11 +63,8 @@ function signaturesMatch(first: string, second: string): boolean {
 }
 
 /**
- * Compact signed token used in Telegram inline URLs.
+ * Compact signed token used in Telegram access URLs.
  * Format: telegramUserId.expiresAtSeconds.signature
- *
- * Keeping the token compact makes Telegram URL buttons more reliable while
- * the HMAC signature prevents a user from changing the Telegram id/expiry.
  */
 export function createTelegramAccessToken(telegramUserId: number): string {
     if (!Number.isSafeInteger(telegramUserId) || telegramUserId <= 0) {

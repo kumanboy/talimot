@@ -72,7 +72,26 @@ function getBotToken() {
 }
 
 function getAppUrl() {
-    return requireEnvironment("NEXT_PUBLIC_APP_URL").replace(/\/$/, "");
+    const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+    if (configured) {
+        return configured.replace(/\/$/, "");
+    }
+
+    const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+
+    if (productionHost) {
+        return `https://${productionHost.replace(/\/$/, "")}`;
+    }
+
+    const vercelHost = process.env.VERCEL_URL?.trim();
+
+    if (vercelHost) {
+        return `https://${vercelHost.replace(/\/$/, "")}`;
+    }
+
+    // Final production fallback for the current TA’LIMOT deployment.
+    return "https://talimot.vercel.app";
 }
 
 async function telegramApi<T>(method: string, body: Record<string, unknown>) {
@@ -235,12 +254,8 @@ async function sendVerifiedAccessMessage(
     registered: boolean,
 ) {
     const text = registered
-        ? `✅ Obuna tasdiqlandi!
-
-TA’LIMOTga kirishni davom ettiring.`
-        : `✅ Obuna tasdiqlandi!
-
-TA’LIMOT platformasini ochishingiz mumkin.`;
+        ? `✅ Obuna tasdiqlandi!\n\nTA’LIMOTga kirishni davom ettiring.`
+        : `✅ Obuna tasdiqlandi!\n\nTA’LIMOT platformasini ochishingiz mumkin.`;
 
     const buttonText = registered
         ? "🔐 TA’LIMOTga kirish"
@@ -251,20 +266,14 @@ TA’LIMOT platformasini ochishingiz mumkin.`;
             [
                 {
                     text: buttonText,
-                    // Intentionally use a normal HTTPS URL button here.
-                    // It works without Telegram Mini App/BotFather domain
-                    // configuration. The access endpoint still re-checks
-                    // channel membership before setting the website cookie.
                     url: entryUrl,
                 },
             ],
         ],
     };
 
+    // First try the cleanest UX: replace the verification message itself.
     try {
-        // Re-use the existing subscription message. This avoids depending on
-        // Telegram refreshing a persistent menu button or creating a Web App
-        // button after the callback.
         await telegramApi("editMessageText", {
             chat_id: chatId,
             message_id: messageId,
@@ -275,16 +284,34 @@ TA’LIMOT platformasini ochishingiz mumkin.`;
         return;
     } catch (editError) {
         console.error(
-            "Telegram access message edit failed; falling back to sendMessage",
+            "Telegram access message edit failed; trying a new button message",
             editError,
         );
     }
 
-    // Standard URL inline buttons are the widest-compatible Telegram option.
+    // Some Telegram clients/messages cannot be edited after a callback. Send
+    // a brand-new inline URL button instead.
+    try {
+        await telegramApi("sendMessage", {
+            chat_id: chatId,
+            text,
+            reply_markup: replyMarkup,
+            disable_web_page_preview: true,
+        });
+        return;
+    } catch (buttonError) {
+        console.error(
+            "Telegram inline URL button failed; sending a plain HTTPS link",
+            buttonError,
+        );
+    }
+
+    // Last-resort compatibility path. Telegram auto-detects HTTPS links in
+    // normal messages, so the user still receives a working entry link even
+    // if the current client/API rejects the inline keyboard for any reason.
     await telegramApi("sendMessage", {
         chat_id: chatId,
-        text,
-        reply_markup: replyMarkup,
+        text: `${text}\n\n${buttonText}:\n${entryUrl}`,
         disable_web_page_preview: true,
     });
 }
@@ -354,7 +381,14 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
             callback.from.id,
         );
     } catch (error) {
-        console.error("Could not create TA’LIMOT access link", error);
+        console.error("Could not create TA’LIMOT access link", {
+            error,
+            telegramUserId: callback.from.id,
+            appUrl: getAppUrl(),
+            hasAuthSessionSecret: Boolean(process.env.AUTH_SESSION_SECRET?.trim()),
+            hasWebhookSecret: Boolean(process.env.TELEGRAM_WEBHOOK_SECRET?.trim()),
+            hasBotToken: Boolean(process.env.TELEGRAM_VERIFICATION_BOT_TOKEN?.trim()),
+        });
         await answerCallbackQuery(
             callback.id,
             "Sayt havolasini yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.",
