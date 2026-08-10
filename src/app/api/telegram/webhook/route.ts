@@ -1,3 +1,4 @@
+import { and, desc, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 import {
@@ -5,6 +6,13 @@ import {
 } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
+import {
+    createVerificationCode,
+    hashVerificationCode,
+    normalizeUzbekPhone,
+} from "@/features/auth/server/registration-security";
+import { db } from "@/lib/database/db";
+import { telegramAuthChallenges } from "@/lib/database/schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +21,8 @@ const TELEGRAM_CHANNEL_USERNAME = "sardortoshmuhammad_onatili";
 const TELEGRAM_CHANNEL_URL = "https://t.me/sardortoshmuhammad_onatili";
 const INSTAGRAM_URL = "https://www.instagram.com/sardor_toshmuhammadov/";
 const CHECK_SUBSCRIPTIONS_CALLBACK = "check_required_subscriptions";
+const VERIFICATION_START_PREFIX = "verify_";
+const VERIFICATION_CODE_DURATION_MS = 10 * 60 * 1000;
 
 type TelegramUser = {
     id: number;
@@ -25,9 +35,17 @@ type TelegramChat = {
     type?: string;
 };
 
+type TelegramContact = {
+    phone_number: string;
+    first_name: string;
+    last_name?: string;
+    user_id?: number;
+};
+
 type TelegramMessage = {
     message_id: number;
     text?: string;
+    contact?: TelegramContact;
     chat: TelegramChat;
     from?: TelegramUser;
 };
@@ -439,8 +457,225 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
     }
 }
 
+function getVerificationChallengeId(text: string): string | null {
+    if (!text.startsWith("/start ")) {
+        return null;
+    }
+
+    const parameter = text.slice("/start ".length).trim();
+
+    if (!parameter.startsWith(VERIFICATION_START_PREFIX)) {
+        return null;
+    }
+
+    const challengeId = parameter.slice(VERIFICATION_START_PREFIX.length);
+
+    return /^[A-Za-z0-9_-]{16,48}$/.test(challengeId)
+        ? challengeId
+        : null;
+}
+
+async function handleVerificationStart(
+    message: TelegramMessage,
+    challengeId: string,
+) {
+    if (!message.from) {
+        return;
+    }
+
+    const [challenge] = await db
+        .select()
+        .from(telegramAuthChallenges)
+        .where(eq(telegramAuthChallenges.id, challengeId))
+        .limit(1);
+
+    if (!challenge) {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text: "❌ Tasdiqlash so‘rovi topilmadi. Saytdagi ro‘yxatdan o‘tish sahifasidan jarayonni qayta boshlang.",
+        });
+        return;
+    }
+
+    const now = Date.now();
+
+    if (challenge.expiresAt <= now || challenge.status === "completed") {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text: challenge.status === "completed"
+                ? "✅ Bu ro‘yxatdan o‘tish allaqachon yakunlangan."
+                : "⌛ Tasdiqlash vaqti tugagan. Saytdagi ro‘yxatdan o‘tish sahifasidan qayta boshlang.",
+        });
+        return;
+    }
+
+    if (challenge.telegramUserId !== message.from.id) {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text: "❌ Bu tasdiqlash havolasi boshqa Telegram hisobiga tegishli.",
+        });
+        return;
+    }
+
+    const subscribed = await isTelegramChannelMember(message.from.id);
+
+    if (!subscribed) {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text: "❌ Avval TA’LIMOT uchun talab qilinadigan Telegram kanaliga obuna bo‘ling.",
+        });
+        return;
+    }
+
+    await db
+        .update(telegramAuthChallenges)
+        .set({
+            telegramChatId: message.chat.id,
+            telegramUsername: message.from.username ?? null,
+            status: "awaiting_contact",
+            updatedAt: now,
+        })
+        .where(eq(telegramAuthChallenges.id, challenge.id));
+
+    await telegramApi("sendMessage", {
+        chat_id: message.chat.id,
+        text:
+            "📱 Telefon raqamingizni tasdiqlaymiz.\n\n" +
+            "Quyidagi tugma orqali aynan Telegram hisobingizga ulangan telefon raqamingizni yuboring.",
+        reply_markup: {
+            keyboard: [
+                [
+                    {
+                        text: "📱 Telegram raqamimni ulashish",
+                        request_contact: true,
+                    },
+                ],
+            ],
+            resize_keyboard: true,
+            one_time_keyboard: true,
+        },
+    });
+}
+
+async function handleVerificationContact(message: TelegramMessage) {
+    if (!message.from || !message.contact) {
+        return false;
+    }
+
+    const [challenge] = await db
+        .select()
+        .from(telegramAuthChallenges)
+        .where(
+            and(
+                eq(telegramAuthChallenges.telegramUserId, message.from.id),
+                eq(telegramAuthChallenges.status, "awaiting_contact"),
+            ),
+        )
+        .orderBy(desc(telegramAuthChallenges.updatedAt))
+        .limit(1);
+
+    if (!challenge) {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text: "Tasdiqlash jarayoni topilmadi. Saytdagi “Telegram botni ochish” tugmasini qayta bosing.",
+            reply_markup: { remove_keyboard: true },
+        });
+        return true;
+    }
+
+    const now = Date.now();
+
+    if (challenge.expiresAt <= now) {
+        await db
+            .update(telegramAuthChallenges)
+            .set({ status: "expired", updatedAt: now })
+            .where(eq(telegramAuthChallenges.id, challenge.id));
+
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text: "⌛ Tasdiqlash vaqti tugagan. Saytdagi ro‘yxatdan o‘tish jarayonini qayta boshlang.",
+            reply_markup: { remove_keyboard: true },
+        });
+        return true;
+    }
+
+    if (
+        message.contact.user_id !== message.from.id ||
+        challenge.telegramChatId !== message.chat.id
+    ) {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text: "❌ Faqat o‘zingizning Telegram telefon raqamingizni yuborishingiz mumkin.",
+        });
+        return true;
+    }
+
+    const contactPhone = normalizeUzbekPhone(message.contact.phone_number);
+
+    if (!contactPhone || contactPhone !== challenge.phone) {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text:
+                "❌ Telegram hisobingizdagi telefon raqami saytda kiritgan raqamingizga mos kelmadi.\n\n" +
+                "Saytga qaytib, Telegram hisobingizga ulangan raqamni kiriting.",
+            reply_markup: { remove_keyboard: true },
+        });
+        return true;
+    }
+
+    const code = createVerificationCode();
+
+    await db
+        .update(telegramAuthChallenges)
+        .set({
+            codeHash: hashVerificationCode(challenge.id, code),
+            codeExpiresAt: now + VERIFICATION_CODE_DURATION_MS,
+            attempts: 0,
+            status: "code_sent",
+            telegramUsername: message.from.username ?? null,
+            updatedAt: now,
+        })
+        .where(eq(telegramAuthChallenges.id, challenge.id));
+
+    await telegramApi("sendMessage", {
+        chat_id: message.chat.id,
+        text:
+            `🔐 TA’LIMOT tasdiqlash kodi: ${code}\n\n` +
+            "Kod 10 daqiqa amal qiladi. Uni TA’LIMOT ro‘yxatdan o‘tish oynasiga kiriting.\n\n" +
+            "Bu kodni hech kimga bermang.",
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "↩️ TA’LIMOTga qaytish",
+                        web_app: {
+                            url: `${getAppUrl()}/auth/register`,
+                        },
+                    },
+                ],
+            ],
+        },
+    });
+
+    return true;
+}
+
 async function handleMessage(message: TelegramMessage) {
+    if (message.contact) {
+        const handled = await handleVerificationContact(message);
+
+        if (handled) {
+            return;
+        }
+    }
+
     const text = message.text?.trim() ?? "";
+    const verificationChallengeId = getVerificationChallengeId(text);
+
+    if (verificationChallengeId) {
+        await handleVerificationStart(message, verificationChallengeId);
+        return;
+    }
 
     if (text === "/start" || text.startsWith("/start ")) {
         // Visible reply first. Then remove both the old global Website fallback
