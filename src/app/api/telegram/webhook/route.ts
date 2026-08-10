@@ -223,29 +223,57 @@ async function answerCallbackQuery(
     });
 }
 
-async function sendContinueMessage(chatId: number, telegramUserId: number) {
-    const user = await getUserByTelegramId(telegramUserId);
-    const destination = user && user.status === "active"
-        ? "/auth/login?next=%2F"
-        : "/onboarding";
+async function resolveDestinationSafely(telegramUserId: number) {
+    try {
+        const user = await getUserByTelegramId(telegramUserId);
 
-    const entryUrl = await showWebsiteMenuButton(
-        chatId,
-        telegramUserId,
-        destination,
-    );
+        if (user && user.status === "active") {
+            return {
+                destination: "/auth/login?next=%2F",
+                registered: true,
+            } as const;
+        }
+    } catch (error) {
+        // Registration is still being wired into production. A temporary
+        // database/table problem must never prevent an already verified
+        // Telegram subscriber from receiving the website button.
+        console.error("Telegram user lookup failed; using onboarding", error);
+    }
 
-    if (user && user.status === "active") {
+    return {
+        destination: "/onboarding",
+        registered: false,
+    } as const;
+}
+
+async function sendOpenWebsiteMessage(
+    chatId: number,
+    entryUrl: string,
+    registered: boolean,
+) {
+    const text = registered
+        ? `✅ Obuna tasdiqlandi!
+
+TA’LIMOTga kirishni davom ettiring.`
+        : `✅ Obuna tasdiqlandi!
+
+TA’LIMOT platformasini ochishingiz mumkin.`;
+
+    const buttonText = registered
+        ? "🔐 TA’LIMOTga kirish"
+        : "🌐 TA’LIMOTni ochish";
+
+    try {
+        // This button is rendered directly under the bot message, so it does
+        // not depend on Telegram refreshing the persistent chat menu.
         await telegramApi("sendMessage", {
             chat_id: chatId,
-            text:
-                "✅ Obuna tasdiqlandi.\n\n" +
-                "Hisobingiz mavjud. TA’LIMOTga kirishni davom ettiring.",
+            text,
             reply_markup: {
                 inline_keyboard: [
                     [
                         {
-                            text: "🔐 TA’LIMOTga kirish",
+                            text: buttonText,
                             web_app: {
                                 url: entryUrl,
                             },
@@ -254,27 +282,47 @@ async function sendContinueMessage(chatId: number, telegramUserId: number) {
                 ],
             },
         });
-        return;
-    }
+    } catch (error) {
+        console.error(
+            "Telegram Web App inline button failed; using URL fallback",
+            error,
+        );
 
-    await telegramApi("sendMessage", {
-        chat_id: chatId,
-        text:
-            "✅ Obuna tasdiqlandi.\n\n" +
-            "TA’LIMOTga birinchi marta kirayotganingiz uchun onboardingdan boshlaymiz.",
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    {
-                        text: "🚀 Onboardingni boshlash",
-                        web_app: {
+        // Fallback for clients/configurations that reject a Web App button.
+        await telegramApi("sendMessage", {
+            chat_id: chatId,
+            text,
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: buttonText,
                             url: entryUrl,
                         },
-                    },
+                    ],
                 ],
-            ],
-        },
-    });
+            },
+        });
+    }
+}
+
+async function sendContinueMessage(chatId: number, telegramUserId: number) {
+    const { destination, registered } = await resolveDestinationSafely(
+        telegramUserId,
+    );
+
+    const entryUrl = createVerifiedEntryUrl(telegramUserId, destination);
+
+    // Keep the bottom Web Site menu only as a best-effort convenience.
+    // Telegram may not refresh a changed menu while the chat is already open.
+    void showWebsiteMenuButton(
+        chatId,
+        telegramUserId,
+        destination,
+    );
+
+    // This inline button is the reliable primary entry point.
+    await sendOpenWebsiteMessage(chatId, entryUrl, registered);
 }
 
 async function handleCallbackQuery(callback: TelegramCallbackQuery) {
@@ -317,8 +365,18 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
         return;
     }
 
-    await answerCallbackQuery(callback.id, "Obuna tasdiqlandi ✅");
-    await sendContinueMessage(chatId, callback.from.id);
+    try {
+        // Send the visible website button first. Only then show success.
+        await sendContinueMessage(chatId, callback.from.id);
+        await answerCallbackQuery(callback.id, "Obuna tasdiqlandi ✅");
+    } catch (error) {
+        console.error("Could not send TA’LIMOT access button", error);
+        await answerCallbackQuery(
+            callback.id,
+            "Obuna tasdiqlandi, ammo sayt tugmasini yuborishda xatolik yuz berdi. Qayta urinib ko‘ring.",
+            true,
+        );
+    }
 }
 
 async function handleMessage(message: TelegramMessage) {
