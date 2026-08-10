@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+    createTelegramAccessToken,
+} from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const TELEGRAM_CHANNEL_USERNAME = "sardortoshmuhammad_onatili";
 const TELEGRAM_CHANNEL_URL = "https://t.me/sardortoshmuhammad_onatili";
 const INSTAGRAM_URL = "https://www.instagram.com/sardor_toshmuhammadov/";
 const CHECK_SUBSCRIPTIONS_CALLBACK = "check_required_subscriptions";
@@ -17,6 +21,8 @@ type TelegramUser = {
 
 type TelegramChat = {
     id: number;
+    username?: string;
+    type?: string;
 };
 
 type TelegramMessage = {
@@ -33,9 +39,22 @@ type TelegramCallbackQuery = {
     message?: TelegramMessage;
 };
 
+type TelegramChatMember = {
+    status: string;
+    user: TelegramUser;
+};
+
+type TelegramChatMemberUpdated = {
+    chat: TelegramChat;
+    from: TelegramUser;
+    old_chat_member: TelegramChatMember;
+    new_chat_member: TelegramChatMember;
+};
+
 type TelegramUpdate = {
     message?: TelegramMessage;
     callback_query?: TelegramCallbackQuery;
+    chat_member?: TelegramChatMemberUpdated;
 };
 
 function requireEnvironment(key: string): string {
@@ -109,35 +128,76 @@ function subscriptionKeyboard() {
     };
 }
 
-async function setWebsiteMenuButtonSafely(
+async function setMenuButtonSafely(
     chatId: number,
-    url: string,
+    menuButton: Record<string, unknown>,
 ) {
     try {
         await telegramApi("setChatMenuButton", {
             chat_id: chatId,
-            menu_button: {
-                type: "web_app",
-                text: "Web Site",
-                web_app: {
-                    url,
-                },
-            },
+            menu_button: menuButton,
         });
     } catch (error) {
-        // The menu button is a convenience only. A temporary Telegram API
-        // failure must never stop /start or the subscription flow itself.
+        // A Telegram menu-button failure must never break /start or callback
+        // processing. The website itself is still protected server-side.
         console.error("Telegram menu button update failed", error);
     }
 }
 
-async function setWebsiteEntryMenuButton(chatId: number) {
-    const appUrl = getAppUrl();
+async function hideWebsiteMenuButton(chatId: number) {
+    // Do NOT use `default` here. A global Web App menu may still be configured
+    // in BotFather/API; `commands` explicitly overrides it for this private chat.
+    await setMenuButtonSafely(chatId, {
+        type: "commands",
+    });
+}
 
-    await setWebsiteMenuButtonSafely(
-        chatId,
-        `${appUrl}/telegram-entry`,
-    );
+async function ensureDefaultMenuIsCommandsSafely() {
+    try {
+        // The project previously configured a global Web Site menu button.
+        // Reset the global fallback to commands. Existing verified per-chat
+        // Web App buttons are not affected because per-chat settings override
+        // the default menu button.
+        await telegramApi("setChatMenuButton", {
+            menu_button: {
+                type: "commands",
+            },
+        });
+    } catch (error) {
+        console.error("Telegram default menu reset failed", error);
+    }
+}
+
+function createVerifiedEntryUrl(
+    telegramUserId: number,
+    destination: string,
+) {
+    const appUrl = getAppUrl();
+    const token = createTelegramAccessToken(telegramUserId);
+    const params = new URLSearchParams({
+        token,
+        next: destination,
+    });
+
+    return `${appUrl}/api/telegram/access?${params.toString()}`;
+}
+
+async function showWebsiteMenuButton(
+    chatId: number,
+    telegramUserId: number,
+    destination: string,
+) {
+    const entryUrl = createVerifiedEntryUrl(telegramUserId, destination);
+
+    await setMenuButtonSafely(chatId, {
+        type: "web_app",
+        text: "Web Site",
+        web_app: {
+            url: entryUrl,
+        },
+    });
+
+    return entryUrl;
 }
 
 async function sendSubscriptionPrompt(chatId: number) {
@@ -165,10 +225,15 @@ async function answerCallbackQuery(
 
 async function sendContinueMessage(chatId: number, telegramUserId: number) {
     const user = await getUserByTelegramId(telegramUserId);
-    const appUrl = getAppUrl();
-    const entryUrl = `${appUrl}/telegram-entry`;
+    const destination = user && user.status === "active"
+        ? "/auth/login?next=%2F"
+        : "/onboarding";
 
-    await setWebsiteEntryMenuButton(chatId);
+    const entryUrl = await showWebsiteMenuButton(
+        chatId,
+        telegramUserId,
+        destination,
+    );
 
     if (user && user.status === "active") {
         await telegramApi("sendMessage", {
@@ -232,14 +297,14 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
     const subscribed = await isTelegramChannelMember(callback.from.id);
 
     if (!subscribed) {
+        // Explicitly remove the Website button for this private chat.
+        await hideWebsiteMenuButton(chatId);
+
         await answerCallbackQuery(
             callback.id,
             "Telegram kanalga hali obuna bo‘lmagansiz.",
             true,
         );
-
-        // Keep the Website menu blocked for users who are not subscribed.
-        await setWebsiteEntryMenuButton(chatId);
 
         await telegramApi("sendMessage", {
             chat_id: chatId,
@@ -260,11 +325,31 @@ async function handleMessage(message: TelegramMessage) {
     const text = message.text?.trim() ?? "";
 
     if (text === "/start" || text.startsWith("/start ")) {
-        // Send the visible reply first. If Telegram rejects a per-chat menu
-        // button update for any reason, /start must still always respond.
+        // Visible reply first. Then remove both the old global Website fallback
+        // and this user's per-chat Website button until verification succeeds.
         await sendSubscriptionPrompt(message.chat.id);
-        await setWebsiteEntryMenuButton(message.chat.id);
+        await ensureDefaultMenuIsCommandsSafely();
+        await hideWebsiteMenuButton(message.chat.id);
+    }
+}
+
+function isRequiredChannel(chat: TelegramChat) {
+    return chat.username?.replace(/^@/, "").toLowerCase() ===
+        TELEGRAM_CHANNEL_USERNAME.toLowerCase();
+}
+
+async function handleChatMemberUpdate(update: TelegramChatMemberUpdated) {
+    if (!isRequiredChannel(update.chat)) {
         return;
+    }
+
+    const newStatus = update.new_chat_member.status;
+
+    // If a verified user leaves/is removed from the required channel, remove
+    // their per-user Website menu immediately. In a private bot chat, the
+    // user's Telegram ID is also the chat ID.
+    if (newStatus === "left" || newStatus === "kicked") {
+        await hideWebsiteMenuButton(update.new_chat_member.user.id);
     }
 }
 
@@ -285,6 +370,8 @@ export async function POST(request: NextRequest) {
             await handleCallbackQuery(update.callback_query);
         } else if (update.message) {
             await handleMessage(update.message);
+        } else if (update.chat_member) {
+            await handleChatMemberUpdate(update.chat_member);
         }
 
         return NextResponse.json({ ok: true });
