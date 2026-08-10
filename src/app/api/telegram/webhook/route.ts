@@ -110,21 +110,35 @@ function subscriptionKeyboard() {
     };
 }
 
+async function setWebsiteMenuButtonSafely(
+    chatId: number,
+    url: string,
+) {
+    try {
+        await telegramApi("setChatMenuButton", {
+            chat_id: chatId,
+            menu_button: {
+                type: "web_app",
+                text: "Web Site",
+                web_app: {
+                    url,
+                },
+            },
+        });
+    } catch (error) {
+        // The menu button is a convenience only. A temporary Telegram API
+        // failure must never stop /start or the subscription flow itself.
+        console.error("Telegram menu button update failed", error);
+    }
+}
+
 async function resetWebsiteMenuButton(chatId: number) {
     const appUrl = getAppUrl();
 
-    // Until subscription is verified, this chat must not have a direct
-    // Website button to the protected homepage.
-    await telegramApi("setChatMenuButton", {
-        chat_id: chatId,
-        menu_button: {
-            type: "web_app",
-            text: "Web Site",
-            web_app: {
-                url: `${appUrl}/access-required`,
-            },
-        },
-    });
+    await setWebsiteMenuButtonSafely(
+        chatId,
+        `${appUrl}/access-required`,
+    );
 }
 
 async function sendSubscriptionPrompt(chatId: number) {
@@ -164,16 +178,10 @@ async function sendContinueMessage(chatId: number, telegramUserId: number) {
         return `${appUrl}/api/telegram/access?${params.toString()}`;
     };
 
-    await telegramApi("setChatMenuButton", {
-        chat_id: chatId,
-        menu_button: {
-            type: "web_app",
-            text: "Web Site",
-            web_app: {
-                url: createAccessUrl("/"),
-            },
-        },
-    });
+    await setWebsiteMenuButtonSafely(
+        chatId,
+        createAccessUrl("/"),
+    );
 
     if (user && user.status === "active") {
         await telegramApi("sendMessage", {
@@ -239,6 +247,9 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
             true,
         );
 
+        // Keep the Website menu blocked for users who are not subscribed.
+        await resetWebsiteMenuButton(chatId);
+
         await telegramApi("sendMessage", {
             chat_id: chatId,
             text:
@@ -258,8 +269,10 @@ async function handleMessage(message: TelegramMessage) {
     const text = message.text?.trim() ?? "";
 
     if (text === "/start" || text.startsWith("/start ")) {
-        await resetWebsiteMenuButton(message.chat.id);
+        // Send the visible reply first. If Telegram rejects a per-chat menu
+        // button update for any reason, /start must still always respond.
         await sendSubscriptionPrompt(message.chat.id);
+        await resetWebsiteMenuButton(message.chat.id);
         return;
     }
 }
