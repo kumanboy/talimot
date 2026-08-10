@@ -19,6 +19,7 @@ type RegistrationFormProps = {
 type RegistrationValues = {
     firstName: string;
     lastName: string;
+    fatherName: string;
     phone: string;
     password: string;
     confirmPassword: string;
@@ -32,6 +33,7 @@ type RegistrationErrors = Partial<
 const initialValues: RegistrationValues = {
     firstName: "",
     lastName: "",
+    fatherName: "",
     phone: "+998 ",
     password: "",
     confirmPassword: "",
@@ -69,6 +71,10 @@ function validateRegistration(
 
     if (values.lastName.trim().length < 2) {
         errors.lastName = "Familiyangizni to‘liq kiriting.";
+    }
+
+    if (values.fatherName.trim().length < 2) {
+        errors.fatherName = "Otangizning ismini to‘liq kiriting.";
     }
 
     if (phoneDigits.length !== 12 || !phoneDigits.startsWith("998")) {
@@ -268,8 +274,41 @@ export function RegistrationForm({
                     </div>
 
                     <div className={styles.field}>
+                        <label htmlFor="registration-father-name">
+                            Otasining ismi
+                        </label>
+                        <input
+                            id="registration-father-name"
+                            name="fatherName"
+                            type="text"
+                            autoComplete="additional-name"
+                            placeholder="Otangizning ismini kiriting"
+                            value={values.fatherName}
+                            aria-invalid={Boolean(errors.fatherName)}
+                            aria-describedby={
+                                errors.fatherName
+                                    ? "registration-father-name-error"
+                                    : undefined
+                            }
+                            onChange={updateTextField("fatherName")}
+                        />
+                        {errors.fatherName ? (
+                            <p
+                                id="registration-father-name-error"
+                                className={styles.errorText}
+                            >
+                                {errors.fatherName}
+                            </p>
+                        ) : (
+                            <p className={styles.helperText}>
+                                Sertifikat va profilingiz uchun hujjatlardagidek kiriting.
+                            </p>
+                        )}
+                    </div>
+
+                    <div className={styles.field}>
                         <label htmlFor="registration-phone">
-                            Telefon raqami
+                            Telegram telefon raqami
                         </label>
                         <input
                             id="registration-phone"
@@ -296,7 +335,7 @@ export function RegistrationForm({
                             </p>
                         ) : (
                             <p className={styles.helperText}>
-                                Tasdiqlash uchun faol raqam kiriting.
+                                Telegram hisobingizga ulangan faol raqamni kiriting.
                             </p>
                         )}
                     </div>
