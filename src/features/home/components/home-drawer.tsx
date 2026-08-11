@@ -568,22 +568,6 @@ export function HomeDrawer({
                     </button>
                 </header>
 
-                <div
-                    className={
-                        styles.welcomeCard
-                    }
-                >
-                    <strong>
-                        Milliy sertifikatga birgalikda
-                        tayyorlanamiz
-                    </strong>
-
-                    <p>
-                        Kerakli bo‘limni tanlang va
-                        tayyorgarlikni davom ettiring.
-                    </p>
-                </div>
-
                 <nav
                     className={styles.navigation}
                     aria-label="Yon navigatsiya"
