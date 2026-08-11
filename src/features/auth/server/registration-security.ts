@@ -27,6 +27,37 @@ export function hashPassword(password: string): string {
     return `scrypt$${salt.toString("base64url")}$${derived.toString("base64url")}`;
 }
 
+export function verifyPassword(
+    password: string,
+    storedHash: string,
+): boolean {
+    const [algorithm, encodedSalt, encodedDerived] = storedHash.split("$");
+
+    if (
+        algorithm !== "scrypt" ||
+        !encodedSalt ||
+        !encodedDerived
+    ) {
+        return false;
+    }
+
+    try {
+        const salt = Buffer.from(encodedSalt, "base64url");
+        const expected = Buffer.from(encodedDerived, "base64url");
+
+        if (salt.length === 0 || expected.length === 0) {
+            return false;
+        }
+
+        const actual = scryptSync(password, salt, expected.length);
+
+        return actual.length === expected.length &&
+            timingSafeEqual(actual, expected);
+    } catch {
+        return false;
+    }
+}
+
 function getVerificationSecret(): string {
     const authSecret = process.env.AUTH_SESSION_SECRET?.trim();
 

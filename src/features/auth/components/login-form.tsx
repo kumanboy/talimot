@@ -82,6 +82,8 @@ export function LoginForm({
         useState<LoginErrors>({});
     const [isSubmitting, setIsSubmitting] =
         useState(false);
+    const [authError, setAuthError] =
+        useState("");
 
     const updatePhone = (
         event: ChangeEvent<HTMLInputElement>,
@@ -117,7 +119,7 @@ export function LoginForm({
         }));
     };
 
-    const submitLogin = (
+    const submitLogin = async (
         event: FormEvent<HTMLFormElement>,
     ) => {
         event.preventDefault();
@@ -129,11 +131,44 @@ export function LoginForm({
             return;
         }
 
+        setAuthError("");
         setIsSubmitting(true);
 
-        // Frontend-only temporary behavior.
-        // Real authentication and session creation will replace this later.
-        router.push(destination);
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    phone: values.phone,
+                    password: values.password,
+                }),
+            });
+
+            const payload = await response.json() as {
+                ok?: boolean;
+                error?: string;
+            };
+
+            if (!response.ok || !payload.ok) {
+                throw new Error(
+                    payload.error || "Kirish amalga oshmadi.",
+                );
+            }
+
+            router.replace(destination);
+            router.refresh();
+        } catch (error) {
+            setAuthError(
+                error instanceof Error
+                    ? error.message
+                    : "Kirishda xatolik yuz berdi.",
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const openRegistration = () => {
@@ -274,6 +309,12 @@ export function LoginForm({
                             </p>
                         ) : null}
                     </div>
+
+                    {authError ? (
+                        <p className={styles.errorText} role="alert">
+                            {authError}
+                        </p>
+                    ) : null}
 
                     <button
                         className={styles.submitButton}

@@ -248,7 +248,7 @@ async function resolveDestinationSafely(telegramUserId: number) {
 
         if (user && user.status === "active") {
             return {
-                destination: "/auth/login?next=%2F",
+                destination: "/",
                 registered: true,
             } as const;
         }
@@ -276,7 +276,7 @@ async function sendVerifiedAccessMessage(
         : `✅ Obuna tasdiqlandi!\n\nTA’LIMOT platformasini ochishingiz mumkin.`;
 
     const buttonText = registered
-        ? "🔐 TA’LIMOTga kirish"
+        ? "🌐 TA’LIMOTni ochish"
         : "🌐 TA’LIMOTni ochish";
 
     const inlineWebAppMarkup = {

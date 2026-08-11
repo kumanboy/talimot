@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import {
+    STUDENT_SESSION_COOKIE,
+    createStudentSessionToken,
+    studentSessionCookieOptions,
+} from "@/features/auth/model/student-session";
+import {
     createTelegramAccessToken,
     TELEGRAM_ACCESS_COOKIE,
     telegramAccessCookieOptions,
@@ -27,6 +32,7 @@ function unauthorized(reason: string, status: number) {
     );
 
     response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+    response.cookies.delete(STUDENT_SESSION_COOKIE);
     return response;
 }
 
@@ -59,6 +65,12 @@ export async function POST(request: NextRequest) {
         return unauthorized("subscription", 403);
     }
 
+    const user = await getUserByTelegramId(telegramUserId);
+
+    if (user?.status === "blocked") {
+        return unauthorized("blocked", 403);
+    }
+
     const accessToken = createTelegramAccessToken(telegramUserId);
     const responsePayload: {
         ok: true;
@@ -68,10 +80,8 @@ export async function POST(request: NextRequest) {
     };
 
     if (mode === "entry") {
-        const user = await getUserByTelegramId(telegramUserId);
-
         responsePayload.redirectTo = user && user.status === "active"
-            ? "/auth/login?next=%2F"
+            ? "/"
             : "/onboarding";
     }
 
@@ -81,6 +91,14 @@ export async function POST(request: NextRequest) {
         accessToken,
         telegramAccessCookieOptions,
     );
+
+    if (user?.status === "active") {
+        response.cookies.set(
+            STUDENT_SESSION_COOKIE,
+            createStudentSessionToken(user.id),
+            studentSessionCookieOptions,
+        );
+    }
 
     return response;
 }

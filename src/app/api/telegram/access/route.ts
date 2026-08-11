@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
     STUDENT_SESSION_COOKIE,
-    verifyStudentSessionToken,
+    createStudentSessionToken,
+    studentSessionCookieOptions,
 } from "@/features/auth/model/student-session";
 import {
     TELEGRAM_ACCESS_COOKIE,
@@ -32,11 +33,12 @@ export async function GET(request: NextRequest) {
             new URL("/access-required?reason=invalid", request.url),
         );
         response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        response.cookies.delete(STUDENT_SESSION_COOKIE);
         return response;
     }
 
-    // Re-check membership when the Mini App/menu button is opened. A token
-    // created earlier must not grant access after the user leaves the channel.
+    // A signed bot entry token is never trusted on its own: membership is
+    // checked again every time the Mini App is opened.
     const subscribed = await isTelegramChannelMember(access.telegramUserId);
 
     if (!subscribed) {
@@ -44,31 +46,32 @@ export async function GET(request: NextRequest) {
             new URL("/access-required?reason=subscription", request.url),
         );
         response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        response.cookies.delete(STUDENT_SESSION_COOKIE);
         return response;
     }
 
     const requestedDestination = getSafeDestination(
         request.nextUrl.searchParams.get("next"),
     );
-
-    // Keep an already authenticated student signed in when the Telegram
-    // Mini App is closed and reopened. The student session cookie is
-    // persistent, but the bot entry URL may still point to /auth/login.
-    // Only skip login when the stored student session belongs to the same
-    // Telegram account that opened this signed Mini App entry URL.
     const registeredUser = await getUserByTelegramId(access.telegramUserId);
-    const studentSession = verifyStudentSessionToken(
-        request.cookies.get(STUDENT_SESSION_COOKIE)?.value,
-    );
 
-    const canResumeSession = Boolean(
-        registeredUser &&
-        registeredUser.status === "active" &&
-        studentSession &&
-        studentSession.userId === registeredUser.id,
-    );
+    if (registeredUser?.status === "blocked") {
+        const response = NextResponse.redirect(
+            new URL("/access-required?reason=blocked", request.url),
+        );
+        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        response.cookies.delete(STUDENT_SESSION_COOKIE);
+        return response;
+    }
 
-    const destination = canResumeSession ? "/" : requestedDestination;
+    // Telegram itself already authenticated this Mini App entry through the
+    // signed per-user URL created by our bot. For an existing active account,
+    // create/refresh the normal student session here. This makes reopening the
+    // Mini App passwordless while profile/wallet APIs still use an HttpOnly
+    // server session cookie rather than localStorage.
+    const destination = registeredUser?.status === "active"
+        ? "/"
+        : requestedDestination;
 
     const response = NextResponse.redirect(
         new URL(destination, request.url),
@@ -79,6 +82,14 @@ export async function GET(request: NextRequest) {
         token,
         telegramAccessCookieOptions,
     );
+
+    if (registeredUser?.status === "active") {
+        response.cookies.set(
+            STUDENT_SESSION_COOKIE,
+            createStudentSessionToken(registeredUser.id),
+            studentSessionCookieOptions,
+        );
+    }
 
     return response;
 }

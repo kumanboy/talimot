@@ -182,11 +182,17 @@ export function ProfilePage() {
             })
             .catch((error: unknown) => {
                 if (cancelled) return;
-                setProfileError(
-                    error instanceof Error
-                        ? error.message
-                        : "Profilni yuklab bo‘lmadi.",
-                );
+
+                const message = error instanceof Error
+                    ? error.message
+                    : "Profilni yuklab bo‘lmadi.";
+
+                if (message === "Hisobga kirish talab qilinadi.") {
+                    router.replace("/auth/login?next=%2Fprofil");
+                    return;
+                }
+
+                setProfileError(message);
             })
             .finally(() => {
                 if (!cancelled) setIsProfileLoading(false);
@@ -195,7 +201,7 @@ export function ProfilePage() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [router]);
 
     const fullName =
         getProfileFullName(values);
