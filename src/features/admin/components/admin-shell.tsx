@@ -17,6 +17,7 @@ export type AdminNavigationKey =
     | "products"
     | "tanga"
     | "payments"
+    | "essays"
     | "settings";
 
 interface AdminNavigationItem {
@@ -71,6 +72,11 @@ const adminNavigationItems:
             key: "payments",
             label: "To‘lovlar",
             href: "/admin/payments",
+        },
+        {
+            key: "essays",
+            label: "Esse tekshiruvlari",
+            href: "/admin/essays",
         },
         {
             key: "settings",
