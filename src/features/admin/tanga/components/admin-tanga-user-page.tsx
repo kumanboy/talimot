@@ -54,7 +54,7 @@ type NotificationStatus = "sent" | "unavailable" | "failed";
 function sourceLabel(value: string): string {
     switch (value) {
         case "humo_payment":
-            return "HUMO to‘lov";
+            return "UZCARD to‘lov";
         case "promo_bonus":
             return "Promo bonus";
         case "manual_correction":
@@ -211,7 +211,7 @@ export function AdminTangaUserPage({
                     <label>
                         <span>Manba</span>
                         <select name="source" defaultValue="humo_payment" required>
-                            <option value="humo_payment">HUMO orqali to‘lov</option>
+                            <option value="humo_payment">UZCARD orqali to‘lov</option>
                             <option value="promo_bonus">Promo bonus</option>
                             <option value="manual_correction">Qo‘lda tuzatish</option>
                             <option value="other">Boshqa</option>
