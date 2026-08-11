@@ -172,6 +172,7 @@ export async function POST(request: NextRequest) {
                 passwordHash: challenge.passwordHash,
                 role: "student",
                 status: "active",
+                roadmapMode: challenge.roadmapMode === "boost" ? "boost" : "from-zero",
                 telegramUserId: access.telegramUserId,
                 telegramChatId: challenge.telegramChatId ?? access.telegramUserId,
                 telegramUsername: challenge.telegramUsername,

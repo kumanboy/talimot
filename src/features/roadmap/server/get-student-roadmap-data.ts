@@ -9,7 +9,7 @@ import {
 } from "@/features/auth/model/student-session";
 import { fromZeroRoadmapDefinition } from "@/features/roadmap/model/roadmap-definition";
 import { getRoadmapStatusFromScore } from "@/features/roadmap/model/scoring";
-import type { RoadmapNodeId, RoadmapNodeStatus } from "@/features/roadmap/model/types";
+import type { RoadmapMode, RoadmapNodeId, RoadmapNodeStatus } from "@/features/roadmap/model/types";
 import { db } from "@/lib/database/db";
 import { studentTestAttempts } from "@/lib/database/schema/student-test-attempts";
 import { users } from "@/lib/database/schema/users";
@@ -80,7 +80,10 @@ function emptyNode(status: RoadmapNodeStatus = "locked"): RoadmapLiveNode {
     };
 }
 
-function emptyData(authenticated = false): RoadmapLiveData {
+function emptyData(
+    authenticated = false,
+    preferredMode: RoadmapMode = "from-zero",
+): RoadmapLiveData {
     const nodes = Object.fromEntries(
         fromZeroRoadmapDefinition.nodes.map((node, index) => [
             node.id,
@@ -90,6 +93,7 @@ function emptyData(authenticated = false): RoadmapLiveData {
 
     return {
         authenticated,
+        preferredMode,
         totalAttempts: 0,
         averagePercentage: null,
         coreCompletedCount: 0,
@@ -115,12 +119,19 @@ export async function getStudentRoadmapData(): Promise<RoadmapLiveData> {
     if (!session) return emptyData(false);
 
     const [user] = await db
-        .select({ id: users.id, status: users.status })
+        .select({
+            id: users.id,
+            status: users.status,
+            roadmapMode: users.roadmapMode,
+        })
         .from(users)
         .where(eq(users.id, session.userId))
         .limit(1);
 
     if (!user || user.status !== "active") return emptyData(false);
+
+    const preferredMode: RoadmapMode =
+        user.roadmapMode === "boost" ? "boost" : "from-zero";
 
     const attempts = await db
         .select({
@@ -140,7 +151,7 @@ export async function getStudentRoadmapData(): Promise<RoadmapLiveData> {
         .orderBy(desc(studentTestAttempts.completedAt))
         .limit(250) as Attempt[];
 
-    if (attempts.length === 0) return emptyData(true);
+    if (attempts.length === 0) return emptyData(true, preferredMode);
 
     const grouped = new Map<RoadmapNodeId, Attempt[]>();
     for (const attempt of attempts) {
@@ -270,6 +281,7 @@ export async function getStudentRoadmapData(): Promise<RoadmapLiveData> {
 
     return {
         authenticated: true,
+        preferredMode,
         totalAttempts: attempts.length,
         averagePercentage,
         coreCompletedCount,

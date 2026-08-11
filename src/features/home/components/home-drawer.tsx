@@ -52,7 +52,7 @@ const drawerItems = [
     {
         label: "Yo‘l xaritasi",
         href:
-            "/yol-xaritasi?mode=from-zero&view=full",
+            "/yol-xaritasi",
         icon: "roadmap",
     },
     {

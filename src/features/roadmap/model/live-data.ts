@@ -1,4 +1,4 @@
-import type { RoadmapNodeId, RoadmapNodeStatus } from "./types";
+import type { RoadmapMode, RoadmapNodeId, RoadmapNodeStatus } from "./types";
 
 export type RoadmapLiveNode = {
     readonly attemptCount: number;
@@ -27,6 +27,7 @@ export type RoadmapDiagnosticSnapshot = {
 
 export type RoadmapLiveData = {
     readonly authenticated: boolean;
+    readonly preferredMode: RoadmapMode;
     readonly totalAttempts: number;
     readonly averagePercentage: number | null;
     readonly coreCompletedCount: number;

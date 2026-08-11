@@ -23,6 +23,7 @@ export const users = pgTable(
         passwordHash: text("password_hash").notNull(),
         role: text("role").notNull().default("student"),
         status: text("status").notNull().default("active"),
+        roadmapMode: text("roadmap_mode").notNull().default("from-zero"),
         telegramUserId: bigint("telegram_user_id", { mode: "number" }),
         telegramChatId: bigint("telegram_chat_id", { mode: "number" }),
         telegramUsername: text("telegram_username"),

@@ -15,6 +15,7 @@ import styles from "./registration-form.module.css";
 
 type RegistrationFormProps = {
     destination: string;
+    roadmapMode: "from-zero" | "boost";
 };
 
 type RegistrationValues = {
@@ -131,6 +132,7 @@ function openTelegramLink(url: string) {
 
 export function RegistrationForm({
     destination,
+    roadmapMode,
 }: RegistrationFormProps) {
     const router = useRouter();
     const headingId = useId();
@@ -246,6 +248,7 @@ export function RegistrationForm({
                     phone: values.phone,
                     password: values.password,
                     destination,
+                    roadmapMode,
                 }),
             });
 

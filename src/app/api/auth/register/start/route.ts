@@ -30,6 +30,7 @@ type StartRegistrationBody = {
     phone?: unknown;
     password?: unknown;
     destination?: unknown;
+    roadmapMode?: unknown;
 };
 
 function cleanName(value: unknown): string | null {
@@ -56,6 +57,10 @@ function getSafeDestination(value: unknown): string {
     }
 
     return value;
+}
+
+function getSafeRoadmapMode(value: unknown): "from-zero" | "boost" {
+    return value === "boost" ? "boost" : "from-zero";
 }
 
 function getBotUsername(): string {
@@ -104,6 +109,7 @@ export async function POST(request: NextRequest) {
             ? body.password
             : "";
         const destination = getSafeDestination(body.destination);
+        const roadmapMode = getSafeRoadmapMode(body.roadmapMode);
 
         if (!firstName || !lastName || !fatherName) {
             return NextResponse.json(
@@ -165,6 +171,7 @@ export async function POST(request: NextRequest) {
             phone,
             passwordHash: hashPassword(password),
             destination,
+            roadmapMode,
             status: "pending_bot",
             attempts: 0,
             createdAt: now,

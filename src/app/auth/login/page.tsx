@@ -16,7 +16,7 @@ function getSafeDestination(
         !destination.startsWith("/") ||
         destination.startsWith("//")
     ) {
-        return "/yol-xaritasi?mode=from-zero&view=full";
+        return "/yol-xaritasi";
     }
 
     return destination;

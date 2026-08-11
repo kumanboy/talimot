@@ -3,6 +3,7 @@ import { RegistrationForm } from "@/features/auth/components/registration-form";
 type RegistrationPageProps = {
     searchParams: Promise<{
         next?: string | string[];
+        roadmapMode?: string | string[];
     }>;
 };
 
@@ -20,11 +21,22 @@ function getSafeDestination(value: string | string[] | undefined) {
     return destination;
 }
 
+function getSafeRoadmapMode(value: string | string[] | undefined) {
+    const mode = Array.isArray(value) ? value[0] : value;
+    return mode === "boost" ? "boost" : "from-zero";
+}
+
 export default async function RegistrationPage({
                                                    searchParams,
                                                }: RegistrationPageProps) {
     const params = await searchParams;
     const destination = getSafeDestination(params.next);
+    const roadmapMode = getSafeRoadmapMode(params.roadmapMode);
 
-    return <RegistrationForm destination={destination} />;
+    return (
+        <RegistrationForm
+            destination={destination}
+            roadmapMode={roadmapMode}
+        />
+    );
 }

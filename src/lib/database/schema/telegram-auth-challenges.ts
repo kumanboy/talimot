@@ -19,6 +19,7 @@ export const telegramAuthChallenges = pgTable(
         phone: text("phone").notNull(),
         passwordHash: text("password_hash").notNull(),
         destination: text("destination").notNull(),
+        roadmapMode: text("roadmap_mode").notNull().default("from-zero"),
         status: text("status").notNull().default("pending_bot"),
         codeHash: text("code_hash"),
         codeExpiresAt: bigint("code_expires_at", { mode: "number" }),

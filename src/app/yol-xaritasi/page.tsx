@@ -36,8 +36,9 @@ function createRouteFromSearchParams(
 export default async function RoadmapPage({
                                             searchParams,
                                           }: RoadmapPageProps) {
+  const resolvedSearchParams = await searchParams;
   const routeState = parseRoadmapRoute(
-      createRouteFromSearchParams(await searchParams),
+      createRouteFromSearchParams(resolvedSearchParams),
   );
 
   if (routeState.view !== "full") {
@@ -45,11 +46,13 @@ export default async function RoadmapPage({
   }
 
   const data = await getStudentRoadmapData();
+  const hasExplicitMode = resolvedSearchParams.mode !== undefined;
+  const resolvedMode = hasExplicitMode ? routeState.mode : data.preferredMode;
 
   return (
       <>
         <RoadmapLegacyAttemptSync />
-        {routeState.mode === "boost" ? (
+        {resolvedMode === "boost" ? (
             <BoostFullRoadmap data={data} />
         ) : (
             <FromZeroFullRoadmap data={data} />

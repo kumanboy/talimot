@@ -147,7 +147,7 @@ describe("approved onboarding paths", () => {
             returningAnswers,
         ),
     ).toBe(
-        "/auth/register?next=%2Fyol-xaritasi%3Fmode%3Dboost%26view%3Dfull",
+        "/auth/register?next=%2Fyol-xaritasi%3Fmode%3Dboost%26view%3Dfull&roadmapMode=boost",
     );
 
     expect(
@@ -159,7 +159,7 @@ describe("approved onboarding paths", () => {
             },
         ),
     ).toBe(
-        "/auth/register?next=%2Ftests",
+        "/auth/register?next=%2Ftests&roadmapMode=boost",
     );
 
     expect(
@@ -168,7 +168,7 @@ describe("approved onboarding paths", () => {
             firstTimeAnswers,
         ),
     ).toBe(
-        "/auth/register?next=%2Fyol-xaritasi%3Fmode%3Dfrom-zero%26view%3Dfull",
+        "/auth/register?next=%2Fyol-xaritasi%3Fmode%3Dfrom-zero%26view%3Dfull&roadmapMode=from-zero",
     );
 
     expect(
@@ -178,7 +178,7 @@ describe("approved onboarding paths", () => {
             "diagnostic",
         ),
     ).toBe(
-        "/auth/register?next=%2Fdiagnostika",
+        "/auth/register?next=%2Fdiagnostika&roadmapMode=from-zero",
     );
   });
 });

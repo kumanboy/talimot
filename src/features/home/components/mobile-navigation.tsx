@@ -42,7 +42,7 @@ const navigationItems = [
     {
         id: "roadmap",
         label: "Yo‘l xaritasi",
-        href: "/yol-xaritasi?mode=from-zero&view=full",
+        href: "/yol-xaritasi",
         icon: "roadmap",
     },
     {

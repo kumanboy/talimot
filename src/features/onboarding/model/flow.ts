@@ -3,6 +3,8 @@ import {
   questionsById,
   returningChoice,
 } from "./questions";
+import type { RoadmapMode } from "@/features/roadmap/model/types";
+
 import type {
   AnswerableOnboardingStepId,
   OnboardingAnswers,
@@ -72,9 +74,11 @@ function isApprovedOption(
 
 function createRegistrationDestination(
     destination: OnboardingDestination,
+    roadmapMode: RoadmapMode,
 ): string {
   const searchParams = new URLSearchParams({
     next: destination,
+    roadmapMode,
   });
 
   return `/auth/register?${searchParams.toString()}`;
@@ -335,7 +339,7 @@ export function getCompletionDestination(
             ? "/diagnostika"
             : "/yol-xaritasi?mode=from-zero&view=full";
 
-    return createRegistrationDestination(destination);
+    return createRegistrationDestination(destination, "from-zero");
   }
 
   assertCurrentAnswer(stepId, answers);
@@ -345,5 +349,5 @@ export function getCompletionDestination(
           ? "/yol-xaritasi?mode=boost&view=full"
           : "/tests";
 
-  return createRegistrationDestination(destination);
+  return createRegistrationDestination(destination, "boost");
 }
