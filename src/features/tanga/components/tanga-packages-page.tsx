@@ -19,12 +19,14 @@ import type {
 } from "@/features/tanga/model/tanga-package-types";
 
 import { useTangaWallet } from "@/features/tanga/hooks/use-tanga-wallet";
+import {
+    MANUAL_PAYMENT_CARD_HOLDER,
+    MANUAL_PAYMENT_CARD_NUMBER,
+    MANUAL_PAYMENT_METHOD,
+    MANUAL_PAYMENT_TELEGRAM_USERNAME,
+} from "@/features/payments/config/manual-payment";
 import styles from "./tanga-packages-page.module.css";
 
-const PAYMENT_METHOD = "HUMO";
-const PAYMENT_CARD_NUMBER = "9860 3501 4242 7581";
-const PAYMENT_CARD_HOLDER = "Sardor Toshmuhammadov";
-const TELEGRAM_USERNAME = "husan_davronov";
 
 function formatPrice(value: number): string {
     return `${new Intl.NumberFormat("uz-UZ").format(value)} so‘m`;
@@ -169,8 +171,6 @@ export function TangaPackagesPage() {
         [selectedId],
     );
 
-    const pricePerTanga =
-        selectedPackage.price / selectedPackage.amount;
 
     const buyerIdentity = walletUser
         ? `Foydalanuvchi ID: ${walletUser.userNumber} (${walletUser.firstName} ${walletUser.lastName})`
@@ -182,8 +182,8 @@ export function TangaPackagesPage() {
 
     const telegramMessage = [
         `Assalomu alaykum, men ${selectedPackage.name} tarifini (${formatPrice(selectedPackage.price)}) sotib olmoqchiman.`,
-        `To‘lov usuli: ${PAYMENT_METHOD}`,
-        `Karta: ${PAYMENT_CARD_NUMBER} (${PAYMENT_CARD_HOLDER})`,
+        `To‘lov usuli: ${MANUAL_PAYMENT_METHOD}`,
+        `Karta: ${MANUAL_PAYMENT_CARD_NUMBER} (${MANUAL_PAYMENT_CARD_HOLDER})`,
         "To‘lovni amalga oshirgach, chekni shu yerga yuboraman.",
         buyerIdentity,
         buyerPhone,
@@ -192,12 +192,12 @@ export function TangaPackagesPage() {
         .join("\n");
 
     const telegramHref =
-        `https://t.me/${TELEGRAM_USERNAME}` +
+        `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}` +
         `?text=${encodeURIComponent(telegramMessage)}`;
 
     const handleCopyCard = async () => {
         const copied = await copyText(
-            PAYMENT_CARD_NUMBER.replace(/\s/g, ""),
+            MANUAL_PAYMENT_CARD_NUMBER.replace(/\s/g, ""),
         );
 
         setCopyStatus(copied ? "copied" : "failed");
@@ -288,15 +288,6 @@ export function TangaPackagesPage() {
 
                                         <small>{item.description}</small>
 
-                                        <span className={styles.unitPrice}>
-                                            1 Tanga ≈{" "}
-                                            {formatPrice(
-                                                Math.round(
-                                                    item.price /
-                                                        item.amount,
-                                                ),
-                                            )}
-                                        </span>
                                     </span>
 
                                     <span className={styles.packagePrice}>
@@ -323,20 +314,34 @@ export function TangaPackagesPage() {
                         </article>
 
                         <article>
-                            <strong>2 Tanga</strong>
+                            <strong>3 Tanga</strong>
                             <p>AI esse tekshiruvi</p>
                         </article>
 
                         <article>
                             <strong>6 Tanga</strong>
-                            <p>Ustoz + AI tekshiruvi</p>
+                            <p>Ustoz esse tekshiruvi</p>
                         </article>
 
                         <article>
                             <strong>2 Tanga</strong>
-                            <p>Pullik sinov imtihoni</p>
+                            <p>Diagnostika / mock testi</p>
                         </article>
                     </div>
+                </section>
+
+                <section className={styles.packageValue}>
+                    <span>BU PAKET BILAN NIMA QILA OLASIZ?</span>
+                    <div>
+                        {selectedPackage.usageExamples.map((example) => (
+                            <p key={example}>{example}</p>
+                        ))}
+                    </div>
+                    <small>
+                        Variantlar “yoki” tamoyilida ko‘rsatilgan. Tanga faqat pullik
+                        testlar va esse tekshiruvi uchun ishlatiladi. Kurs va kitoblar
+                        Tanga orqali sotib olinmaydi.
+                    </small>
                 </section>
 
                 <section className={styles.summary}>
@@ -347,14 +352,6 @@ export function TangaPackagesPage() {
                         </strong>
                     </div>
 
-                    <div>
-                        <span>Bir Tanga qiymati</span>
-                        <strong>
-                            {formatPrice(
-                                Math.round(pricePerTanga),
-                            )}
-                        </strong>
-                    </div>
 
                     <div className={styles.totalRow}>
                         <span>Jami</span>
@@ -459,14 +456,14 @@ export function TangaPackagesPage() {
                             onClick={handleCopyCard}
                         >
                             <span className={styles.cardTop}>
-                                <span>{PAYMENT_METHOD} KARTA</span>
+                                <span>{MANUAL_PAYMENT_METHOD} KARTA</span>
                                 <CopyIcon />
                             </span>
 
-                            <strong>{PAYMENT_CARD_NUMBER}</strong>
+                            <strong>{MANUAL_PAYMENT_CARD_NUMBER}</strong>
 
                             <span className={styles.cardBottom}>
-                                <span>{PAYMENT_CARD_HOLDER}</span>
+                                <span>{MANUAL_PAYMENT_CARD_HOLDER}</span>
                                 <em>
                                     {copyStatus === "copied"
                                         ? "Nusxalandi ✓"
@@ -495,7 +492,7 @@ export function TangaPackagesPage() {
 
                         <p className={styles.modalHelper}>
                             To‘lov qilgandan keyin chekni
-                            <strong> @{TELEGRAM_USERNAME}</strong>
+                            <strong> @{MANUAL_PAYMENT_TELEGRAM_USERNAME}</strong>
                             ga yuboring. Paket va summa xabarga
                             avtomatik qo‘shiladi.
                         </p>

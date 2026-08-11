@@ -699,3 +699,50 @@
         transition: none;
     }
 }
+
+.packageValue {
+    margin-top: 14px;
+    padding: 17px 16px;
+    border: 1px solid var(--app-border);
+    border-radius: 21px;
+    background: var(--app-surface);
+}
+
+.packageValue > span {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+}
+
+.packageValue > div {
+    display: grid;
+    gap: 7px;
+    margin-top: 12px;
+}
+
+.packageValue p {
+    position: relative;
+    margin: 0;
+    padding-left: 16px;
+    color: var(--app-text);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.packageValue p::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--app-primary);
+    content: "✓";
+}
+
+.packageValue small {
+    display: block;
+    margin-top: 12px;
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    line-height: 1.55;
+}

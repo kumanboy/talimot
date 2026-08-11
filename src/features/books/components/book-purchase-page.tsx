@@ -16,6 +16,12 @@ import type {
 import {
     BookCoverPlaceholder,
 } from "./book-cover-placeholder";
+import {
+    MANUAL_PAYMENT_CARD_HOLDER,
+    MANUAL_PAYMENT_CARD_NUMBER,
+    MANUAL_PAYMENT_METHOD,
+    MANUAL_PAYMENT_TELEGRAM_USERNAME,
+} from "@/features/payments/config/manual-payment";
 import styles from "./book-purchase-page.module.css";
 
 type BookPurchasePageProps = {
@@ -35,9 +41,6 @@ type FormValues = {
 
 type FormErrors = Partial<Record<keyof FormValues, string>>;
 
-const TELEGRAM_ADMIN_USERNAME = "husan_davronov";
-const DEMO_CARD_NUMBER = "8600 0000 0000 0000";
-const DEMO_CARD_OWNER = "TA’LIMOT DEMO";
 
 async function copyText(value: string): Promise<boolean> {
     try {
@@ -177,7 +180,7 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
 
     const handleCopyCard = async () => {
         const copied = await copyText(
-            DEMO_CARD_NUMBER.replace(/\s/g, ""),
+            MANUAL_PAYMENT_CARD_NUMBER.replace(/\s/g, ""),
         );
 
         setCopyStatus(copied ? "copied" : "failed");
@@ -217,6 +220,8 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
 
         const message = [
             "Assalomu alaykum!",
+            `To‘lov usuli: ${MANUAL_PAYMENT_METHOD}`,
+            `Karta: ${MANUAL_PAYMENT_CARD_NUMBER} (${MANUAL_PAYMENT_CARD_HOLDER})`,
             "",
             `Men “${book.title}” kitobini sotib olmoqchiman.`,
             `Kitob soni: ${values.quantity} ta`,
@@ -238,7 +243,7 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
             .filter(Boolean)
             .join("\n");
 
-        const telegramUrl = `https://t.me/${TELEGRAM_ADMIN_USERNAME}?text=${encodeURIComponent(message)}`;
+        const telegramUrl = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
         window.location.href = telegramUrl;
     };
 
@@ -505,10 +510,10 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
                                 <CopyIcon />
                             </span>
 
-                            <strong>{DEMO_CARD_NUMBER}</strong>
+                            <strong>{MANUAL_PAYMENT_CARD_NUMBER}</strong>
 
                             <span className={styles.cardBottom}>
-                                <span>{DEMO_CARD_OWNER}</span>
+                                <span>{MANUAL_PAYMENT_CARD_HOLDER}</span>
                                 <em>
                                     {copyStatus === "copied"
                                         ? "Nusxalandi ✓"
@@ -536,7 +541,7 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
 
                         <p className={styles.modalHelper}>
                             To‘lov qilgandan keyin chekni
-                            <strong> @{TELEGRAM_ADMIN_USERNAME}</strong>
+                            <strong> @{MANUAL_PAYMENT_TELEGRAM_USERNAME}</strong>
                             ga yuboring. Kitob, miqdor, manzil va summa
                             xabarga avtomatik qo‘shiladi.
                         </p>

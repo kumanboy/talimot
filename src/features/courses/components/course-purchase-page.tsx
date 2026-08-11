@@ -19,6 +19,13 @@ import {
     CourseSaleCountdown,
 } from "./course-sale-countdown";
 
+import {
+    MANUAL_PAYMENT_CARD_HOLDER,
+    MANUAL_PAYMENT_CARD_NUMBER,
+    MANUAL_PAYMENT_METHOD,
+    MANUAL_PAYMENT_TELEGRAM_USERNAME,
+} from "@/features/payments/config/manual-payment";
+
 import styles from "./course-purchase-page.module.css";
 
 type CoursePurchasePageProps = {
@@ -112,9 +119,6 @@ function BackIcon() {
     );
 }
 
-const TELEGRAM_SUPPORT_USERNAME = "husan_davronov";
-const DEMO_CARD_NUMBER = "8600 0000 0000 0000";
-const DEMO_CARD_OWNER = "TA’LIMOT DEMO";
 
 async function copyText(value: string): Promise<boolean> {
     try {
@@ -191,6 +195,8 @@ function createTelegramPurchaseUrl({
     const message = [
         "Assalomu alaykum!",
         `Men “${courseTitle}” kursini ${price} narxda sotib olmoqchiman.`,
+        `To‘lov usuli: ${MANUAL_PAYMENT_METHOD}`,
+        `Karta: ${MANUAL_PAYMENT_CARD_NUMBER} (${MANUAL_PAYMENT_CARD_HOLDER})`,
         "",
         `Ism-familiya: ${fullName.trim()}`,
         `Telefon raqami: ${phone.trim()}`,
@@ -199,7 +205,7 @@ function createTelegramPurchaseUrl({
         "To‘lovni amalga oshirgach, chekni shu chatga yuboraman.",
     ].join("\n");
 
-    return `https://t.me/${TELEGRAM_SUPPORT_USERNAME}?text=${encodeURIComponent(message)}`;
+    return `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
 }
 
 export function CoursePurchasePage({
@@ -279,7 +285,7 @@ export function CoursePurchasePage({
 
     const handleCopyCard = async () => {
         const copied = await copyText(
-            DEMO_CARD_NUMBER.replace(/\s/g, ""),
+            MANUAL_PAYMENT_CARD_NUMBER.replace(/\s/g, ""),
         );
 
         setCopyStatus(copied ? "copied" : "failed");
@@ -657,10 +663,10 @@ export function CoursePurchasePage({
                                 <CopyIcon />
                             </span>
 
-                            <strong>{DEMO_CARD_NUMBER}</strong>
+                            <strong>{MANUAL_PAYMENT_CARD_NUMBER}</strong>
 
                             <span className={styles.cardBottom}>
-                                <span>{DEMO_CARD_OWNER}</span>
+                                <span>{MANUAL_PAYMENT_CARD_HOLDER}</span>
                                 <em>
                                     {copyStatus === "copied"
                                         ? "Nusxalandi ✓"
@@ -688,7 +694,7 @@ export function CoursePurchasePage({
 
                         <p className={styles.modalHelper}>
                             To‘lov qilgandan keyin chekni
-                            <strong> @{TELEGRAM_SUPPORT_USERNAME}</strong>
+                            <strong> @{MANUAL_PAYMENT_TELEGRAM_USERNAME}</strong>
                             ga yuboring. Kurs nomi, narxi va
                             foydalanuvchi ma’lumotlari xabarga
                             avtomatik qo‘shiladi.

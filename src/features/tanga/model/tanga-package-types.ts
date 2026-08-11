@@ -10,5 +10,6 @@ export type TangaPackageDefinition = {
     readonly price: number;
     readonly badge?: string;
     readonly description: string;
+    readonly usageExamples: readonly string[];
     readonly recommended: boolean;
 };

@@ -10,27 +10,45 @@ export const tangaPackages:
             amount: 7,
             price: 20000,
             description:
-                "Bir nechta test yoki esse tekshiruvi uchun qulay boshlang‘ich tarif.",
+                "Platformani sinab ko‘rish va bir nechta pullik xizmatdan foydalanish uchun.",
+            usageExamples: [
+                "7 ta mavzu testi",
+                "3 ta diagnostika / mock + 1 ta mavzu testi",
+                "2 ta AI esse tekshiruvi + 1 ta mavzu testi",
+                "1 ta ustoz esse tekshiruvi + 1 ta mavzu testi",
+            ],
             recommended: false,
         },
         {
             id: "standard",
             name: "Standart",
-            amount: 15,
+            amount: 16,
             price: 40000,
             badge: "ENG OMMABOP",
             description:
-                "Muntazam tayyorgarlik va xizmatlardan foydalanish uchun optimal tarif.",
+                "Muntazam tayyorgarlik qiladigan foydalanuvchilar uchun eng muvozanatli paket.",
+            usageExamples: [
+                "16 ta mavzu testi",
+                "8 ta diagnostika / mock",
+                "5 ta AI esse tekshiruvi + 1 ta mavzu testi",
+                "2 ta ustoz esse tekshiruvi + 4 ta mavzu testi",
+            ],
             recommended: true,
         },
         {
             id: "maximum",
             name: "Maksimal",
-            amount: 30,
-            price: 88000,
-            badge: "KATTA PAKET",
+            amount: 36,
+            price: 80000,
+            badge: "ENG FOYDALI",
             description:
-                "Ko‘proq test, esse va sinov xizmatlaridan foydalanadiganlar uchun.",
+                "Ko‘p test ishlaydigan va esselarini muntazam tekshirtiradiganlar uchun.",
+            usageExamples: [
+                "36 ta mavzu testi",
+                "18 ta diagnostika / mock",
+                "12 ta AI esse tekshiruvi",
+                "6 ta ustoz esse tekshiruvi",
+            ],
             recommended: false,
         },
     ];
