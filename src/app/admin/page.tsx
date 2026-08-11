@@ -45,9 +45,10 @@ const dashboardSections = [
     {
         title: "Kurslar va kitoblar",
         description:
-            "Mahsulotlar katalogini boshqarish.",
-        status: "Keyingi bosqich",
-        enabled: false,
+            "Mahsulotlar katalogi, narxlar va sotuv holatini boshqarish.",
+        status: "Ishlayapti",
+        href: "/admin/products",
+        enabled: true,
     },
     {
         title: "Tanga va to‘lovlar",

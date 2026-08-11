@@ -125,17 +125,9 @@
     margin: 0;
 }
 
-.welcomeCard > span {
-    display: block;
-    color: #376fb5;
-    font-size: 9px;
-    font-weight: 850;
-    letter-spacing: 0.1em;
-}
-
 .welcomeCard strong {
     display: block;
-    margin-top: 7px;
+    margin-top: 0;
     color: #1e2229;
     font-size: 15px;
     line-height: 1.35;

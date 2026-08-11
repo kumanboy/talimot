@@ -4,3 +4,4 @@ export * from "./telegram-auth-challenges";
 export * from "./tanga-wallets";
 export * from "./tanga-transactions";
 export * from "./manual-payments";
+export * from "./catalog-items";

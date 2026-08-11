@@ -1,218 +1,104 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+
+import { getPublishedCourses } from "@/features/courses/model/course-catalog";
+import type { CourseDefinition } from "@/features/courses/model/course-types";
 
 import styles from "./course-showcase.module.css";
 
-type CourseAccent =
-    | "grammar"
-    | "analysis"
-    | "essay";
+type CourseAccent = "grammar" | "analysis" | "essay";
 
-type Course = {
-    id: string;
-    title: string;
-    description: string;
-    badge: string;
-    meta: readonly string[];
-    href: string;
-    image: string;
-    imageAlt: string;
-    accent: CourseAccent;
-    imagePosition: string;
-};
+function uiAccent(course: CourseDefinition): CourseAccent {
+    if (course.slug.includes("esse")) return "essay";
+    if (course.slug.includes("matn") || course.slug.includes("gazal")) return "analysis";
+    return "grammar";
+}
 
-const courses: readonly Course[] = [
-    {
-        id: "national-certificate-course",
-        title: "Milliy sertifikat kursi",
-        description:
-            "Grammatika, esse, g‘azal, badiiy matn va ilmiy matn bo‘yicha kompleks tayyorgarlik.",
-        badge: "ENG TO‘LIQ KURS",
-        meta: [
-            "Haftada 4 kun jonli dars",
-            "Cheklanmagan foydalanish",
-        ],
-        href: "/kurslar/milliy-sertifikat",
-        image: "/images/home/course-promotion.png",
-        imageAlt:
-            "Sardor Toshmuhammadovning Milliy sertifikat kursi",
-        accent: "grammar",
-        imagePosition: "center 50%",
-    },
-    {
-        id: "grammar-course",
-        title: "Grammatika kursi",
-        description:
-            "Imlo, morfemika, leksikologiya, morfologiya va sintaksisni tizimli o‘rganing.",
-        badge: "ENG OMMABOP",
-        meta: [
-            "Video va audio darslar",
-            "Cheklanmagan foydalanish",
-        ],
-        href: "/kurslar/grammatika",
-        image:
-            "/images/home/courses/grammar-course.webp",
-        imageAlt:
-            "Ona tili grammatika kursi",
-        accent: "grammar",
-        imagePosition: "center 64%",
-    },
-    {
-        id: "text-analysis-course",
-        title: "G‘azal va matn tahlillari",
-        description:
-            "G‘azal, badiiy va ilmiy matn savollarini tahlil qilishni o‘rganing.",
-        badge: "TAVSIYA ETILADI",
-        meta: [
-            "Amaliy tahlillar",
-            "Cheklanmagan foydalanish",
-        ],
-        href: "/kurslar/matn-tahlili",
-        image:
-            "/images/home/courses/text-analysis-course.webp",
-        imageAlt:
-            "G‘azal, badiiy va ilmiy matn tahlili kursi",
-        accent: "analysis",
-        imagePosition: "center 63%",
-    },
-    {
-        id: "essay-course",
-        title: "Esse yozish kursi",
-        description:
-            "Esse shabloni, dalillash va kuchli xulosa yozishni o‘zlashtiring.",
-        badge: "ESSE SHABLONI BILAN",
-        meta: [
-            "Yozib olingan darslar",
-            "Cheklanmagan foydalanish",
-        ],
-        href: "/kurslar/esse",
-        image:
-            "/images/home/courses/essay-course.webp",
-        imageAlt:
-            "Milliy sertifikat uchun esse yozish kursi",
-        accent: "essay",
-        imagePosition: "center 69%",
-    },
-];
+function imagePosition(course: CourseDefinition): string {
+    if (course.slug === "milliy-sertifikat") return "center 50%";
+    if (course.slug.includes("esse")) return "center 69%";
+    return "center 63%";
+}
 
 export function CourseShowcase() {
     const router = useRouter();
+    const [courses, setCourses] = useState<readonly CourseDefinition[]>(getPublishedCourses());
 
-    const openCourse = (href: string) => {
-        router.push(href);
-    };
+    useEffect(() => {
+        let cancelled = false;
+
+        void fetch("/api/catalog/home", { cache: "no-store" })
+            .then(async (response) => {
+                if (!response.ok) return null;
+                return response.json() as Promise<{ courses?: CourseDefinition[] }>;
+            })
+            .then((payload) => {
+                if (!cancelled && Array.isArray(payload?.courses)) setCourses(payload.courses);
+            })
+            .catch(() => undefined);
+
+        return () => { cancelled = true; };
+    }, []);
+
+    const visibleCourses = useMemo(() => courses.slice(0, 6), [courses]);
 
     return (
-        <section
-            className={styles.section}
-            aria-labelledby="courses-heading"
-        >
+        <section className={styles.section} aria-labelledby="courses-heading">
             <header className={styles.heading}>
                 <span>ONLINE TA’LIM</span>
-
-                <h2 id="courses-heading">
-                    Tavsiya etilgan kurslar
-                </h2>
-
-                <p>
-                    Milliy sertifikat uchun kerakli
-                    yo‘nalishni tanlang va tizimli
-                    tayyorgarlikni boshlang.
-                </p>
+                <h2 id="courses-heading">Tavsiya etilgan kurslar</h2>
+                <p>Milliy sertifikat uchun kerakli yo‘nalishni tanlang va tizimli tayyorgarlikni boshlang.</p>
             </header>
 
             <div className={styles.list}>
-                {courses.map((course, index) => (
-                    <article
-                        key={course.id}
-                        className={`${styles.card} ${
-                            styles[course.accent]
-                        }`}
-                    >
-                        <button
-                            className={styles.imageButton}
-                            type="button"
-                            aria-label={`${course.title} kursini ko‘rish`}
-                            onClick={() =>
-                                openCourse(course.href)
-                            }
-                        >
-                            <Image
-                                className={styles.image}
-                                src={course.image}
-                                alt={course.imageAlt}
-                                fill
-                                priority={index === 0}
-                                loading={index === 0 ? "eager" : "lazy"}
-                                sizes="(max-width: 599px) 100vw, 448px"
-                                style={{
-                                    objectPosition: course.imagePosition,
-                                }}
-                            />
-
-                            <div
-                                className={styles.imageOverlay}
-                                aria-hidden="true"
-                            />
-
-                            <div className={styles.imageTopRow}>
-                                <span className={styles.badge}>
-                                    {course.badge}
-                                </span>
-
-                                <span
-                                    className={styles.imageArrow}
-                                    aria-hidden="true"
-                                >
-                                    →
-                                </span>
-                            </div>
-
-                            <span className={styles.imageLabel}>
-                                TA’LIMOT KURSI
-                            </span>
-                        </button>
-
-                        <div className={styles.content}>
-                            <div className={styles.copy}>
-                                <h3>{course.title}</h3>
-                                <p>{course.description}</p>
-                            </div>
-
-                            <div className={styles.meta}>
-                                {course.meta.map((item) => (
-                                    <span key={item}>
-                                        <span
-                                            className={styles.metaCheck}
-                                            aria-hidden="true"
-                                        >
-                                            ✓
-                                        </span>
-                                        {item}
-                                    </span>
-                                ))}
-                            </div>
-
+                {visibleCourses.map((course, index) => {
+                    const accent = uiAccent(course);
+                    return (
+                        <article key={course.id} className={`${styles.card} ${styles[accent]}`}>
                             <button
-                                className={styles.courseButton}
+                                className={styles.imageButton}
                                 type="button"
-                                onClick={() =>
-                                    openCourse(course.href)
-                                }
+                                aria-label={`${course.title} kursini ko‘rish`}
+                                onClick={() => router.push(`/kurslar/${course.slug}`)}
                             >
-                                <span>Kursni ko‘rish</span>
-                                <span
-                                    className={styles.buttonIcon}
-                                    aria-hidden="true"
-                                >
-                                    →
-                                </span>
+                                <Image
+                                    className={styles.image}
+                                    src={course.coverImage}
+                                    alt={course.coverImageAlt}
+                                    fill
+                                    priority={index === 0}
+                                    loading={index === 0 ? "eager" : "lazy"}
+                                    sizes="(max-width: 599px) 100vw, 448px"
+                                    style={{ objectPosition: imagePosition(course) }}
+                                />
+                                <div className={styles.imageOverlay} aria-hidden="true" />
+                                <div className={styles.imageTopRow}>
+                                    <span className={styles.badge}>{course.badge}</span>
+                                    <span className={styles.imageArrow} aria-hidden="true">→</span>
+                                </div>
+                                <span className={styles.imageLabel}>TA’LIMOT KURSI</span>
                             </button>
-                        </div>
-                    </article>
-                ))}
+
+                            <div className={styles.content}>
+                                <div className={styles.copy}>
+                                    <h3>{course.title}</h3>
+                                    <p>{course.shortDescription}</p>
+                                </div>
+                                <div className={styles.meta}>
+                                    {course.benefits.slice(0, 2).map((item) => (
+                                        <span key={item}><span className={styles.metaCheck} aria-hidden="true">✓</span>{item}</span>
+                                    ))}
+                                </div>
+                                <button className={styles.courseButton} type="button" onClick={() => router.push(`/kurslar/${course.slug}`)}>
+                                    <span>Kursni ko‘rish</span><span className={styles.buttonIcon} aria-hidden="true">→</span>
+                                </button>
+                            </div>
+                        </article>
+                    );
+                })}
             </div>
         </section>
     );

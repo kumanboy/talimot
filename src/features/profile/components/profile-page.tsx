@@ -12,6 +12,7 @@ import {
 import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { TalimotLoadingScreen } from "@/components/loading/talimot-loading-screen";
 import {
     DiagnosticCertificatePreview,
 } from "@/features/national-certificate/components/diagnostic-certificate-preview";
@@ -24,7 +25,6 @@ import type {
 import {
     defaultUserProfile,
     getProfileFullName,
-    readUserProfile,
     saveUserProfile,
 } from "@/features/profile/model/profile-storage";
 import type {
@@ -128,14 +128,73 @@ export function ProfilePage() {
     const [notice, setNotice] =
         useState("");
 
-    useEffect(() => {
-        const profile = readUserProfile();
+    const [isProfileLoading, setIsProfileLoading] =
+        useState(true);
 
-        setValues(profile);
-        setSavedValues(profile);
-        setCertificates(
-            readDiagnosticCertificates(),
-        );
+    const [profileError, setProfileError] =
+        useState("");
+
+    useEffect(() => {
+        let cancelled = false;
+
+        setCertificates(readDiagnosticCertificates());
+
+        void fetch("/api/profile", {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+        })
+            .then(async (response) => {
+                const payload = await response.json() as {
+                    user?: {
+                        firstName: string;
+                        lastName: string;
+                        fatherName: string;
+                        phone: string;
+                        telegramUsername: string | null;
+                    };
+                    error?: string;
+                };
+
+                if (!response.ok || !payload.user) {
+                    throw new Error(payload.error || "Profilni yuklab bo‘lmadi.");
+                }
+
+                return payload.user;
+            })
+            .then((user) => {
+                if (cancelled) return;
+
+                const profile: UserProfile = {
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    fatherName: user.fatherName,
+                    phone: user.phone,
+                    telegramUsername: user.telegramUsername
+                        ? `@${user.telegramUsername.replace(/^@/, "")}`
+                        : "",
+                };
+
+                saveUserProfile(profile);
+                setValues(profile);
+                setSavedValues(profile);
+                setProfileError("");
+            })
+            .catch((error: unknown) => {
+                if (cancelled) return;
+                setProfileError(
+                    error instanceof Error
+                        ? error.message
+                        : "Profilni yuklab bo‘lmadi.",
+                );
+            })
+            .finally(() => {
+                if (!cancelled) setIsProfileLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     const fullName =
@@ -162,27 +221,49 @@ export function ProfilePage() {
         setNotice("");
     };
 
-    const handleSubmit = (
+    const handleSubmit = async (
         event: FormEvent<HTMLFormElement>,
     ) => {
         event.preventDefault();
+        setNotice("");
 
         const normalized: UserProfile = {
             firstName: values.firstName.trim(),
             lastName: values.lastName.trim(),
             fatherName: values.fatherName.trim(),
-            phone: values.phone.trim(),
-            telegramUsername:
-                values.telegramUsername.trim(),
+            phone: savedValues.phone,
+            telegramUsername: savedValues.telegramUsername,
         };
 
-        saveUserProfile(normalized);
-        setValues(normalized);
-        setSavedValues(normalized);
-        setIsEditing(false);
-        setNotice(
-            "Profil ma’lumotlari ushbu qurilmada saqlandi.",
-        );
+        try {
+            const response = await fetch("/api/profile", {
+                method: "PATCH",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    firstName: normalized.firstName,
+                    lastName: normalized.lastName,
+                    fatherName: normalized.fatherName,
+                }),
+            });
+
+            const payload = await response.json() as { error?: string };
+            if (!response.ok) {
+                throw new Error(payload.error || "Profilni saqlab bo‘lmadi.");
+            }
+
+            saveUserProfile(normalized);
+            setValues(normalized);
+            setSavedValues(normalized);
+            setIsEditing(false);
+            setNotice("Profil ma’lumotlari hisobingizga saqlandi.");
+        } catch (error) {
+            setNotice(
+                error instanceof Error
+                    ? error.message
+                    : "Profilni saqlab bo‘lmadi.",
+            );
+        }
     };
 
     const cancelEditing = () => {
@@ -190,6 +271,10 @@ export function ProfilePage() {
         setIsEditing(false);
         setNotice("");
     };
+
+    if (isProfileLoading) {
+        return <TalimotLoadingScreen compact />;
+    }
 
     return (
         <main className={styles.page}>
@@ -208,6 +293,10 @@ export function ProfilePage() {
                         <strong>Profil</strong>
                     </div>
                 </header>
+
+                {profileError ? (
+                    <p className={styles.notice} role="alert">{profileError}</p>
+                ) : null}
 
                 <section className={styles.hero}>
                     <div className={styles.avatar}>
@@ -353,13 +442,8 @@ export function ProfilePage() {
                             <input
                                 type="tel"
                                 value={values.phone}
-                                disabled={!isEditing}
-                                onChange={(event) =>
-                                    updateField(
-                                        "phone",
-                                        event.target.value,
-                                    )
-                                }
+                                disabled
+                                readOnly
                             />
                         </label>
 
@@ -368,13 +452,8 @@ export function ProfilePage() {
                             <input
                                 type="text"
                                 value={values.telegramUsername}
-                                disabled={!isEditing}
-                                onChange={(event) =>
-                                    updateField(
-                                        "telegramUsername",
-                                        event.target.value,
-                                    )
-                                }
+                                disabled
+                                readOnly
                             />
                         </label>
                     </div>

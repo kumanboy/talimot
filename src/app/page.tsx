@@ -7,7 +7,7 @@ import {useRouter} from "next/navigation";
 import {TalimotLogo} from "@/components/brand/talimot-logo";
 import {TopicGrid} from "@/features/home/components/topic-grid";
 import {FreeTestsCarousel} from "@/features/home/components/free-tests-carousel";
-import {PromotionBanner} from "@/features/home/components/promotion-banner";
+import { CatalogPromotionBanner } from "@/features/home/components/catalog-promotion-banner";
 import {CourseShowcase} from "@/features/home/components/course-showcase";
 import {BookShowcase} from "@/features/home/components/book-showcase";
 import { DiagnosticBanner } from "@/features/home/components/diagnostic-banner";
@@ -212,17 +212,7 @@ export default function Home() {
 
             <TopicGrid/>
             <FreeTestsCarousel/>
-            <PromotionBanner
-                badge="30% CHEGIRMA"
-                title="Sardor Toshmuhammadovning Milliy sertifikat kursiga qo‘shiling"
-                highlight="30% chegirma bilan"
-                description=""
-                actionLabel="Chegirma bilan qo‘shilish"
-                href="/kurslar"
-                imageSrc="/images/home/course-promotion.png"
-                imageAlt="Sardor Toshmuhammadov Milliy sertifikat kursi o‘qituvchisi"
-                note=""
-            />
+            <CatalogPromotionBanner/>
             <CourseShowcase/>
             <BookShowcase />
             <DiagnosticBanner />

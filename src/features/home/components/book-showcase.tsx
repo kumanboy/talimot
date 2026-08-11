@@ -8,23 +8,44 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
-import {
-    getPublishedBooks,
-} from "@/features/books/model/book-catalog";
+import { getPublishedBooks } from "@/features/books/model/book-catalog";
+import type { BookDefinition } from "@/features/books/model/book-types";
 
 import styles from "./book-showcase.module.css";
 
-const books = getPublishedBooks();
+const fallbackBooks = getPublishedBooks();
 
 export function BookShowcase() {
     const router = useRouter();
     const carouselRef = useRef<HTMLDivElement>(null);
+    const [books, setBooks] = useState<readonly BookDefinition[]>(fallbackBooks);
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
 
     const openBook = (slug: string) => {
         router.push(`/kitoblar/${slug}`);
     };
+
+    useEffect(() => {
+        let cancelled = false;
+
+        void fetch("/api/catalog/home", { cache: "no-store" })
+            .then(async (response) => {
+                if (!response.ok) return null;
+                return response.json() as Promise<{ books?: BookDefinition[] }>;
+            })
+            .then((payload) => {
+                if (!cancelled && Array.isArray(payload?.books)) {
+                    setBooks(payload.books);
+                    setActiveIndex(0);
+                }
+            })
+            .catch(() => undefined);
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useEffect(() => {
         if (isPaused || books.length < 2) {
@@ -58,7 +79,7 @@ export function BookShowcase() {
         return () => {
             window.clearInterval(intervalId);
         };
-    }, [isPaused]);
+    }, [isPaused, books.length]);
 
     const handleScroll = () => {
         const carousel = carouselRef.current;

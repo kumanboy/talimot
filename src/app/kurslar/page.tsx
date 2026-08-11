@@ -1,15 +1,12 @@
-import {
-    CoursesPage,
-} from "@/features/courses/components/courses-page";
+import { connection } from "next/server";
 
-import {
-    getPublishedCourses,
-} from "@/features/courses/model/course-catalog";
+import { CoursesPage } from "@/features/courses/components/courses-page";
+import { getPublishedCoursesFromDatabase } from "@/features/catalog/server/catalog-repository";
 
-export default function CoursesRoute() {
-    return (
-        <CoursesPage
-            courses={getPublishedCourses()}
-        />
-    );
+export const dynamic = "force-dynamic";
+
+export default async function CoursesRoute() {
+    await connection();
+    const courses = await getPublishedCoursesFromDatabase();
+    return <CoursesPage courses={courses} />;
 }

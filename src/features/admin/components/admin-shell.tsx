@@ -60,7 +60,7 @@ const adminNavigationItems:
         {
             key: "products",
             label: "Kurslar va kitoblar",
-            disabled: true,
+            href: "/admin/products",
         },
         {
             key: "tanga",

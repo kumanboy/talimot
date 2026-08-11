@@ -1,34 +1,17 @@
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 
-import {
-    BookDetailPage,
-} from "@/features/books/components/book-detail-page";
-import {
-    getBookBySlug,
-    getPublishedBooks,
-} from "@/features/books/model/book-catalog";
+import { BookDetailPage } from "@/features/books/components/book-detail-page";
+import { getBookBySlugFromDatabase } from "@/features/catalog/server/catalog-repository";
 
-type BookDetailRouteProps = {
-    readonly params: Promise<{
-        bookSlug: string;
-    }>;
-};
+export const dynamic = "force-dynamic";
 
-export function generateStaticParams() {
-    return getPublishedBooks().map((book) => ({
-        bookSlug: book.slug,
-    }));
-}
+type BookDetailRouteProps = { readonly params: Promise<{ bookSlug: string }> };
 
-export default async function BookDetailRoute({
-    params,
-}: BookDetailRouteProps) {
+export default async function BookDetailRoute({ params }: BookDetailRouteProps) {
+    await connection();
     const { bookSlug } = await params;
-    const book = getBookBySlug(bookSlug);
-
-    if (!book) {
-        notFound();
-    }
-
+    const book = await getBookBySlugFromDatabase(bookSlug);
+    if (!book) notFound();
     return <BookDetailPage book={book} />;
 }

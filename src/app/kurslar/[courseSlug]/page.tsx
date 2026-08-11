@@ -1,39 +1,17 @@
-import {
-    notFound,
-} from "next/navigation";
+import { notFound } from "next/navigation";
+import { connection } from "next/server";
 
-import {
-    CourseDetailPage,
-} from "@/features/courses/components/course-detail-page";
+import { CourseDetailPage } from "@/features/courses/components/course-detail-page";
+import { getCourseBySlugFromDatabase } from "@/features/catalog/server/catalog-repository";
 
-import {
-    courses,
-    getCourseBySlug,
-} from "@/features/courses/model/course-catalog";
+export const dynamic = "force-dynamic";
 
-type CourseRouteProps = {
-    readonly params: Promise<{
-        courseSlug: string;
-    }>;
-};
+type CourseRouteProps = { readonly params: Promise<{ courseSlug: string }> };
 
-export function generateStaticParams() {
-    return courses
-        .filter((course) => course.status === "published")
-        .map((course) => ({
-            courseSlug: course.slug,
-        }));
-}
-
-export default async function CourseRoute({
-    params,
-}: CourseRouteProps) {
+export default async function CourseRoute({ params }: CourseRouteProps) {
+    await connection();
     const { courseSlug } = await params;
-    const course = getCourseBySlug(courseSlug);
-
-    if (!course) {
-        notFound();
-    }
-
+    const course = await getCourseBySlugFromDatabase(courseSlug);
+    if (!course) notFound();
     return <CourseDetailPage course={course} />;
 }

@@ -573,8 +573,6 @@ export function HomeDrawer({
                         styles.welcomeCard
                     }
                 >
-                    <span>TA’LIMOT</span>
-
                     <strong>
                         Milliy sertifikatga birgalikda
                         tayyorlanamiz

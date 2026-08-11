@@ -10,11 +10,11 @@ export const PROFILE_STORAGE_KEY =
     "talimot:user-profile:v1";
 
 export const defaultUserProfile: UserProfile = {
-    firstName: "Husan",
-    lastName: "Davronov",
+    firstName: "",
+    lastName: "",
     fatherName: "",
-    phone: "+998 93 310 27 71",
-    telegramUsername: "@husan_davronov",
+    phone: "",
+    telegramUsername: "",
 };
 
 function normalizeProfile(

@@ -7,8 +7,10 @@ import {
     STUDENT_SESSION_COOKIE,
     verifyStudentSessionToken,
 } from "@/features/auth/model/student-session";
-import { getBookBySlug } from "@/features/books/model/book-catalog";
-import { getCourseBySlug } from "@/features/courses/model/course-catalog";
+import {
+    getBookBySlugFromDatabase,
+    getCourseBySlugFromDatabase,
+} from "@/features/catalog/server/catalog-repository";
 import { MANUAL_PAYMENT_METHOD } from "@/features/payments/config/manual-payment";
 import { tangaPackages } from "@/features/tanga/model/tanga-packages";
 import { db } from "@/lib/database/db";
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
                 packageName: packageDefinition.name,
             };
         } else if (kind === "book") {
-            const book = getBookBySlug(itemKey);
+            const book = await getBookBySlugFromDatabase(itemKey);
 
             if (!book) {
                 return NextResponse.json(
@@ -156,7 +158,7 @@ export async function POST(request: NextRequest) {
                 deliveryMethod: book.delivery.method,
             };
         } else {
-            const course = getCourseBySlug(itemKey);
+            const course = await getCourseBySlugFromDatabase(itemKey);
 
             if (!course) {
                 return NextResponse.json(
