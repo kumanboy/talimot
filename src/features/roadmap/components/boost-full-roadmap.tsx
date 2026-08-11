@@ -3,11 +3,8 @@
 import { useRouter } from "next/navigation";
 
 import { createRoadmapRoute } from "@/features/roadmap/model/routes";
-import type {
-  RoadmapMode,
-  RoadmapNodeStatus,
-  RoadmapView,
-} from "@/features/roadmap/model/types";
+import type { RoadmapLiveData, RoadmapWeakTopic } from "@/features/roadmap/model/live-data";
+import type { RoadmapMode, RoadmapNodeStatus, RoadmapView } from "@/features/roadmap/model/types";
 
 import { RoadmapNodeCard } from "./roadmap-node-card";
 import { RoadmapScreenShell } from "./roadmap-screen-shell";
@@ -21,148 +18,37 @@ type BoostNode = {
   readonly score?: string;
   readonly duration?: string;
   readonly reason: string;
-  readonly action?: {
-    readonly label: string;
-    readonly destination: string;
+  readonly action?: { readonly label: string; readonly destination: string };
+};
+
+const destinations: Record<string, string> = {
+  spelling: "/tests/grammatika/imlo",
+  morphemics: "/tests/grammatika/morfemika",
+  morphology: "/tests/grammatika/morfologiya",
+  syntax: "/tests/grammatika/sintaksis",
+  stylistics: "/tests/grammatika/uslubiyat",
+  "scientific-text": "/tests/milliy-sertifikat/ilmiy-matn",
+  "literary-text": "/tests/milliy-sertifikat/badiiy-matn",
+  ghazal: "/tests/milliy-sertifikat/gazal",
+};
+
+function topicToNode(topic: RoadmapWeakTopic): BoostNode {
+  return {
+    id: topic.nodeId,
+    title: topic.label,
+    status: topic.percentage < 60 ? "review-needed" : topic.percentage < 80 ? "good" : "mastered",
+    score: `${topic.percentage}%`,
+    duration: "30–45 daqiqa",
+    reason: `${topic.attemptCount} ta real urinish o‘rtachasi. Natija database’dan olindi.`,
+    action: {
+      label: topic.percentage < 80 ? "Mustahkamlash" : "Takrorlash",
+      destination: destinations[topic.nodeId] ?? "/tests",
+    },
   };
-};
+}
 
-const baselineNode = {
-  id: "latest-trial-result",
-  title: "Oxirgi sinov natijasi",
-  status: "mastered",
-  score: "57 / 75",
-  reason: "Test: 61 / 75 • Esse: 53 / 75",
-  action: {
-    label: "Natijani ko‘rish",
-    destination: createRoadmapRoute({ mode: "boost", view: "results" }),
-  },
-} as const satisfies BoostNode;
-
-const testBranchNodes = [
-  {
-    id: "strengthen-syntax",
-    title: "Sintaksisni mustahkamlash",
-    status: "in-progress",
-    score: "48%",
-    duration: "35 daqiqa",
-    reason: "Eng zaif uch mavzudan biri; maqsad uchun ustuvor.",
-    action: {
-      label: "Davom etish",
-      destination: "/mavzular/sintaksis",
-    },
-  },
-  {
-    id: "ghazal-analysis",
-    title: "G‘azal tahlili",
-    status: "review-needed",
-    score: "52%",
-    duration: "40 daqiqa",
-    reason: "52% natija sababli haftalik rejaga qaytarildi.",
-    action: {
-      label: "Takrorlash",
-      destination: "/mavzular/gazal",
-    },
-  },
-  {
-    id: "scientific-text-practice",
-    title: "Ilmiy matn amaliyoti",
-    status: "review-needed",
-    score: "58%",
-    duration: "40 daqiqa",
-    reason: "58% natija sababli qayta mashq tavsiya etildi.",
-    action: {
-      label: "Takrorlash",
-      destination: "/mavzular/ilmiy-matn",
-    },
-  },
-] as const satisfies readonly BoostNode[];
-
-const essayBranchNodes = [
-  {
-    id: "strengthen-argumentation",
-    title: "Dalillashni kuchaytirish",
-    status: "available",
-    duration: "30 daqiqa",
-    reason: "Esse mezonlarida dalillash eng zaif yo‘nalish.",
-    action: {
-      label: "Boshlash",
-      destination: "/esse-tekshirish",
-    },
-  },
-  {
-    id: "improve-essay-structure",
-    title: "Esse tuzilmasini yaxshilash",
-    status: "locked",
-    duration: "35 daqiqa",
-    reason: "Dalillashdan keyin esse tuzilmasi mustahkamlanadi.",
-  },
-  {
-    id: "punctuation-practice",
-    title: "Punktuatsiya mashqi",
-    status: "locked",
-    duration: "30 daqiqa",
-    reason: "Tuzilmadan keyin punktuatsiya mashqi ochiladi.",
-  },
-  {
-    id: "essay-check",
-    title: "Esse tekshiruvi",
-    status: "locked",
-    duration: "20 daqiqa",
-    reason: "Mashqlardan keyin avtomatik tekshiruv ochiladi.",
-  },
-] as const satisfies readonly BoostNode[];
-
-const finalSequenceNodes = [
-  {
-    id: "full-trial-exam",
-    title: "To‘liq sinov imtihoni",
-    status: "locked",
-    duration: "180 daqiqa",
-    reason: "Ikki yo‘nalish yakunlangach umumiy natija o‘lchanadi.",
-  },
-  {
-    id: "error-analysis",
-    title: "Xatolar tahlili",
-    status: "locked",
-    duration: "45 daqiqa",
-    reason: "Sinovdagi xatolar sabab va mavzu bo‘yicha ajratiladi.",
-  },
-  {
-    id: "weak-area-improvement",
-    title: "Zaif mavzu va ko‘nikmalar ustida ishlash",
-    status: "locked",
-    duration: "60 daqiqa",
-    reason: "Tahlil aniqlagan zaifliklar maqsadli mustahkamlanadi.",
-  },
-  {
-    id: "final-essay-check",
-    title: "Esse tekshiruvi",
-    status: "locked",
-    duration: "20 daqiqa",
-    reason: "Avtomatik tekshiruv yetarli; o‘qituvchi ixtiyoriy.",
-  },
-  {
-    id: "final-full-trial-exam",
-    title: "Yakuniy to‘liq sinov imtihoni",
-    status: "locked",
-    duration: "180 daqiqa",
-    reason: "Maqsad darajasiga tayyorlik yakuniy baholanadi.",
-  },
-] as const satisfies readonly BoostNode[];
-
-type BoostNodeCardProps = {
-  node: BoostNode;
-  onNavigate: (destination: string) => void;
-};
-
-function BoostNodeCard({
-  node,
-  onNavigate,
-}: BoostNodeCardProps) {
-  const action = node.action;
-
-  if (action) {
+function BoostNodeCard({ node, onNavigate }: { node: BoostNode; onNavigate: (destination: string) => void }) {
+  if (node.action) {
     return (
       <RoadmapNodeCard
         title={node.title}
@@ -170,61 +56,34 @@ function BoostNodeCard({
         score={node.score}
         estimatedDuration={node.duration}
         reason={node.reason}
-        actionLabel={action.label}
-        onAction={() => onNavigate(action.destination)}
+        actionLabel={node.action.label}
+        onAction={() => onNavigate(node.action!.destination)}
       />
     );
   }
-
-  return (
-    <RoadmapNodeCard
-      title={node.title}
-      status={node.status}
-      score={node.score}
-      estimatedDuration={node.duration}
-      reason={node.reason}
-    />
-  );
+  return <RoadmapNodeCard title={node.title} status={node.status} score={node.score} estimatedDuration={node.duration} reason={node.reason} />;
 }
 
-type NodeSequenceProps = {
-  nodes: readonly BoostNode[];
-  onNavigate: (destination: string) => void;
-};
-
-function NodeSequence({
-  nodes,
-  onNavigate,
-}: NodeSequenceProps) {
+function NodeSequence({ nodes, onNavigate }: { nodes: readonly BoostNode[]; onNavigate: (destination: string) => void }) {
   return (
     <ol className={styles.nodeSequence}>
       {nodes.map((node, index) => (
         <li key={node.id}>
           <BoostNodeCard node={node} onNavigate={onNavigate} />
-          {index < nodes.length - 1 ? (
-            <span className={styles.nodeConnector} aria-hidden="true" />
-          ) : null}
+          {index < nodes.length - 1 ? <span className={styles.nodeConnector} aria-hidden="true" /> : null}
         </li>
       ))}
     </ol>
   );
 }
 
-type BranchSectionProps = {
+function BranchSection({ eyebrow, title, description, nodes, onNavigate }: {
   eyebrow: string;
   title: string;
   description: string;
   nodes: readonly BoostNode[];
   onNavigate: (destination: string) => void;
-};
-
-function BranchSection({
-  eyebrow,
-  title,
-  description,
-  nodes,
-  onNavigate,
-}: BranchSectionProps) {
+}) {
   return (
     <section className={styles.stage}>
       <header className={styles.stageHeader}>
@@ -232,26 +91,78 @@ function BranchSection({
         <h2>{title}</h2>
         <p>{description}</p>
       </header>
-
       <NodeSequence nodes={nodes} onNavigate={onNavigate} />
     </section>
   );
 }
 
-export function BoostFullRoadmap() {
+export function BoostFullRoadmap({ data }: { readonly data: RoadmapLiveData }) {
   const router = useRouter();
+  const navigateRoadmap = (mode: RoadmapMode, view: RoadmapView) => router.push(createRoadmapRoute({ mode, view }));
+  const navigateTo = (destination: string) => router.push(destination);
 
-  const navigateRoadmap = (mode: RoadmapMode, view: RoadmapView) => {
-    router.push(createRoadmapRoute({ mode, view }));
-  };
+  const diagnostic = data.latestDiagnostic;
+  const baselineNode: BoostNode = diagnostic
+    ? {
+        id: "latest-trial-result",
+        title: diagnostic.title || "Oxirgi diagnostika natijasi",
+        status: diagnostic.percentage < 60 ? "review-needed" : diagnostic.percentage < 80 ? "good" : "mastered",
+        score: diagnostic.score !== null && diagnostic.maximumScore !== null
+          ? `${diagnostic.score} / ${diagnostic.maximumScore}`
+          : `${diagnostic.percentage}%`,
+        reason: `${diagnostic.percentage}% • ${new Intl.DateTimeFormat("uz-UZ").format(new Date(diagnostic.completedAt))} • database natijasi`,
+        action: { label: "Diagnostikani ochish", destination: diagnostic.href },
+      }
+    : {
+        id: "latest-trial-result",
+        title: "Diagnostika natijasi hali yo‘q",
+        status: "available",
+        reason: "Natijani oshirish yo‘li diagnostika yoki real mavzu testlari asosida shakllanadi.",
+        action: { label: "Diagnostikani boshlash", destination: "/tests/milliy-sertifikat/diagnostika" },
+      };
 
-  const navigateTo = (destination: string) => {
-    router.push(destination);
-  };
+  const testBranchNodes: BoostNode[] = data.weakestTopics.length > 0
+    ? data.weakestTopics.map(topicToNode)
+    : [{
+        id: "no-topic-result",
+        title: "Mavzu natijalari hali yetarli emas",
+        status: "available",
+        reason: "Kamida bitta mavzu testini yakunlang. Zaif mavzular avtomatik aniqlanadi.",
+        action: { label: "Testlarni ochish", destination: "/tests" },
+      }];
 
-  const startSyntax = () => {
-    router.push("/tests/grammatika/sintaksis");
-  };
+  const essayBranchNodes: BoostNode[] = [
+    {
+      id: "essay-module",
+      title: "Esse natijalari",
+      status: "locked",
+      duration: "—",
+      reason: "AI va ustoz esse moduli ishga tushgach real esse ballari shu yerga ulanadi.",
+    },
+  ];
+
+  const finalSequenceNodes: BoostNode[] = [
+    {
+      id: "next-diagnostic",
+      title: "Keyingi to‘liq diagnostika",
+      status: data.totalAttempts > 0 ? "available" : "locked",
+      duration: "180 daqiqa",
+      reason: "Mavzu natijalaridagi o‘sishni keyingi to‘liq diagnostikada tekshiring.",
+      ...(data.totalAttempts > 0
+        ? { action: { label: "Diagnostikaga o‘tish", destination: "/tests/milliy-sertifikat/diagnostika" } }
+        : {}),
+    },
+    {
+      id: "essay-final",
+      title: "Esse bilan yakuniy natija",
+      status: "locked",
+      reason: "Esse moduli ulangach test + esse yakuniy natijasi shu bosqichda hisoblanadi.",
+    },
+  ];
+
+  const nextTopic = data.weakestTopics[0];
+  const nextDestination = nextTopic ? (destinations[nextTopic.nodeId] ?? "/tests") : "/tests";
+  const nextLabel = nextTopic ? `${nextTopic.label}ni mustahkamlash` : "Birinchi real testni ishlash";
 
   return (
     <RoadmapScreenShell
@@ -262,36 +173,21 @@ export function BoostFullRoadmap() {
       onViewChange={(view) => navigateRoadmap("boost", view)}
       stickyAction={
         <RoadmapStickyAction
-          nextStepLabel="Keyingi qadam: Sintaksisni mustahkamlash"
+          nextStepLabel={`Keyingi qadam: ${nextLabel}`}
           buttonLabel="Boshlash"
-          onAction={startSyntax}
+          onAction={() => navigateTo(nextDestination)}
         />
       }
     >
       <div className={styles.scrollContent}>
         <section className={styles.summary} aria-labelledby="boost-summary">
-          <h2 id="boost-summary">Natija tafsilotlari</h2>
+          <h2 id="boost-summary">Real natija tafsilotlari</h2>
           <dl>
-            <div>
-              <dt>Hozirgi daraja:</dt>
-              <dd>B</dd>
-            </div>
-            <div>
-              <dt>Hozirgi natija:</dt>
-              <dd>57 / 75</dd>
-            </div>
-            <div>
-              <dt>Maqsad:</dt>
-              <dd>A+</dd>
-            </div>
-            <div>
-              <dt>Kerakli o‘sish:</dt>
-              <dd>+13 ball</dd>
-            </div>
-            <div>
-              <dt>Natija manbasi:</dt>
-              <dd>Oxirgi sinov imtihoni</dd>
-            </div>
+            <div><dt>Oxirgi diagnostika:</dt><dd>{diagnostic ? `${diagnostic.percentage}%` : "—"}</dd></div>
+            <div><dt>Barcha urinishlar:</dt><dd>{data.totalAttempts}</dd></div>
+            <div><dt>O‘rtacha natija:</dt><dd>{data.averagePercentage === null ? "—" : `${data.averagePercentage}%`}</dd></div>
+            <div><dt>O‘zlashtirilgan mavzular:</dt><dd>{data.masteredTopics.length}</dd></div>
+            <div><dt>Natija manbasi:</dt><dd>Database’dagi real testlar</dd></div>
           </dl>
         </section>
 
@@ -299,78 +195,56 @@ export function BoostFullRoadmap() {
           <BranchSection
             eyebrow="1-BOSQICH"
             title="Boshlang‘ich natija"
-            description="Oxirgi natija shaxsiy ustuvorliklarni belgilaydi."
+            description="Oxirgi diagnostika mavjud bo‘lsa shu natija, aks holda real test tarixi ishlatiladi."
             nodes={[baselineNode]}
             onNavigate={navigateTo}
           />
 
           <div className={styles.splitConnector}>
-            <p>Natija ikki parallel yo‘nalishda oshiriladi</p>
-            <div className={styles.splitRails} aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </div>
-            <div className={styles.branchLabels}>
-              <span>TEST</span>
-              <span>ESSE</span>
-            </div>
+            <p>Natijalar real urinishlar asosida ustuvorlanadi</p>
+            <div className={styles.splitRails} aria-hidden="true"><span /><span /><span /></div>
+            <div className={styles.branchLabels}><span>TEST</span><span>ESSE</span></div>
           </div>
 
-          <div
-            role="group"
-            aria-label="Test va esse ballini oshirish parallel yo‘nalishlari"
-          >
+          <div role="group" aria-label="Test va esse yo‘nalishlari">
             <BranchSection
               eyebrow="A YO‘NALISH"
-              title="Test ballini oshirish"
-              description="Eng zaif uch mavzu natija va maqsadga ko‘ra ustuvorlandi."
+              title="Eng zaif mavzular"
+              description="Eng past o‘rtacha natijaga ega 3 ta real mavzu avtomatik tanlanadi."
               nodes={testBranchNodes}
               onNavigate={navigateTo}
             />
 
             <div className={styles.parallelContinuation}>
-              <span aria-hidden="true" />
-              <p>Test va esse ishlari bir-biriga parallel davom etadi</p>
-              <span aria-hidden="true" />
+              <span aria-hidden="true" /><p>Test natijalari hozir real database’dan olinmoqda</p><span aria-hidden="true" />
             </div>
 
             <BranchSection
               eyebrow="B YO‘NALISH"
               title="Esse ballini oshirish"
-              description="Zaif mezonlar ketma-ket mashq va tekshiruv bilan kuchaytiriladi."
+              description="Bu yo‘nalish teacher/AI esse moduli bilan keyingi bosqichda ulanadi."
               nodes={essayBranchNodes}
               onNavigate={navigateTo}
             />
           </div>
 
-          <p className={styles.essayPolicy}>
-            Avtomatik esse tekshiruvi yetarli. O‘qituvchi tekshiruvi
-            ixtiyoriy.
-          </p>
-
-          <details className={styles.masteredTopics} open>
-            <summary>O‘zlashtirilgan mavzular</summary>
-            <p>Fonetika&nbsp; • &nbsp;Morfemika&nbsp; • &nbsp;Morfologiya</p>
-            <p>
-              Majburiy yo‘ldan o‘tilmaydi, lekin ixtiyoriy takrorlash
-              mumkin.
-            </p>
-          </details>
+          {data.masteredTopics.length > 0 ? (
+            <details className={styles.masteredTopics} open>
+              <summary>O‘zlashtirilgan mavzular</summary>
+              <p>{data.masteredTopics.map((item) => `${item.label} ${item.percentage}%`).join(" • ")}</p>
+              <p>Bu ro‘yxat 80% va undan yuqori real o‘rtacha natijalardan shakllanadi.</p>
+            </details>
+          ) : null}
 
           <div className={styles.mergeConnector}>
-            <div className={styles.mergeRails} aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </div>
-            <p>Test va esse yo‘nalishlari birlashdi</p>
+            <div className={styles.mergeRails} aria-hidden="true"><span /><span /><span /></div>
+            <p>Keyingi diagnostikada o‘sishni tekshiring</p>
           </div>
 
           <BranchSection
             eyebrow="YAKUNIY BOSQICH"
-            title="Natijani birlashtirish"
-            description="Ikkala faol yo‘nalish yakunlangach ochiladi."
+            title="Natijani qayta o‘lchash"
+            description="Yangi diagnostika real o‘sishni database’da qayd etadi."
             nodes={finalSequenceNodes}
             onNavigate={navigateTo}
           />

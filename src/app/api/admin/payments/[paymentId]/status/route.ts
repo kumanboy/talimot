@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 
 import { hasValidAdminSession } from "@/features/admin/model/admin-session";
 import { sendPaymentStatusNotification } from "@/features/payments/server/send-payment-status-notification";
+import { createInAppNotification } from "@/features/notifications/server/create-in-app-notification";
 import { sendTangaNotification } from "@/features/tanga/server/send-tanga-notification";
 import { databaseClient, db } from "@/lib/database/db";
 import { manualPayments } from "@/lib/database/schema/manual-payments";
@@ -155,6 +156,21 @@ export async function POST(
             : [];
 
         if (user) {
+            try {
+                const isConfirmed = transactionResult.outcome === "confirmed";
+                await createInAppNotification({
+                    userId: payment.user_id as string,
+                    kind: payment.kind === "tanga" ? "tanga" : "payment",
+                    title: isConfirmed ? "To‘lov tasdiqlandi" : "To‘lov tasdiqlanmadi",
+                    message: isConfirmed
+                        ? `${code(payment.id)} · ${payment.title} muvaffaqiyatli tasdiqlandi.`
+                        : `${code(payment.id)} · ${payment.title} bo‘yicha to‘lov rad etildi.`,
+                    href: payment.kind === "tanga" ? "/profil" : payment.kind === "book" ? "/kitoblar" : "/kurslar",
+                });
+            } catch (notificationError) {
+                console.error("In-app payment notification failed", notificationError);
+            }
+
             if (
                 transactionResult.outcome === "confirmed" &&
                 payment.kind === "tanga" &&

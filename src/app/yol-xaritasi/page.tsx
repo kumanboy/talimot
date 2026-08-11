@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 
 import { BoostFullRoadmap } from "@/features/roadmap/components/boost-full-roadmap";
 import { FromZeroFullRoadmap } from "@/features/roadmap/components/from-zero-full-roadmap";
+import { RoadmapLegacyAttemptSync } from "@/features/roadmap/components/roadmap-legacy-attempt-sync";
+import { getStudentRoadmapData } from "@/features/roadmap/server/get-student-roadmap-data";
 import {
   parseRoadmapRoute,
   ROADMAP_PATH,
@@ -42,9 +44,16 @@ export default async function RoadmapPage({
     notFound();
   }
 
-  return routeState.mode === "boost" ? (
-      <BoostFullRoadmap />
-  ) : (
-      <FromZeroFullRoadmap />
+  const data = await getStudentRoadmapData();
+
+  return (
+      <>
+        <RoadmapLegacyAttemptSync />
+        {routeState.mode === "boost" ? (
+            <BoostFullRoadmap data={data} />
+        ) : (
+            <FromZeroFullRoadmap data={data} />
+        )}
+      </>
   );
 }

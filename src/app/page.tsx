@@ -16,6 +16,7 @@ import { HomeDrawer } from "@/features/home/components/home-drawer";
 import { MobileNavigation } from "@/features/home/components/mobile-navigation";
 import { ScrollToTop } from "@/features/home/components/scroll-to-top";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { NotificationCenter } from "@/features/notifications/components/notification-center";
 
 import styles from "./page.module.css";
 
@@ -121,28 +122,7 @@ export default function Home() {
                 <TalimotLogo/>
 
                 <div className={styles.headerActions}>
-                    <button
-                        className={styles.notificationButton}
-                        type="button"
-                        aria-label="Bildirishnomalar"
-                    >
-                        <svg
-                            aria-hidden="true"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                        >
-                            <path
-                                d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"
-                                stroke="currentColor"
-                                strokeWidth="1.8"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-
-                        <span aria-hidden="true"/>
-                    </button>
-
+                    <NotificationCenter />
                     <ThemeToggle />
                     <button
                         className={styles.menuButton}

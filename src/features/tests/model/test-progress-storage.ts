@@ -797,6 +797,17 @@ export function saveCompletedTest(
 
         notifyStorageChange();
 
+        // Persist the completed attempt to the authenticated database history.
+        // Local storage remains as an offline/browser cache for existing result UI.
+        void fetch("/api/test-attempts", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(completedTest),
+            keepalive: true,
+        }).catch(() => {
+            // The local result is still retained; roadmap legacy sync retries later.
+        });
+
         return completedTest;
     } catch {
         // Local storage unavailable.

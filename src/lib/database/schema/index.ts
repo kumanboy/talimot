@@ -5,3 +5,5 @@ export * from "./tanga-wallets";
 export * from "./tanga-transactions";
 export * from "./manual-payments";
 export * from "./catalog-items";
+export * from "./student-test-attempts";
+export * from "./notifications";

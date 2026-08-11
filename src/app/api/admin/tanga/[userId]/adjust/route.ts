@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 
 import { hasValidAdminSession } from "@/features/admin/model/admin-session";
 import { sendTangaNotification } from "@/features/tanga/server/send-tanga-notification";
+import { createInAppNotification } from "@/features/notifications/server/create-in-app-notification";
 import { databaseClient, db } from "@/lib/database/db";
 import { users } from "@/lib/database/schema";
 
@@ -133,6 +134,20 @@ export async function POST(
             .from(users)
             .where(eq(users.id, userId))
             .limit(1);
+
+        if (user) {
+            try {
+                await createInAppNotification({
+                    userId,
+                    kind: "tanga",
+                    title: direction === "credit" ? "Tanga qo‘shildi" : "Tanga sarflandi",
+                    message: `${direction === "credit" ? "+" : "-"}${amount} Tanga · Yangi balans: ${balanceAfter} Tanga${note ? ` · ${note}` : ""}`,
+                    href: "/profil",
+                });
+            } catch (notificationError) {
+                console.error("In-app Tanga notification failed", notificationError);
+            }
+        }
 
         const notification = user
             ? await sendTangaNotification({
