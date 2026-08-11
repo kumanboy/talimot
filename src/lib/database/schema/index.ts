@@ -7,3 +7,6 @@ export * from "./manual-payments";
 export * from "./catalog-items";
 export * from "./student-test-attempts";
 export * from "./notifications";
+export * from "./essay-submissions";
+export * from "./essay-submission-files";
+export * from "./essay-reviews";
