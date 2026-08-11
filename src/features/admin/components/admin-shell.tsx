@@ -15,6 +15,7 @@ export type AdminNavigationKey =
     | "users"
     | "certificates"
     | "products"
+    | "tanga"
     | "payments"
     | "settings";
 
@@ -62,8 +63,13 @@ const adminNavigationItems:
             disabled: true,
         },
         {
+            key: "tanga",
+            label: "Tanga",
+            href: "/admin/tanga",
+        },
+        {
             key: "payments",
-            label: "Tanga va to‘lovlar",
+            label: "To‘lovlar",
             disabled: true,
         },
         {

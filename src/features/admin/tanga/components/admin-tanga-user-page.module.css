@@ -1,0 +1,273 @@
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.header a {
+    color: var(--app-primary);
+    font-size: 9px;
+    font-weight: 850;
+    text-decoration: none;
+}
+
+.header h1 {
+    margin: 8px 0 0;
+    font-size: 30px;
+    letter-spacing: -0.04em;
+}
+
+.header p {
+    margin: 7px 0 0;
+    color: var(--app-text-secondary);
+    font-size: 11px;
+}
+
+.activeBadge,
+.blockedBadge,
+.creditBadge,
+.debitBadge {
+    display: inline-flex;
+    min-height: 27px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 8px;
+    font-weight: 900;
+}
+
+.activeBadge,
+.creditBadge {
+    background: color-mix(in srgb, #22c55e 12%, var(--app-surface));
+    color: #16803d;
+}
+
+.blockedBadge,
+.debitBadge {
+    background: color-mix(in srgb, #ef4444 11%, var(--app-surface));
+    color: #b42318;
+}
+
+.successMessage,
+.errorMessage {
+    margin-top: 18px;
+    padding: 13px 15px;
+    border-radius: 13px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.successMessage {
+    border: 1px solid color-mix(in srgb, #22c55e 35%, var(--app-border));
+    background: color-mix(in srgb, #22c55e 8%, var(--app-surface));
+    color: #16803d;
+}
+
+.errorMessage {
+    border: 1px solid color-mix(in srgb, #ef4444 35%, var(--app-border));
+    background: color-mix(in srgb, #ef4444 7%, var(--app-surface));
+    color: #b42318;
+}
+
+.walletGrid {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.4fr) repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.walletGrid article {
+    display: grid;
+    align-content: center;
+    gap: 8px;
+    min-height: 150px;
+    padding: 20px;
+    border: 1px solid var(--app-border);
+    border-radius: 19px;
+    background: var(--app-surface);
+}
+
+.walletGrid span,
+.sectionHeading > span {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.07em;
+}
+
+.walletGrid strong {
+    color: var(--app-text);
+    font-size: 26px;
+    letter-spacing: -0.035em;
+}
+
+.balanceCard {
+    background: var(--app-primary) !important;
+    color: #fff;
+}
+
+.balanceCard span,
+.balanceCard strong,
+.balanceCard p,
+.balanceCard small {
+    color: #fff;
+}
+
+.balanceCard strong {
+    font-size: 42px;
+}
+
+.balanceCard p,
+.balanceCard small {
+    margin: 0;
+}
+
+.balanceCard p {
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.balanceCard small {
+    opacity: 0.78;
+    font-size: 8px;
+}
+
+.adjustCard,
+.historyCard {
+    margin-top: 18px;
+    padding: 20px;
+    border: 1px solid var(--app-border);
+    border-radius: 20px;
+    background: var(--app-surface);
+}
+
+.sectionHeading h2 {
+    margin: 5px 0 0;
+    font-size: 18px;
+}
+
+.sectionHeading p {
+    margin: 7px 0 0;
+    color: var(--app-text-secondary);
+    font-size: 9px;
+    line-height: 1.55;
+}
+
+.adjustForm {
+    display: grid;
+    grid-template-columns: 180px 180px minmax(260px, 1fr) auto;
+    align-items: end;
+    gap: 11px;
+    margin-top: 18px;
+}
+
+.adjustForm label {
+    display: grid;
+    gap: 7px;
+}
+
+.adjustForm label > span {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    font-weight: 850;
+}
+
+.adjustForm input,
+.adjustForm select,
+.adjustForm button {
+    min-height: 44px;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 10px;
+}
+
+.adjustForm input,
+.adjustForm select {
+    padding: 0 12px;
+    border: 1px solid var(--app-border);
+    outline: none;
+    background: var(--app-background-subtle);
+    color: var(--app-text);
+}
+
+.adjustForm input:focus,
+.adjustForm select:focus {
+    border-color: var(--app-focus);
+    box-shadow: 0 0 0 4px rgb(55 111 181 / 10%);
+}
+
+.adjustForm button {
+    padding: 0 16px;
+    border: 1px solid var(--app-primary);
+    background: var(--app-primary);
+    color: #fff;
+    cursor: pointer;
+    font-weight: 850;
+}
+
+.tableWrap {
+    overflow-x: auto;
+    margin-top: 15px;
+    border: 1px solid var(--app-border);
+    border-radius: 15px;
+}
+
+.tableWrap table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+}
+
+.tableWrap th,
+.tableWrap td {
+    padding: 13px;
+    border-bottom: 1px solid var(--app-border);
+    text-align: left;
+}
+
+.tableWrap th {
+    background: var(--app-background-subtle);
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.tableWrap td {
+    color: var(--app-text-secondary);
+    font-size: 9px;
+    font-weight: 650;
+}
+
+.tableWrap tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.creditAmount {
+    color: #16803d;
+}
+
+.debitAmount {
+    color: #b42318;
+}
+
+.emptyState {
+    padding: 38px !important;
+    text-align: center !important;
+}
+
+@media (max-width: 1260px) {
+    .walletGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .adjustForm {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .noteField {
+        grid-column: 1 / -1;
+    }
+}
