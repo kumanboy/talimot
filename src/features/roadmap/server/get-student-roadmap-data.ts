@@ -14,7 +14,7 @@ import { db } from "@/lib/database/db";
 import { studentTestAttempts } from "@/lib/database/schema/student-test-attempts";
 import { users } from "@/lib/database/schema/users";
 
-import type { RoadmapLiveData } from "@/features/roadmap/model/live-data";
+import type { RoadmapLiveData, RoadmapLiveNode } from "@/features/roadmap/model/live-data";
 
 type Attempt = {
     id: string;
