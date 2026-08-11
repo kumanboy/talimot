@@ -1,6 +1,6 @@
 # TA'LIMOT — payment final update
 
-## Manual HUMO payment
+## Manual UZCARD payment
 
 A single shared payment configuration is now used by:
 

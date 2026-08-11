@@ -38,21 +38,33 @@ function paymentCode(id: string): string {
     return `PAY-${id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
-function sanitizeMetadata(value: Record<string, unknown> | undefined): Record<string, string | number | boolean | null> {
+function sanitizeMetadata(
+    value: Record<string, unknown> | undefined,
+): Record<string, string | number | boolean | null> {
     if (!value) return {};
 
-    return Object.fromEntries(
-        Object.entries(value)
-            .slice(0, 20)
-            .flatMap(([key, item]) => {
-                const safeKey = key.trim().slice(0, 60);
-                if (!safeKey) return [];
-                if (typeof item === "string") return [[safeKey, item.slice(0, 240)]];
-                if (typeof item === "number" && Number.isFinite(item)) return [[safeKey, item]];
-                if (typeof item === "boolean" || item === null) return [[safeKey, item]];
-                return [];
-            }),
-    );
+    const sanitized: Record<string, string | number | boolean | null> = {};
+
+    for (const [key, item] of Object.entries(value).slice(0, 20)) {
+        const safeKey = key.trim().slice(0, 60);
+        if (!safeKey) continue;
+
+        if (typeof item === "string") {
+            sanitized[safeKey] = item.slice(0, 240);
+            continue;
+        }
+
+        if (typeof item === "number" && Number.isFinite(item)) {
+            sanitized[safeKey] = item;
+            continue;
+        }
+
+        if (typeof item === "boolean" || item === null) {
+            sanitized[safeKey] = item;
+        }
+    }
+
+    return sanitized;
 }
 
 export async function POST(request: NextRequest) {

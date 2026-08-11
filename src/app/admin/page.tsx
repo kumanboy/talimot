@@ -52,7 +52,7 @@ const dashboardSections = [
     {
         title: "Tanga va to‘lovlar",
         description:
-            "Tanga hamyonlari va HUMO to‘lov so‘rovlarini boshqarish.",
+            "Tanga hamyonlari va UZCARD to‘lov so‘rovlarini boshqarish.",
         status: "Ishlayapti",
         href: "/admin/payments",
         enabled: true,

@@ -54,7 +54,8 @@ type NotificationStatus = "sent" | "unavailable" | "failed";
 function sourceLabel(value: string): string {
     switch (value) {
         case "humo_payment":
-            return "HUMO to‘lov";
+        case "uzcard_payment":
+            return "UZCARD to‘lov";
         case "promo_bonus":
             return "Promo bonus";
         case "manual_correction":
@@ -178,7 +179,7 @@ export function AdminTangaUserPage({
                     <h2>Tanga balansini o‘zgartirish</h2>
                     <p>
                         Bu forma faqat promo, kompensatsiya va qo‘lda tuzatish uchun.
-                        HUMO orqali real Tanga xaridlarini “To‘lovlar” bo‘limidan tasdiqlang — paket Tangasi avtomatik qo‘shiladi.
+                        UZCARD orqali real Tanga xaridlarini “To‘lovlar” bo‘limidan tasdiqlang — paket Tangasi avtomatik qo‘shiladi.
                     </p>
                 </div>
 
