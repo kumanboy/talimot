@@ -14,6 +14,7 @@ import {
 
 export type AdminTangaUserRecord = {
     readonly id: string;
+    readonly userNumber: number;
     readonly firstName: string;
     readonly lastName: string;
     readonly fatherName: string;
@@ -29,6 +30,7 @@ export type AdminTangaUserRecord = {
 export type AdminTangaTransactionRecord = {
     readonly id: string;
     readonly userId: string;
+    readonly userNumber: number;
     readonly firstName: string;
     readonly lastName: string;
     readonly direction: "credit" | "debit";
@@ -68,6 +70,7 @@ export async function getAdminTangaOverview(options?: {
     const allWalletUsers = await db
         .select({
             id: users.id,
+            userNumber: users.userNumber,
             firstName: users.firstName,
             lastName: users.lastName,
             fatherName: users.fatherName,
@@ -109,6 +112,7 @@ export async function getAdminTangaOverview(options?: {
 
         const haystack = [
             record.id,
+            String(record.userNumber),
             record.firstName,
             record.lastName,
             record.fatherName,
@@ -128,6 +132,7 @@ export async function getAdminTangaOverview(options?: {
         .select({
             id: tangaTransactions.id,
             userId: tangaTransactions.userId,
+            userNumber: users.userNumber,
             firstName: users.firstName,
             lastName: users.lastName,
             direction: tangaTransactions.direction,
@@ -172,6 +177,7 @@ export async function getAdminTangaUser(userId: string) {
     const [record] = await db
         .select({
             id: users.id,
+            userNumber: users.userNumber,
             firstName: users.firstName,
             lastName: users.lastName,
             fatherName: users.fatherName,

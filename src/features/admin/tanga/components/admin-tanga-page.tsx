@@ -23,6 +23,23 @@ function formatNumber(value: number): string {
     return new Intl.NumberFormat("uz-UZ").format(value);
 }
 
+function sourceLabel(value: string): string {
+    switch (value) {
+        case "humo_payment":
+            return "HUMO to‘lov";
+        case "promo_bonus":
+            return "Promo bonus";
+        case "manual_correction":
+            return "Qo‘lda tuzatish";
+        case "other":
+            return "Boshqa";
+        case "admin_adjustment":
+            return "Admin amali";
+        default:
+            return value;
+    }
+}
+
 export function AdminTangaPage({
     overview,
     search,
@@ -82,7 +99,7 @@ export function AdminTangaPage({
                             type="search"
                             name="q"
                             defaultValue={search}
-                            placeholder="Ism, familiya, telefon, Telegram yoki ID..."
+                            placeholder="Foydalanuvchi ID (masalan 5700), telefon, ism yoki Telegram..."
                         />
                     </label>
                     <button type="submit">Qidirish</button>
@@ -126,9 +143,10 @@ export function AdminTangaPage({
                                                         {record.firstName} {record.lastName}
                                                     </strong>
                                                     <span>
+                                                        ID {record.userNumber}
                                                         {record.telegramUsername
-                                                            ? `@${record.telegramUsername.replace(/^@/, "")}`
-                                                            : record.id}
+                                                            ? ` · @${record.telegramUsername.replace(/^@/, "")}`
+                                                            : ""}
                                                     </span>
                                                 </div>
                                             </div>
@@ -208,6 +226,7 @@ export function AdminTangaPage({
                                                 href={`/admin/tanga/${encodeURIComponent(transaction.userId)}`}
                                             >
                                                 {transaction.firstName} {transaction.lastName}
+                                                <small> · ID {transaction.userNumber}</small>
                                             </a>
                                         </td>
                                         <td>
@@ -238,7 +257,7 @@ export function AdminTangaPage({
                                         <td>
                                             {formatNumber(transaction.balanceBefore)} → {formatNumber(transaction.balanceAfter)}
                                         </td>
-                                        <td>{transaction.source}</td>
+                                        <td>{sourceLabel(transaction.source)}</td>
                                         <td>{transaction.note ?? "—"}</td>
                                     </tr>
                                 ))

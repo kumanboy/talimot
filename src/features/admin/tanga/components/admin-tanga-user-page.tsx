@@ -22,6 +22,7 @@ function formatNumber(value: number): string {
 type TangaUserDetails = {
     readonly user: {
         readonly id: string;
+        readonly userNumber: number;
         readonly firstName: string;
         readonly lastName: string;
         readonly fatherName: string;
@@ -47,12 +48,34 @@ type TangaUserDetails = {
     }[];
 };
 
+type StatusMessage = "credited" | "debited" | "insufficient" | "invalid" | "failed";
+type NotificationStatus = "sent" | "unavailable" | "failed";
+
+function sourceLabel(value: string): string {
+    switch (value) {
+        case "humo_payment":
+            return "HUMO to‘lov";
+        case "promo_bonus":
+            return "Promo bonus";
+        case "manual_correction":
+            return "Qo‘lda tuzatish";
+        case "other":
+            return "Boshqa";
+        case "admin_adjustment":
+            return "Admin amali";
+        default:
+            return value;
+    }
+}
+
 export function AdminTangaUserPage({
     details,
     statusMessage,
+    notificationStatus,
 }: {
     readonly details: TangaUserDetails;
-    readonly statusMessage?: "credited" | "debited" | "insufficient" | "invalid" | "failed";
+    readonly statusMessage?: StatusMessage;
+    readonly notificationStatus?: NotificationStatus;
 }) {
     const { user, transactions } = details;
 
@@ -62,7 +85,12 @@ export function AdminTangaUserPage({
                 <div>
                     <a href="/admin/tanga">← Tanga bo‘limiga qaytish</a>
                     <h1>{user.firstName} {user.lastName}</h1>
-                    <p>{user.phone} · {user.fatherName}</p>
+                    <p>
+                        ID {user.userNumber} · {user.phone}
+                        {user.telegramUsername
+                            ? ` · @${user.telegramUsername.replace(/^@/, "")}`
+                            : ""}
+                    </p>
                 </div>
 
                 <span
@@ -92,8 +120,18 @@ export function AdminTangaUserPage({
                             : statusMessage === "insufficient"
                                 ? "Foydalanuvchi balansida yetarli Tanga yo‘q."
                                 : statusMessage === "invalid"
-                                    ? "Miqdor noto‘g‘ri. 1 dan 1 000 000 gacha Tanga kiriting."
+                                    ? "Kiritilgan tranzaksiya ma’lumotlarini tekshiring."
                                     : "Tranzaksiyani bajarib bo‘lmadi."}
+
+                    {(statusMessage === "credited" || statusMessage === "debited") && notificationStatus ? (
+                        <span className={styles.notificationResult}>
+                            {notificationStatus === "sent"
+                                ? "Telegram bildirishnomasi ham yuborildi."
+                                : notificationStatus === "unavailable"
+                                    ? "Telegram chat topilmagani uchun bildirishnoma yuborilmadi."
+                                    : "Tanga o‘zgardi, lekin Telegram bildirishnomasini yuborib bo‘lmadi."}
+                        </span>
+                    ) : null}
                 </div>
             ) : null}
 
@@ -116,12 +154,31 @@ export function AdminTangaUserPage({
                 </article>
             </section>
 
+            <section className={styles.identityCard}>
+                <div>
+                    <span>FOYDALANUVCHI RAQAMI</span>
+                    <strong>{user.userNumber}</strong>
+                    <small>Chekdagi ID bilan solishtiring</small>
+                </div>
+                <div>
+                    <span>TELEFON</span>
+                    <strong>{user.phone}</strong>
+                    <small>Telefon orqali ham qidirish mumkin</small>
+                </div>
+                <div>
+                    <span>F.I.SH.</span>
+                    <strong>{user.firstName} {user.lastName}</strong>
+                    <small>{user.fatherName}</small>
+                </div>
+            </section>
+
             <section className={styles.adjustCard}>
                 <div className={styles.sectionHeading}>
                     <span>ADMIN AMALI</span>
                     <h2>Tanga balansini o‘zgartirish</h2>
                     <p>
-                        Har bir amal ledger’da alohida tranzaksiya sifatida saqlanadi.
+                        Chek kelganda foydalanuvchini ID yoki telefon orqali toping.
+                        To‘lov manbasi, summa va chek raqamini saqlash keyingi tekshiruvni osonlashtiradi.
                     </p>
                 </div>
 
@@ -139,15 +196,47 @@ export function AdminTangaUserPage({
                     </label>
 
                     <label>
-                        <span>Miqdor</span>
+                        <span>Tanga miqdori</span>
                         <input
                             type="number"
                             name="amount"
                             min="1"
                             max="1000000"
                             step="1"
-                            placeholder="Masalan: 100"
+                            placeholder="Masalan: 7"
                             required
+                        />
+                    </label>
+
+                    <label>
+                        <span>Manba</span>
+                        <select name="source" defaultValue="humo_payment" required>
+                            <option value="humo_payment">HUMO orqali to‘lov</option>
+                            <option value="promo_bonus">Promo bonus</option>
+                            <option value="manual_correction">Qo‘lda tuzatish</option>
+                            <option value="other">Boshqa</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>To‘langan summa (so‘m)</span>
+                        <input
+                            type="number"
+                            name="paymentAmount"
+                            min="1"
+                            max="100000000"
+                            step="1"
+                            placeholder="Masalan: 20000"
+                        />
+                    </label>
+
+                    <label>
+                        <span>Chek / reference</span>
+                        <input
+                            type="text"
+                            name="receiptReference"
+                            maxLength={80}
+                            placeholder="Chek ID yoki oxirgi raqamlar"
                         />
                     </label>
 
@@ -157,7 +246,7 @@ export function AdminTangaUserPage({
                             type="text"
                             name="note"
                             maxLength={160}
-                            placeholder="Masalan: Promo bonus, qo‘lda to‘lov, tuzatish..."
+                            placeholder="Masalan: Boshlang‘ich tarif, chek tasdiqlandi..."
                         />
                     </label>
 
@@ -220,7 +309,7 @@ export function AdminTangaUserPage({
                                         </td>
                                         <td>{formatNumber(transaction.balanceBefore)}</td>
                                         <td>{formatNumber(transaction.balanceAfter)}</td>
-                                        <td>{transaction.source}</td>
+                                        <td>{sourceLabel(transaction.source)}</td>
                                         <td>{transaction.note ?? "—"}</td>
                                     </tr>
                                 ))

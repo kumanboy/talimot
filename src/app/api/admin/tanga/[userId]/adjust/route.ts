@@ -1,17 +1,43 @@
 import { randomUUID } from "node:crypto";
 
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { hasValidAdminSession } from "@/features/admin/model/admin-session";
-import { databaseClient } from "@/lib/database/db";
+import { sendTangaNotification } from "@/features/tanga/server/send-tanga-notification";
+import { databaseClient, db } from "@/lib/database/db";
+import { users } from "@/lib/database/schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type AdjustmentStatus =
+    | "credited"
+    | "debited"
+    | "insufficient"
+    | "invalid"
+    | "failed";
+
+type NotificationStatus = "sent" | "unavailable" | "failed";
+
+type AdjustmentSource =
+    | "humo_payment"
+    | "promo_bonus"
+    | "manual_correction"
+    | "other";
+
+const ALLOWED_SOURCES = new Set<AdjustmentSource>([
+    "humo_payment",
+    "promo_bonus",
+    "manual_correction",
+    "other",
+]);
+
 function redirectToUser(
     request: Request,
     userId: string,
-    status: "credited" | "debited" | "insufficient" | "invalid" | "failed",
+    status: AdjustmentStatus,
+    notification?: NotificationStatus,
 ) {
     const url = new URL(
         `/admin/tanga/${encodeURIComponent(userId)}`,
@@ -19,7 +45,21 @@ function redirectToUser(
     );
     url.searchParams.set("status", status);
 
+    if (notification) {
+        url.searchParams.set("notification", notification);
+    }
+
     return NextResponse.redirect(url, 303);
+}
+
+function cleanText(value: FormDataEntryValue | null, maxLength: number) {
+    return typeof value === "string" && value.trim()
+        ? value.trim().slice(0, maxLength)
+        : null;
+}
+
+function formatSom(value: number): string {
+    return new Intl.NumberFormat("uz-UZ").format(value);
 }
 
 export async function POST(
@@ -34,7 +74,10 @@ export async function POST(
     const formData = await request.formData();
     const directionValue = formData.get("direction");
     const amountValue = formData.get("amount");
-    const noteValue = formData.get("note");
+    const sourceValue = cleanText(formData.get("source"), 40);
+    const paymentAmountValue = formData.get("paymentAmount");
+    const receiptReference = cleanText(formData.get("receiptReference"), 80);
+    const rawNote = cleanText(formData.get("note"), 160);
 
     const direction =
         directionValue === "credit" || directionValue === "debit"
@@ -44,40 +87,91 @@ export async function POST(
         typeof amountValue === "string"
             ? Number.parseInt(amountValue, 10)
             : Number.NaN;
-    const note =
-        typeof noteValue === "string" && noteValue.trim()
-            ? noteValue.trim().slice(0, 160)
+    const source = sourceValue && ALLOWED_SOURCES.has(sourceValue as AdjustmentSource)
+        ? sourceValue as AdjustmentSource
+        : null;
+    const paymentAmount =
+        typeof paymentAmountValue === "string" && paymentAmountValue.trim()
+            ? Number.parseInt(paymentAmountValue, 10)
             : null;
 
     if (
         !direction ||
+        !source ||
         !Number.isSafeInteger(amount) ||
         amount < 1 ||
-        amount > 1_000_000
+        amount > 1_000_000 ||
+        (paymentAmount !== null &&
+            (!Number.isSafeInteger(paymentAmount) ||
+                paymentAmount < 1 ||
+                paymentAmount > 100_000_000))
     ) {
         return redirectToUser(request, userId, "invalid");
     }
 
+    const noteParts: string[] = [];
+
+    if (source === "humo_payment" && paymentAmount) {
+        noteParts.push(`HUMO to‘lov: ${formatSom(paymentAmount)} so‘m`);
+    }
+
+    if (rawNote) {
+        noteParts.push(rawNote);
+    }
+
+    const note = noteParts.length ? noteParts.join(" · ").slice(0, 160) : null;
+    const referenceType = source === "humo_payment"
+        ? "humo_receipt"
+        : source;
+
     try {
-        await databaseClient`
+        const rows = await databaseClient`
             select *
             from public.apply_tanga_transaction(
                 ${randomUUID()},
                 ${userId},
                 ${direction},
                 ${amount},
-                ${"admin_adjustment"},
-                ${"admin"},
-                ${null},
+                ${source},
+                ${referenceType},
+                ${receiptReference},
                 ${note},
                 ${"admin"}
             )
         `;
 
+        const result = rows[0] as {
+            balance_after?: number;
+        } | undefined;
+        const balanceAfter = Number(result?.balance_after ?? 0);
+
+        const [user] = await db
+            .select({
+                userNumber: users.userNumber,
+                firstName: users.firstName,
+                telegramChatId: users.telegramChatId,
+            })
+            .from(users)
+            .where(eq(users.id, userId))
+            .limit(1);
+
+        const notification = user
+            ? await sendTangaNotification({
+                chatId: user.telegramChatId ?? null,
+                firstName: user.firstName,
+                userNumber: user.userNumber,
+                direction,
+                amount,
+                balanceAfter,
+                note,
+            })
+            : "unavailable";
+
         return redirectToUser(
             request,
             userId,
             direction === "credit" ? "credited" : "debited",
+            notification,
         );
     } catch (error) {
         const message =
@@ -93,6 +187,7 @@ export async function POST(
             userId,
             direction,
             amount,
+            source,
             error,
         });
 

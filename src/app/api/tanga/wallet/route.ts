@@ -26,12 +26,16 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const [wallet] = await db
+        const [record] = await db
             .select({
                 balance: tangaWallets.balance,
                 lifetimeCredited: tangaWallets.lifetimeCredited,
                 lifetimeSpent: tangaWallets.lifetimeSpent,
                 updatedAt: tangaWallets.updatedAt,
+                userNumber: users.userNumber,
+                firstName: users.firstName,
+                lastName: users.lastName,
+                phone: users.phone,
             })
             .from(tangaWallets)
             .innerJoin(
@@ -44,7 +48,7 @@ export async function GET(request: NextRequest) {
             .where(eq(tangaWallets.userId, session.userId))
             .limit(1);
 
-        if (!wallet) {
+        if (!record) {
             return NextResponse.json(
                 { error: "Tanga hamyoni topilmadi." },
                 { status: 404 },
@@ -53,7 +57,18 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             ok: true,
-            wallet,
+            wallet: {
+                balance: record.balance,
+                lifetimeCredited: record.lifetimeCredited,
+                lifetimeSpent: record.lifetimeSpent,
+                updatedAt: record.updatedAt,
+            },
+            user: {
+                userNumber: record.userNumber,
+                firstName: record.firstName,
+                lastName: record.lastName,
+                phone: record.phone,
+            },
         });
     } catch (error) {
         console.error("Tanga wallet fetch failed", error);

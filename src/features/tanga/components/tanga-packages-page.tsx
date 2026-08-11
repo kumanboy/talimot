@@ -21,8 +21,9 @@ import type {
 import { useTangaWallet } from "@/features/tanga/hooks/use-tanga-wallet";
 import styles from "./tanga-packages-page.module.css";
 
-const DEMO_CARD_NUMBER = "8600 0000 0000 0000";
-const DEMO_CARD_HOLDER = "TA’LIMOT DEMO";
+const PAYMENT_METHOD = "HUMO";
+const PAYMENT_CARD_NUMBER = "9860 3501 4242 7581";
+const PAYMENT_CARD_HOLDER = "Sardor Toshmuhammadov";
 const TELEGRAM_USERNAME = "husan_davronov";
 
 function formatPrice(value: number): string {
@@ -147,7 +148,11 @@ async function copyText(value: string): Promise<boolean> {
 
 export function TangaPackagesPage() {
     const router = useRouter();
-    const { balance: tangaBalance, isLoading: isTangaLoading } = useTangaWallet();
+    const {
+        balance: tangaBalance,
+        user: walletUser,
+        isLoading: isTangaLoading,
+    } = useTangaWallet();
 
     const [selectedId, setSelectedId] =
         useState<TangaPackageId>("standard");
@@ -167,13 +172,24 @@ export function TangaPackagesPage() {
     const pricePerTanga =
         selectedPackage.price / selectedPackage.amount;
 
+    const buyerIdentity = walletUser
+        ? `Foydalanuvchi ID: ${walletUser.userNumber} (${walletUser.firstName} ${walletUser.lastName})`
+        : "Foydalanuvchi ID: yuklanmoqda";
+
+    const buyerPhone = walletUser
+        ? `Telefon: ${walletUser.phone}`
+        : "";
+
     const telegramMessage = [
-        "Assalomu alaykum!",
-        "",
-        `Men ${selectedPackage.amount} Tanga paketini sotib olmoqchiman.`,
-        `To‘lov summasi: ${formatPrice(selectedPackage.price)}.`,
-        "To‘lov chekini yuboryapman.",
-    ].join("\n");
+        `Assalomu alaykum, men ${selectedPackage.name} tarifini (${formatPrice(selectedPackage.price)}) sotib olmoqchiman.`,
+        `To‘lov usuli: ${PAYMENT_METHOD}`,
+        `Karta: ${PAYMENT_CARD_NUMBER} (${PAYMENT_CARD_HOLDER})`,
+        "To‘lovni amalga oshirgach, chekni shu yerga yuboraman.",
+        buyerIdentity,
+        buyerPhone,
+    ]
+        .filter(Boolean)
+        .join("\n");
 
     const telegramHref =
         `https://t.me/${TELEGRAM_USERNAME}` +
@@ -181,7 +197,7 @@ export function TangaPackagesPage() {
 
     const handleCopyCard = async () => {
         const copied = await copyText(
-            DEMO_CARD_NUMBER.replace(/\s/g, ""),
+            PAYMENT_CARD_NUMBER.replace(/\s/g, ""),
         );
 
         setCopyStatus(copied ? "copied" : "failed");
@@ -262,7 +278,7 @@ export function TangaPackagesPage() {
                                     <span className={styles.packageCopy}>
                                         <span className={styles.packageTop}>
                                             <strong>
-                                                {item.amount} Tanga
+                                                {item.name} · {item.amount} Tanga
                                             </strong>
 
                                             {item.badge ? (
@@ -394,8 +410,8 @@ export function TangaPackagesPage() {
                             <div>
                                 <span>TO‘LOV MA’LUMOTLARI</span>
                                 <h2 id="purchase-modal-title">
-                                    {selectedPackage.amount} Tanga
-                                    paketini sotib olish
+                                    {selectedPackage.name} tarifini
+                                    sotib olish
                                 </h2>
                             </div>
 
@@ -414,7 +430,7 @@ export function TangaPackagesPage() {
                             <div>
                                 <span>Paket</span>
                                 <strong>
-                                    {selectedPackage.amount} Tanga
+                                    {selectedPackage.name} · {selectedPackage.amount} Tanga
                                 </strong>
                             </div>
 
@@ -426,6 +442,15 @@ export function TangaPackagesPage() {
                                     )}
                                 </strong>
                             </div>
+
+                            <div>
+                                <span>Foydalanuvchi</span>
+                                <strong>
+                                    {walletUser
+                                        ? `ID ${walletUser.userNumber} · ${walletUser.phone}`
+                                        : "Yuklanmoqda…"}
+                                </strong>
+                            </div>
                         </div>
 
                         <button
@@ -434,14 +459,14 @@ export function TangaPackagesPage() {
                             onClick={handleCopyCard}
                         >
                             <span className={styles.cardTop}>
-                                <span>DEMO KARTA</span>
+                                <span>{PAYMENT_METHOD} KARTA</span>
                                 <CopyIcon />
                             </span>
 
-                            <strong>{DEMO_CARD_NUMBER}</strong>
+                            <strong>{PAYMENT_CARD_NUMBER}</strong>
 
                             <span className={styles.cardBottom}>
-                                <span>{DEMO_CARD_HOLDER}</span>
+                                <span>{PAYMENT_CARD_HOLDER}</span>
                                 <em>
                                     {copyStatus === "copied"
                                         ? "Nusxalandi ✓"
@@ -452,12 +477,11 @@ export function TangaPackagesPage() {
                             </span>
                         </button>
 
-                        <p className={styles.demoWarning}>
-                            Bu tasodifiy yaratilgan demo karta
-                            ma’lumoti. Haqiqiy to‘lov qabul
-                            qilmaydi. Ishga tushirishdan oldin
-                            administratorning haqiqiy karta
-                            ma’lumotlari bilan almashtiring.
+                        <p className={styles.paymentNote}>
+                            To‘lovni aynan yuqoridagi HUMO kartaga amalga oshiring.
+                            So‘ng Telegram tugmasini bosib, tayyor xabar bilan birga
+                            to‘lov chekini yuboring. Foydalanuvchi ID va telefon
+                            raqami administratorga hisobingizni tez topishga yordam beradi.
                         </p>
 
                         <a

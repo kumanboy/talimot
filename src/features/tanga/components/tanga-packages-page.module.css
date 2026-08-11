@@ -124,7 +124,7 @@
 .legalNote,
 .modalHeader h2,
 .modalHelper,
-.demoWarning {
+.paymentNote {
     margin: 0;
 }
 
@@ -566,21 +566,21 @@
     font-weight: 800;
 }
 
-.demoWarning {
+.paymentNote {
     margin-top: 11px;
     padding: 11px;
     border:
         1px solid
         color-mix(
             in srgb,
-            var(--app-error) 32%,
+            var(--app-primary) 30%,
             var(--app-border)
         );
     border-radius: 13px;
     background:
         color-mix(
             in srgb,
-            var(--app-error) 7%,
+            var(--app-primary) 7%,
             var(--app-surface)
         );
     color: var(--app-text-secondary);

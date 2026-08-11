@@ -1,6 +1,9 @@
+import { sql } from "drizzle-orm";
+
 import {
     bigint,
     index,
+    integer,
     pgTable,
     text,
     uniqueIndex,
@@ -10,6 +13,9 @@ export const users = pgTable(
     "users",
     {
         id: text("id").primaryKey(),
+        userNumber: integer("user_number")
+            .notNull()
+            .default(sql`nextval('public.talimot_user_number_seq')`),
         firstName: text("first_name").notNull(),
         lastName: text("last_name").notNull(),
         fatherName: text("father_name").notNull(),
@@ -25,6 +31,7 @@ export const users = pgTable(
         updatedAt: bigint("updated_at", { mode: "number" }).notNull(),
     },
     (table) => [
+        uniqueIndex("users_user_number_unique").on(table.userNumber),
         uniqueIndex("users_phone_unique").on(table.phone),
         uniqueIndex("users_telegram_user_id_unique").on(table.telegramUserId),
         index("users_status_idx").on(table.status),

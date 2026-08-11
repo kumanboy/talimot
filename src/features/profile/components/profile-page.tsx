@@ -102,7 +102,11 @@ function getLevel(
 
 export function ProfilePage() {
     const router = useRouter();
-    const { balance: tangaBalance, isLoading: isTangaLoading } = useTangaWallet();
+    const {
+        balance: tangaBalance,
+        user: walletUser,
+        isLoading: isTangaLoading,
+    } = useTangaWallet();
 
     const [values, setValues] =
         useState<UserProfile>(defaultUserProfile);
@@ -215,7 +219,10 @@ export function ProfilePage() {
                         <h1>
                             {fullName || "Foydalanuvchi"}
                         </h1>
-                        <p>{values.telegramUsername}</p>
+                        <p>
+                            {values.telegramUsername}
+                            {walletUser ? ` · ID ${walletUser.userNumber}` : ""}
+                        </p>
                     </div>
                 </section>
 

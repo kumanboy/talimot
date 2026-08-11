@@ -271,3 +271,56 @@
         grid-column: 1 / -1;
     }
 }
+
+.notificationResult {
+    display: block;
+    margin-top: 5px;
+    font-size: 8px;
+    font-weight: 700;
+    opacity: 0.82;
+}
+
+.identityCard {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.identityCard > div {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: var(--app-surface);
+}
+
+.identityCard span {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+}
+
+.identityCard strong {
+    color: var(--app-text);
+    font-size: 16px;
+}
+
+.identityCard small {
+    color: var(--app-text-secondary);
+    font-size: 8px;
+}
+
+@media (min-width: 1261px) {
+    .adjustForm {
+        grid-template-columns: 150px 150px 180px 190px 190px minmax(260px, 1fr) auto;
+    }
+}
+
+@media (max-width: 1260px) {
+    .identityCard {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
