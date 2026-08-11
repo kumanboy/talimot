@@ -85,7 +85,7 @@ export function finalizeModelGrade(args: {
     if (modelGrade.stopReason !== "none") {
         const rawScore = STOP_RAW_SCORE[modelGrade.stopReason];
         return {
-            rubricVersion: "uzbmb-essay-v2",
+            rubricVersion: "uzbmb-essay-v3",
             model,
             wordCount,
             stopReason: modelGrade.stopReason,
@@ -106,7 +106,7 @@ export function finalizeModelGrade(args: {
     );
 
     return {
-        rubricVersion: "uzbmb-essay-v2",
+        rubricVersion: "uzbmb-essay-v3",
         model,
         wordCount,
         stopReason: "none",

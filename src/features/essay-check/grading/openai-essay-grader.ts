@@ -51,7 +51,7 @@ function extractOutputText(response: unknown): string {
 function deterministicValidation(input: EssayGradingInput, wordCount: number): FinalEssayGrade | null {
     if (!input.essayText.trim()) {
         return {
-            rubricVersion: "uzbmb-essay-v2",
+            rubricVersion: "uzbmb-essay-v3",
             model: null,
             wordCount: 0,
             stopReason: "empty",
@@ -68,7 +68,7 @@ function deterministicValidation(input: EssayGradingInput, wordCount: number): F
 
     if (wordCount < MIN_WORDS) {
         return {
-            rubricVersion: "uzbmb-essay-v2",
+            rubricVersion: "uzbmb-essay-v3",
             model: null,
             wordCount,
             stopReason: "under_100_words",
@@ -85,7 +85,7 @@ function deterministicValidation(input: EssayGradingInput, wordCount: number): F
 
     if (wordCount > MAX_WORDS) {
         return {
-            rubricVersion: "uzbmb-essay-v2",
+            rubricVersion: "uzbmb-essay-v3",
             model: null,
             wordCount,
             stopReason: "over_350_words",
@@ -136,7 +136,7 @@ export async function gradeEssayWithOpenAIModel(
             text: {
                 format: {
                     type: "json_schema",
-                    name: "talimot_essay_grade_v2",
+                    name: "talimot_essay_grade_v3",
                     strict: true,
                     schema: ESSAY_GRADING_JSON_SCHEMA,
                 },

@@ -163,7 +163,7 @@ export function AdminEssayBenchmark({ cases }: { readonly cases: readonly Benchm
                 <div>
                     <span>TA’LIMOT · INTERNAL EVAL</span>
                     <h1>AI esse benchmark</h1>
-                    <p>3 ta teacher-baholangan esse bilan modelning ballni oshirib yuborish tendensiyasini o‘lchaymiz. Bu sahifa student flow, Tanga va database’ga tegmaydi.</p>
+                    <p>Rubric v3 · 3 ta teacher-baholangan esse bilan Terra va Sol kalibratsiyasini o‘lchaymiz. Bu sahifa student flow, Tanga va database’ga tegmaydi.</p>
                 </div>
                 <a href="/admin">Admin bosh sahifa</a>
             </header>

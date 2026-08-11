@@ -54,7 +54,7 @@ export type EssayGradingInput = {
 };
 
 export type FinalEssayGrade = {
-    readonly rubricVersion: "uzbmb-essay-v2";
+    readonly rubricVersion: "uzbmb-essay-v3";
     readonly model: string | null;
     readonly wordCount: number;
     readonly stopReason:
