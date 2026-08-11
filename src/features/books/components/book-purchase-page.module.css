@@ -297,3 +297,8 @@
         animation: none;
     }
 }
+
+.telegramButton:disabled {
+    cursor: wait;
+    opacity: .72;
+}

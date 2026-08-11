@@ -28,7 +28,7 @@ export const manualPayments = pgTable(
         title: text("title").notNull(),
         quantity: integer("quantity").notNull().default(1),
         amountSom: integer("amount_som").notNull(),
-        paymentMethod: text("payment_method").notNull().default("HUMO"),
+        paymentMethod: text("payment_method").notNull().default("UZCARD"),
         status: text("status").$type<ManualPaymentStatus>().notNull().default("pending"),
         fullName: text("full_name"),
         phone: text("phone"),

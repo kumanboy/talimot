@@ -23,8 +23,12 @@ import {
     MANUAL_PAYMENT_CARD_HOLDER,
     MANUAL_PAYMENT_CARD_NUMBER,
     MANUAL_PAYMENT_METHOD,
+    MANUAL_PAYMENT_SECURITY_NOTICE,
     MANUAL_PAYMENT_TELEGRAM_USERNAME,
 } from "@/features/payments/config/manual-payment";
+import {
+    createManualPaymentRequest,
+} from "@/features/payments/client/create-manual-payment-request";
 
 import styles from "./course-purchase-page.module.css";
 
@@ -184,16 +188,19 @@ function createTelegramPurchaseUrl({
     fullName,
     phone,
     telegramUsername,
+    paymentCode,
 }: {
     readonly courseTitle: string;
     readonly price: string;
     readonly fullName: string;
     readonly phone: string;
     readonly telegramUsername: string;
+    readonly paymentCode: string;
 }): string {
     const normalizedTelegram = telegramUsername.trim().replace(/^@/, "");
     const message = [
         "Assalomu alaykum!",
+        `To‘lov ID: ${paymentCode}`,
         `Men “${courseTitle}” kursini ${price} narxda sotib olmoqchiman.`,
         `To‘lov usuli: ${MANUAL_PAYMENT_METHOD}`,
         `Karta: ${MANUAL_PAYMENT_CARD_NUMBER} (${MANUAL_PAYMENT_CARD_HOLDER})`,
@@ -227,6 +234,7 @@ export function CoursePurchasePage({
     const [copyStatus, setCopyStatus] = useState<
         "idle" | "copied" | "failed"
     >("idle");
+    const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
     const savings = useMemo(
         () =>
@@ -317,16 +325,34 @@ export function CoursePurchasePage({
         };
     }, [isPaymentModalOpen]);
 
-    const continueInTelegram = () => {
-        const telegramUrl = createTelegramPurchaseUrl({
-            courseTitle: course.title,
-            price: formatPrice(course.sale.salePrice),
-            fullName: values.fullName,
-            phone: values.phone,
-            telegramUsername: values.telegramUsername,
-        });
+    const continueInTelegram = async () => {
+        if (isCreatingPayment) return;
+        setIsCreatingPayment(true);
 
-        window.location.href = telegramUrl;
+        try {
+            const payment = await createManualPaymentRequest({
+                kind: "course",
+                itemKey: course.slug,
+                fullName: values.fullName,
+                phone: values.phone,
+                telegramUsername: values.telegramUsername,
+            });
+
+            const telegramUrl = createTelegramPurchaseUrl({
+                courseTitle: course.title,
+                price: formatPrice(course.sale.salePrice),
+                fullName: values.fullName,
+                phone: values.phone,
+                telegramUsername: values.telegramUsername,
+                paymentCode: payment.paymentCode,
+            });
+
+            window.location.href = telegramUrl;
+        } catch (error) {
+            window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
+        } finally {
+            setIsCreatingPayment(false);
+        }
     };
 
     return (
@@ -659,7 +685,7 @@ export function CoursePurchasePage({
                             onClick={handleCopyCard}
                         >
                             <span className={styles.cardTop}>
-                                <span>DEMO KARTA</span>
+                                <span>{MANUAL_PAYMENT_METHOD} KARTA</span>
                                 <CopyIcon />
                             </span>
 
@@ -678,18 +704,17 @@ export function CoursePurchasePage({
                         </button>
 
                         <p className={styles.demoWarning}>
-                            Bu tasodifiy yaratilgan demo karta
-                            ma’lumoti. Haqiqiy to‘lov qabul qilmaydi.
-                            Ishga tushirishdan oldin administratorning
-                            haqiqiy karta ma’lumotlari bilan almashtiring.
+                            <strong>Firibgarlardan ogoh bo‘ling!</strong>{" "}
+                            {MANUAL_PAYMENT_SECURITY_NOTICE}
                         </p>
 
                         <button
                             type="button"
                             className={styles.telegramButton}
                             onClick={continueInTelegram}
+                            disabled={isCreatingPayment}
                         >
-                            Telegram orqali tasdiqlash
+                            {isCreatingPayment ? "So‘rov yaratilmoqda…" : "Telegram orqali tasdiqlash"}
                         </button>
 
                         <p className={styles.modalHelper}>

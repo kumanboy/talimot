@@ -9,7 +9,7 @@ create table if not exists public.manual_payments (
     title text not null,
     quantity integer not null default 1 check (quantity > 0),
     amount_som integer not null check (amount_som > 0),
-    payment_method text not null default 'HUMO',
+    payment_method text not null default 'UZCARD',
     status text not null default 'pending' check (status in ('pending', 'confirmed', 'rejected', 'cancelled')),
     full_name text,
     phone text,

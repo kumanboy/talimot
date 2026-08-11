@@ -70,7 +70,7 @@ const adminNavigationItems:
         {
             key: "payments",
             label: "To‘lovlar",
-            disabled: true,
+            href: "/admin/payments",
         },
         {
             key: "settings",

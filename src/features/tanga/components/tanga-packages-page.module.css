@@ -590,9 +590,11 @@
 
 .telegramButton {
     display: grid;
+    width: 100%;
     min-height: 56px;
     margin-top: 13px;
     place-items: center;
+    border: 0;
     border-radius: 16px;
     background:
         linear-gradient(
@@ -601,6 +603,8 @@
             var(--app-primary)
         );
     color: #fff;
+    cursor: pointer;
+    font: inherit;
     font-size: 11px;
     font-weight: 850;
     text-decoration: none;
@@ -745,4 +749,9 @@
     color: var(--app-text-secondary);
     font-size: 8px;
     line-height: 1.55;
+}
+
+.telegramButton:disabled {
+    cursor: wait;
+    opacity: .72;
 }

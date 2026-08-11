@@ -26,7 +26,7 @@ function formatNumber(value: number): string {
 function sourceLabel(value: string): string {
     switch (value) {
         case "humo_payment":
-            return "UZCARD to‘lov";
+            return "HUMO to‘lov";
         case "promo_bonus":
             return "Promo bonus";
         case "manual_correction":

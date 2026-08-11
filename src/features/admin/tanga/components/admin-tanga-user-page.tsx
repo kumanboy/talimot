@@ -54,7 +54,7 @@ type NotificationStatus = "sent" | "unavailable" | "failed";
 function sourceLabel(value: string): string {
     switch (value) {
         case "humo_payment":
-            return "UZCARD to‘lov";
+            return "HUMO to‘lov";
         case "promo_bonus":
             return "Promo bonus";
         case "manual_correction":
@@ -177,8 +177,8 @@ export function AdminTangaUserPage({
                     <span>ADMIN AMALI</span>
                     <h2>Tanga balansini o‘zgartirish</h2>
                     <p>
-                        Chek kelganda foydalanuvchini ID yoki telefon orqali toping.
-                        To‘lov manbasi, summa va chek raqamini saqlash keyingi tekshiruvni osonlashtiradi.
+                        Bu forma faqat promo, kompensatsiya va qo‘lda tuzatish uchun.
+                        HUMO orqali real Tanga xaridlarini “To‘lovlar” bo‘limidan tasdiqlang — paket Tangasi avtomatik qo‘shiladi.
                     </p>
                 </div>
 
@@ -210,35 +210,13 @@ export function AdminTangaUserPage({
 
                     <label>
                         <span>Manba</span>
-                        <select name="source" defaultValue="humo_payment" required>
-                            <option value="humo_payment">UZCARD orqali to‘lov</option>
-                            <option value="promo_bonus">Promo bonus</option>
+                        <select name="source" defaultValue="manual_correction" required>
                             <option value="manual_correction">Qo‘lda tuzatish</option>
+                            <option value="promo_bonus">Promo bonus</option>
                             <option value="other">Boshqa</option>
                         </select>
                     </label>
 
-                    <label>
-                        <span>To‘langan summa (so‘m)</span>
-                        <input
-                            type="number"
-                            name="paymentAmount"
-                            min="1"
-                            max="100000000"
-                            step="1"
-                            placeholder="Masalan: 20000"
-                        />
-                    </label>
-
-                    <label>
-                        <span>Chek / reference</span>
-                        <input
-                            type="text"
-                            name="receiptReference"
-                            maxLength={80}
-                            placeholder="Chek ID yoki oxirgi raqamlar"
-                        />
-                    </label>
 
                     <label className={styles.noteField}>
                         <span>Izoh</span>

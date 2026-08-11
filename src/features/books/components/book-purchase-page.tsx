@@ -20,8 +20,12 @@ import {
     MANUAL_PAYMENT_CARD_HOLDER,
     MANUAL_PAYMENT_CARD_NUMBER,
     MANUAL_PAYMENT_METHOD,
+    MANUAL_PAYMENT_SECURITY_NOTICE,
     MANUAL_PAYMENT_TELEGRAM_USERNAME,
 } from "@/features/payments/config/manual-payment";
+import {
+    createManualPaymentRequest,
+} from "@/features/payments/client/create-manual-payment-request";
 import styles from "./book-purchase-page.module.css";
 
 type BookPurchasePageProps = {
@@ -150,6 +154,7 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
     const [copyStatus, setCopyStatus] = useState<
         "idle" | "copied" | "failed"
     >("idle");
+    const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
     const subtotal = useMemo(
         () => book.sale.salePrice * values.quantity,
@@ -213,38 +218,62 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
         };
     }, [isModalOpen]);
 
-    const openTelegram = () => {
-        const telegramUsername = values.telegramUsername
-            .trim()
-            .replace(/^@/, "");
+    const openTelegram = async () => {
+        if (isCreatingPayment) return;
+        setIsCreatingPayment(true);
 
-        const message = [
-            "Assalomu alaykum!",
-            `To‘lov usuli: ${MANUAL_PAYMENT_METHOD}`,
-            `Karta: ${MANUAL_PAYMENT_CARD_NUMBER} (${MANUAL_PAYMENT_CARD_HOLDER})`,
-            "",
-            `Men “${book.title}” kitobini sotib olmoqchiman.`,
-            `Kitob soni: ${values.quantity} ta`,
-            `Kitoblar narxi: ${formatPrice(subtotal)}`,
-            `Yetkazib berish: ${formatPrice(book.delivery.price)}`,
-            `Jami: ${formatPrice(total)}`,
-            "",
-            `Ism-familiya: ${values.fullName.trim()}`,
-            `Telefon: ${values.phone.trim()}`,
-            `Telegram: @${telegramUsername}`,
-            "",
-            `Viloyat: ${values.region.trim()}`,
-            `Shahar/tuman: ${values.district.trim()}`,
-            `Eng yaqin BTS punkti: ${values.btsPoint.trim()}`,
-            values.note.trim() ? `Izoh: ${values.note.trim()}` : "",
-            "",
-            "To‘lovni amalga oshirgach, chekni shu chatga yuboraman.",
-        ]
-            .filter(Boolean)
-            .join("\n");
+        try {
+            const payment = await createManualPaymentRequest({
+                kind: "book",
+                itemKey: book.slug,
+                quantity: values.quantity,
+                fullName: values.fullName,
+                phone: values.phone,
+                telegramUsername: values.telegramUsername,
+                metadata: {
+                    region: values.region.trim(),
+                    district: values.district.trim(),
+                    btsPoint: values.btsPoint.trim(),
+                    note: values.note.trim() || null,
+                },
+            });
 
-        const telegramUrl = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
-        window.location.href = telegramUrl;
+            const telegramUsername = values.telegramUsername
+                .trim()
+                .replace(/^@/, "");
+
+            const message = [
+                "Assalomu alaykum!",
+                `To‘lov ID: ${payment.paymentCode}`,
+                `To‘lov usuli: ${MANUAL_PAYMENT_METHOD}`,
+                `Karta: ${MANUAL_PAYMENT_CARD_NUMBER} (${MANUAL_PAYMENT_CARD_HOLDER})`,
+                "",
+                `Men “${book.title}” kitobini sotib olmoqchiman.`,
+                `Kitob soni: ${values.quantity} ta`,
+                `Kitoblar narxi: ${formatPrice(subtotal)}`,
+                `Yetkazib berish: ${formatPrice(book.delivery.price)}`,
+                `Jami: ${formatPrice(total)}`,
+                "",
+                `Ism-familiya: ${values.fullName.trim()}`,
+                `Telefon: ${values.phone.trim()}`,
+                `Telegram: @${telegramUsername}`,
+                "",
+                `Viloyat: ${values.region.trim()}`,
+                `Shahar/tuman: ${values.district.trim()}`,
+                `Eng yaqin BTS punkti: ${values.btsPoint.trim()}`,
+                values.note.trim() ? `Izoh: ${values.note.trim()}` : "",
+                "",
+                "To‘lovni amalga oshirgach, chekni shu chatga yuboraman.",
+            ]
+                .filter(Boolean)
+                .join("\n");
+
+            window.location.href = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
+        } catch (error) {
+            window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
+        } finally {
+            setIsCreatingPayment(false);
+        }
     };
 
     return (
@@ -506,7 +535,7 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
                             onClick={handleCopyCard}
                         >
                             <span className={styles.cardTop}>
-                                <span>DEMO KARTA</span>
+                                <span>{MANUAL_PAYMENT_METHOD} KARTA</span>
                                 <CopyIcon />
                             </span>
 
@@ -525,18 +554,17 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
                         </button>
 
                         <p className={styles.demoWarning}>
-                            Bu tasodifiy yaratilgan demo karta
-                            ma’lumoti. Haqiqiy to‘lov qabul qilmaydi.
-                            Ishga tushirishdan oldin administratorning
-                            haqiqiy karta ma’lumotlari bilan almashtiring.
+                            <strong>Firibgarlardan ogoh bo‘ling!</strong>{" "}
+                            {MANUAL_PAYMENT_SECURITY_NOTICE}
                         </p>
 
                         <button
                             type="button"
                             className={styles.telegramButton}
                             onClick={openTelegram}
+                            disabled={isCreatingPayment}
                         >
-                            Telegram orqali tasdiqlash
+                            {isCreatingPayment ? "So‘rov yaratilmoqda…" : "Telegram orqali tasdiqlash"}
                         </button>
 
                         <p className={styles.modalHelper}>

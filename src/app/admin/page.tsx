@@ -52,9 +52,10 @@ const dashboardSections = [
     {
         title: "Tanga va to‘lovlar",
         description:
-            "Tanga paketlari va tasdiqlash so‘rovlari.",
-        status: "Backend kerak",
-        enabled: false,
+            "Tanga hamyonlari va HUMO to‘lov so‘rovlarini boshqarish.",
+        status: "Ishlayapti",
+        href: "/admin/payments",
+        enabled: true,
     },
 ] as const;
 

@@ -2,7 +2,7 @@
 
 ## What changed
 
-- HUMO card is treated as a real payment card for Tanga, books and courses.
+- UZCARD card is treated as a real payment card for Tanga, books and courses.
 - All visible DEMO card copy was removed.
 - Fraud warning is shown in every manual-payment modal.
 - Clicking “Telegram orqali tasdiqlash” now creates a `pending` payment request first.
@@ -13,7 +13,7 @@
 - Payment detail screen stores receipt/reference and admin note.
 - Confirming a Tanga payment automatically credits the exact package amount atomically.
 - Confirming/rejecting sends a Telegram notification when the user has a linked chat.
-- Manual Admin → Tanga adjustment is now reserved for promo/corrections, preventing double-crediting real HUMO payments.
+- Manual Admin → Tanga adjustment is now reserved for promo/corrections, preventing double-crediting real UZCARD payments.
 
 ## Deployment order
 

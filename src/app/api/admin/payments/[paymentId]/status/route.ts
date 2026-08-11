@@ -7,7 +7,8 @@ import { hasValidAdminSession } from "@/features/admin/model/admin-session";
 import { sendPaymentStatusNotification } from "@/features/payments/server/send-payment-status-notification";
 import { sendTangaNotification } from "@/features/tanga/server/send-tanga-notification";
 import { databaseClient, db } from "@/lib/database/db";
-import { manualPayments, users } from "@/lib/database/schema";
+import { manualPayments } from "@/lib/database/schema/manual-payments";
+import { users } from "@/lib/database/schema/users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -113,7 +114,7 @@ export async function POST(
                         ${payment.user_id},
                         ${"credit"},
                         ${tangaAmount},
-                        ${"humo_payment"},
+                        ${"uzcard_payment"},
                         ${"manual_payment"},
                         ${payment.id},
                         ${`${payment.title} · ${payment.amount_som} so‘m`},

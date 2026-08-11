@@ -3,7 +3,8 @@ import "server-only";
 import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/database/db";
-import { manualPayments, users } from "@/lib/database/schema";
+import { manualPayments } from "@/lib/database/schema/manual-payments";
+import { users } from "@/lib/database/schema/users";
 import type {
     ManualPaymentKind,
     ManualPaymentStatus,

@@ -23,8 +23,12 @@ import {
     MANUAL_PAYMENT_CARD_HOLDER,
     MANUAL_PAYMENT_CARD_NUMBER,
     MANUAL_PAYMENT_METHOD,
+    MANUAL_PAYMENT_SECURITY_NOTICE,
     MANUAL_PAYMENT_TELEGRAM_USERNAME,
 } from "@/features/payments/config/manual-payment";
+import {
+    createManualPaymentRequest,
+} from "@/features/payments/client/create-manual-payment-request";
 import styles from "./tanga-packages-page.module.css";
 
 
@@ -162,6 +166,7 @@ export function TangaPackagesPage() {
     const [copyStatus, setCopyStatus] = useState<
         "idle" | "copied" | "failed"
     >("idle");
+    const [isCreatingPayment, setIsCreatingPayment] = useState(false);
 
     const selectedPackage = useMemo(
         () =>
@@ -191,9 +196,26 @@ export function TangaPackagesPage() {
         .filter(Boolean)
         .join("\n");
 
-    const telegramHref =
-        `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}` +
-        `?text=${encodeURIComponent(telegramMessage)}`;
+    const handleTelegramPayment = async () => {
+        if (isCreatingPayment || !walletUser) return;
+        setIsCreatingPayment(true);
+
+        try {
+            const payment = await createManualPaymentRequest({
+                kind: "tanga",
+                itemKey: selectedPackage.id,
+            });
+            const message = [
+                telegramMessage,
+                `To‘lov ID: ${payment.paymentCode}`,
+            ].join("\n");
+            window.location.href = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
+        } catch (error) {
+            window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
+        } finally {
+            setIsCreatingPayment(false);
+        }
+    };
 
     const handleCopyCard = async () => {
         const copied = await copyText(
@@ -234,8 +256,8 @@ export function TangaPackagesPage() {
                         <span>JORIY BALANS</span>
                         <h1>{isTangaLoading ? "… Tanga" : `${tangaBalance} Tanga`}</h1>
                         <p>
-                            Testlar, esse tekshiruvi va boshqa
-                            xizmatlar uchun Tanga ishlatiladi.
+                            Pullik testlar va esse tekshiruvi uchun
+                            Tanga ishlatiladi.
                         </p>
                     </div>
                 </section>
@@ -475,20 +497,21 @@ export function TangaPackagesPage() {
                         </button>
 
                         <p className={styles.paymentNote}>
-                            To‘lovni aynan yuqoridagi HUMO kartaga amalga oshiring.
-                            So‘ng Telegram tugmasini bosib, tayyor xabar bilan birga
+                            <strong>Firibgarlardan ogoh bo‘ling!</strong>{" "}
+                            {MANUAL_PAYMENT_SECURITY_NOTICE}
+                            {" "}So‘ng Telegram tugmasini bosib, tayyor xabar bilan birga
                             to‘lov chekini yuboring. Foydalanuvchi ID va telefon
                             raqami administratorga hisobingizni tez topishga yordam beradi.
                         </p>
 
-                        <a
+                        <button
+                            type="button"
                             className={styles.telegramButton}
-                            href={telegramHref}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            onClick={handleTelegramPayment}
+                            disabled={isCreatingPayment || !walletUser}
                         >
-                            Telegram orqali tasdiqlash
-                        </a>
+                            {isCreatingPayment ? "So‘rov yaratilmoqda…" : "Telegram orqali tasdiqlash"}
+                        </button>
 
                         <p className={styles.modalHelper}>
                             To‘lov qilgandan keyin chekni

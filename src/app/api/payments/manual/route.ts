@@ -12,7 +12,8 @@ import { getCourseBySlug } from "@/features/courses/model/course-catalog";
 import { MANUAL_PAYMENT_METHOD } from "@/features/payments/config/manual-payment";
 import { tangaPackages } from "@/features/tanga/model/tanga-packages";
 import { db } from "@/lib/database/db";
-import { manualPayments, users } from "@/lib/database/schema";
+import { manualPayments } from "@/lib/database/schema/manual-payments";
+import { users } from "@/lib/database/schema/users";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

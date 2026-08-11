@@ -21,13 +21,11 @@ type AdjustmentStatus =
 type NotificationStatus = "sent" | "unavailable" | "failed";
 
 type AdjustmentSource =
-    | "humo_payment"
     | "promo_bonus"
     | "manual_correction"
     | "other";
 
 const ALLOWED_SOURCES = new Set<AdjustmentSource>([
-    "humo_payment",
     "promo_bonus",
     "manual_correction",
     "other",
@@ -58,9 +56,6 @@ function cleanText(value: FormDataEntryValue | null, maxLength: number) {
         : null;
 }
 
-function formatSom(value: number): string {
-    return new Intl.NumberFormat("uz-UZ").format(value);
-}
 
 export async function POST(
     request: Request,
@@ -75,8 +70,6 @@ export async function POST(
     const directionValue = formData.get("direction");
     const amountValue = formData.get("amount");
     const sourceValue = cleanText(formData.get("source"), 40);
-    const paymentAmountValue = formData.get("paymentAmount");
-    const receiptReference = cleanText(formData.get("receiptReference"), 80);
     const rawNote = cleanText(formData.get("note"), 160);
 
     const direction =
@@ -90,39 +83,25 @@ export async function POST(
     const source = sourceValue && ALLOWED_SOURCES.has(sourceValue as AdjustmentSource)
         ? sourceValue as AdjustmentSource
         : null;
-    const paymentAmount =
-        typeof paymentAmountValue === "string" && paymentAmountValue.trim()
-            ? Number.parseInt(paymentAmountValue, 10)
-            : null;
 
     if (
         !direction ||
         !source ||
         !Number.isSafeInteger(amount) ||
         amount < 1 ||
-        amount > 1_000_000 ||
-        (paymentAmount !== null &&
-            (!Number.isSafeInteger(paymentAmount) ||
-                paymentAmount < 1 ||
-                paymentAmount > 100_000_000))
+        amount > 1_000_000
     ) {
         return redirectToUser(request, userId, "invalid");
     }
 
     const noteParts: string[] = [];
 
-    if (source === "humo_payment" && paymentAmount) {
-        noteParts.push(`HUMO to‘lov: ${formatSom(paymentAmount)} so‘m`);
-    }
-
     if (rawNote) {
         noteParts.push(rawNote);
     }
 
     const note = noteParts.length ? noteParts.join(" · ").slice(0, 160) : null;
-    const referenceType = source === "humo_payment"
-        ? "humo_receipt"
-        : source;
+    const referenceType = source;
 
     try {
         const rows = await databaseClient`
@@ -134,7 +113,7 @@ export async function POST(
                 ${amount},
                 ${source},
                 ${referenceType},
-                ${receiptReference},
+                ${null},
                 ${note},
                 ${"admin"}
             )
