@@ -10,6 +10,20 @@ const DEFAULT_MODEL = "gpt-5.6-terra";
 const MIN_WORDS = 100;
 const MAX_WORDS = 350;
 
+export type EssayOpenAIUsage = {
+    readonly inputTokens: number;
+    readonly cachedInputTokens: number;
+    readonly cacheWriteTokens: number;
+    readonly outputTokens: number;
+    readonly reasoningTokens: number;
+    readonly totalTokens: number;
+};
+
+export type EssayGradeWithUsage = {
+    readonly grade: FinalEssayGrade;
+    readonly usage: EssayOpenAIUsage | null;
+};
+
 function getApiKey(): string {
     const value = process.env.OPENAI_API_KEY?.trim();
     if (!value) throw new Error("OPENAI_API_KEY is not configured.");
@@ -46,6 +60,33 @@ function extractOutputText(response: unknown): string {
     }
 
     return parts.join("\n").trim();
+}
+
+function numberField(value: unknown): number {
+    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function extractUsage(response: unknown): EssayOpenAIUsage | null {
+    if (!response || typeof response !== "object") return null;
+    const root = response as Record<string, unknown>;
+    if (!root.usage || typeof root.usage !== "object") return null;
+
+    const usage = root.usage as Record<string, unknown>;
+    const inputDetails = usage.input_tokens_details && typeof usage.input_tokens_details === "object"
+        ? usage.input_tokens_details as Record<string, unknown>
+        : {};
+    const outputDetails = usage.output_tokens_details && typeof usage.output_tokens_details === "object"
+        ? usage.output_tokens_details as Record<string, unknown>
+        : {};
+
+    return {
+        inputTokens: numberField(usage.input_tokens),
+        cachedInputTokens: numberField(inputDetails.cached_tokens),
+        cacheWriteTokens: numberField(inputDetails.cache_write_tokens),
+        outputTokens: numberField(usage.output_tokens),
+        reasoningTokens: numberField(outputDetails.reasoning_tokens),
+        totalTokens: numberField(usage.total_tokens),
+    };
 }
 
 function deterministicValidation(input: EssayGradingInput, wordCount: number): FinalEssayGrade | null {
@@ -103,13 +144,13 @@ function deterministicValidation(input: EssayGradingInput, wordCount: number): F
     return null;
 }
 
-export async function gradeEssayWithOpenAIModel(
+export async function gradeEssayWithOpenAIModelDetailed(
     input: EssayGradingInput,
     model: string,
-): Promise<FinalEssayGrade> {
+): Promise<EssayGradeWithUsage> {
     const wordCount = countEssayWords(input.essayText);
     const validation = deterministicValidation(input, wordCount);
-    if (validation) return validation;
+    if (validation) return { grade: validation, usage: null };
 
     const normalizedModel = model.trim();
     if (!normalizedModel) throw new Error("Essay grading model is required.");
@@ -123,8 +164,19 @@ export async function gradeEssayWithOpenAIModel(
         body: JSON.stringify({
             model: normalizedModel,
             reasoning: { effort: "medium" },
+            prompt_cache_key: "talimot:essay-rubric-v3",
+            prompt_cache_options: { mode: "explicit" },
             input: [
-                { role: "system", content: ESSAY_GRADING_SYSTEM_PROMPT },
+                {
+                    role: "system",
+                    content: [
+                        {
+                            type: "input_text",
+                            text: ESSAY_GRADING_SYSTEM_PROMPT,
+                            prompt_cache_breakpoint: { mode: "explicit" },
+                        },
+                    ],
+                },
                 {
                     role: "user",
                     content: buildEssayGradingUserInput({
@@ -164,7 +216,17 @@ export async function gradeEssayWithOpenAIModel(
     }
 
     const modelGrade = parseAndValidateModelGrade(parsed);
-    return finalizeModelGrade({ model: normalizedModel, wordCount, modelGrade });
+    return {
+        grade: finalizeModelGrade({ model: normalizedModel, wordCount, modelGrade }),
+        usage: extractUsage(payload),
+    };
+}
+
+export async function gradeEssayWithOpenAIModel(
+    input: EssayGradingInput,
+    model: string,
+): Promise<FinalEssayGrade> {
+    return (await gradeEssayWithOpenAIModelDetailed(input, model)).grade;
 }
 
 export async function gradeEssayWithOpenAI(input: EssayGradingInput): Promise<FinalEssayGrade> {
