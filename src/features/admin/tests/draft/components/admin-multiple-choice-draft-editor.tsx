@@ -34,6 +34,9 @@ import {
     AdminDiagnosticSectionDocxImporter,
 } from "./admin-diagnostic-section-docx-importer";
 import {
+    AdminTestZipBulkImporter,
+} from "./admin-test-zip-bulk-importer";
+import {
     createEmptyMatchingQuestion,
     createEmptyMultipartQuestion,
     createEmptyMultipleChoiceQuestion,
@@ -4137,6 +4140,50 @@ export function AdminMultipleChoiceDraftEditor({
         draft.status ===
             "archived";
 
+    const supportsImageOptionZipImport =
+        draft.metadata.format ===
+            "standard" ||
+        draft.metadata.format ===
+            "morphology-standard";
+
+    function handleZipBulkImport(
+        savedDraft:
+            AdminTestDraft,
+        message: string,
+    ) {
+        setDraft(
+            savedDraft,
+        );
+        lastPersistedDraftRef.current =
+            savedDraft;
+        pendingImageRemovalsRef.current =
+            [];
+        submittedImageRemovalsRef.current =
+            [];
+        pendingAudioRemovalsRef.current =
+            [];
+        submittedAudioRemovalsRef.current =
+            [];
+        setToast({
+            type: "success",
+            message,
+        });
+
+        window.setTimeout(
+            () => {
+                document
+                    .getElementById(
+                        "admin-draft-question-list",
+                    )
+                    ?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                    });
+            },
+            80,
+        );
+    }
+
     return (
         <>
             {toast && (
@@ -4370,6 +4417,35 @@ export function AdminMultipleChoiceDraftEditor({
                     lekin saqlash vaqtida
                     o‘chirilmaydi.
                 </div>
+            )}
+
+            {!isDiagnostic &&
+                supportsImageOptionZipImport && (
+                <AdminTestZipBulkImporter
+                    draftId={
+                        draft.id
+                    }
+                    expectedUpdatedAt={
+                        lastPersistedDraftRef.current.audit.updatedAt
+                    }
+                    currentQuestionCount={
+                        questions.length
+                    }
+                    disabled={
+                        isLocked ||
+                        hasUnsavedChanges
+                    }
+                    disabledReason={
+                        isLocked
+                            ? "Nashr qilingan yoki arxivlangan testga bulk import qilib bo‘lmaydi."
+                            : hasUnsavedChanges
+                              ? "Bulk importdan oldin joriy o‘zgarishlarni Draftni saqlash orqali saqlang."
+                              : null
+                    }
+                    onImported={
+                        handleZipBulkImport
+                    }
+                />
             )}
 
             {!isDiagnostic && (
