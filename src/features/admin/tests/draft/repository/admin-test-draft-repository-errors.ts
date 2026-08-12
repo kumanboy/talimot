@@ -71,16 +71,33 @@ export class AdminTestDraftRouteConflictError
 
 export class AdminTestDraftValidationError
     extends AdminTestDraftRepositoryError {
+    readonly validationMessages:
+        readonly string[];
+
     constructor(
-        readonly validationMessages:
+        validationMessages:
             readonly string[],
     ) {
+        const uniqueMessages =
+            Array.from(
+                new Set(
+                    validationMessages
+                        .map(
+                            (message) =>
+                                message.trim(),
+                        )
+                        .filter(Boolean),
+                ),
+            );
+
         super(
-            validationMessages.join(
+            uniqueMessages.join(
                 " ",
             ),
         );
 
+        this.validationMessages =
+            uniqueMessages;
         this.name =
             "AdminTestDraftValidationError";
     }

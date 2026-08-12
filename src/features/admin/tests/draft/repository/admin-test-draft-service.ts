@@ -23,7 +23,22 @@ import type {
     AdminTestDraftRoute,
 } from "./admin-test-draft-repository-types";
 
-function assertDraftIsValid(
+const STANDARD_DRAFT_INCOMPLETE_ERROR_CODES =
+    new Set([
+        "QUESTION_TEXT_REQUIRED",
+        "MCQ_OPTION_CONTENT_REQUIRED",
+        "MCQ_CORRECT_ANSWER_REQUIRED",
+    ]);
+
+/**
+ * A draft is allowed to be incomplete while an admin is still building it.
+ * Publication remains strict and still runs the full validator plus the
+ * format-specific question-count rules.
+ *
+ * We keep structural errors blocking here (duplicate option ids, invalid
+ * scores, an invalid selected answer id, unsafe asset metadata, etc.).
+ */
+function assertDraftIsValidForSave(
     draft:
         AdminTestDraft,
 ) {
@@ -32,14 +47,33 @@ function assertDraftIsValid(
             draft,
         );
 
+    const isStandardDraft =
+        draft.status === "draft" &&
+        (
+            draft.metadata.format ===
+                "standard" ||
+            draft.metadata.format ===
+                "morphology-standard"
+        );
+
+    const blockingErrors =
+        isStandardDraft
+            ? result.errors.filter(
+                (validationIssue) =>
+                    !STANDARD_DRAFT_INCOMPLETE_ERROR_CODES.has(
+                        validationIssue.code,
+                    ),
+            )
+            : result.errors;
+
     if (
-        result.isValid
+        blockingErrors.length === 0
     ) {
         return;
     }
 
     throw new AdminTestDraftValidationError(
-        result.errors.map(
+        blockingErrors.map(
             (validationIssue) =>
                 validationIssue.message,
         ),
@@ -155,7 +189,7 @@ export class AdminTestDraftService {
         draft:
             AdminTestDraft,
     ) {
-        assertDraftIsValid(
+        assertDraftIsValidForSave(
             draft,
         );
 
@@ -223,7 +257,7 @@ export class AdminTestDraftService {
             ]);
         }
 
-        assertDraftIsValid(
+        assertDraftIsValidForSave(
             draft,
         );
 
