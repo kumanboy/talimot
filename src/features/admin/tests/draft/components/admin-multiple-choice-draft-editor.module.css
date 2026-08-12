@@ -298,13 +298,18 @@
 .option,
 .correctOption {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
-    align-items: center;
     gap: 10px;
     padding: 12px;
     border: 1px solid var(--app-border);
     border-radius: 14px;
     background: var(--app-background);
+}
+
+.optionMainRow {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
 }
 
 .correctOption {

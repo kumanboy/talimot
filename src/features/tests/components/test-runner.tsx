@@ -1555,9 +1555,37 @@ export function TestRunner({
                                                     </dt>
 
                                                     <dd>
-                                                        {selectedOption
-                                                            ? `${selectedOption.id}) ${selectedOption.text}`
-                                                            : "Tanlanmagan"}
+                                                        {selectedOption ? (
+                                                            <span
+                                                                className={
+                                                                    styles.reviewAnswer
+                                                                }
+                                                            >
+                                                                <strong>
+                                                                    {selectedOption.id})
+                                                                </strong>
+                                                                {selectedOption.text.trim() && (
+                                                                    <span>
+                                                                        {
+                                                                            selectedOption.text
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                                {selectedOption.image && (
+                                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                                    <img
+                                                                        src={
+                                                                            selectedOption.image.src
+                                                                        }
+                                                                        alt={
+                                                                            selectedOption.image.alt
+                                                                        }
+                                                                    />
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            "Tanlanmagan"
+                                                        )}
                                                     </dd>
                                                 </div>
 
@@ -1567,9 +1595,37 @@ export function TestRunner({
                                                     </dt>
 
                                                     <dd>
-                                                        {correctOption
-                                                            ? `${correctOption.id}) ${correctOption.text}`
-                                                            : question.correctOptionId}
+                                                        {correctOption ? (
+                                                            <span
+                                                                className={
+                                                                    styles.reviewAnswer
+                                                                }
+                                                            >
+                                                                <strong>
+                                                                    {correctOption.id})
+                                                                </strong>
+                                                                {correctOption.text.trim() && (
+                                                                    <span>
+                                                                        {
+                                                                            correctOption.text
+                                                                        }
+                                                                    </span>
+                                                                )}
+                                                                {correctOption.image && (
+                                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                                    <img
+                                                                        src={
+                                                                            correctOption.image.src
+                                                                        }
+                                                                        alt={
+                                                                            correctOption.image.alt
+                                                                        }
+                                                                    />
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            question.correctOptionId
+                                                        )}
                                                     </dd>
                                                 </div>
                                             </dl>
@@ -2018,11 +2074,50 @@ export function TestRunner({
 
                                         <span
                                             className={
-                                                styles.optionText
+                                                styles.optionContent
                                             }
                                         >
-                      {option.text}
-                    </span>
+                                            {option.image && (
+                                                <figure
+                                                    className={
+                                                        styles.optionImage
+                                                    }
+                                                >
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img
+                                                        src={
+                                                            option.image.src
+                                                        }
+                                                        alt={
+                                                            option.image.alt
+                                                        }
+                                                        width={
+                                                            option.image.width
+                                                        }
+                                                        height={
+                                                            option.image.height
+                                                        }
+                                                    />
+                                                    {option.image.caption && (
+                                                        <figcaption>
+                                                            {
+                                                                option.image.caption
+                                                            }
+                                                        </figcaption>
+                                                    )}
+                                                </figure>
+                                            )}
+
+                                            {option.text.trim() && (
+                                                <span
+                                                    className={
+                                                        styles.optionText
+                                                    }
+                                                >
+                                                    {option.text}
+                                                </span>
+                                            )}
+                                        </span>
 
                                         <span
                                             className={

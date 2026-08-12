@@ -364,14 +364,24 @@ function mapStandardQuestion(
             question.question,
         options:
             question.options.map(
-                (option) => ({
-                    id:
-                        toStandardOptionId(
-                            option.id,
-                        ),
-                    text:
-                        option.text,
-                }),
+                (option) => {
+                    const image =
+                        mapImage(
+                            option.image ?? null,
+                        );
+
+                    return {
+                        id:
+                            toStandardOptionId(
+                                option.id,
+                            ),
+                        text:
+                            option.text,
+                        ...(image
+                            ? { image }
+                            : {}),
+                    };
+                },
             ),
         correctOptionId:
             toStandardOptionId(

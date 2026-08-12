@@ -1,7 +1,11 @@
 import type {
+    AdminDraftImageAsset,
     AdminDraftQuestion,
     AdminDraftQuestionExplanation,
 } from "./admin-question-types";
+import {
+    getAdminOptionImageOwnerId,
+} from "./admin-option-image-owner";
 import type {
     AdminTestDraft,
 } from "./admin-test-draft-types";
@@ -208,16 +212,17 @@ function validateQuestionSpecific(
             question.options.some(
                 (option) =>
                     option.text.trim()
-                        .length === 0,
+                        .length === 0 &&
+                    !option.image,
             )
         ) {
             issues.push(
                 issue({
                     severity: "error",
                     code:
-                        "MCQ_OPTION_TEXT_REQUIRED",
+                        "MCQ_OPTION_CONTENT_REQUIRED",
                     message:
-                        "Har bir variant matni to‘ldirilishi kerak.",
+                        "Har bir variantda matn yoki rasm bo‘lishi kerak.",
                     path:
                         `${path}.options`,
                     questionId:
@@ -652,12 +657,14 @@ function validateQuestionImage({
     path,
     draftId,
     questionId,
+    issueQuestionId = questionId,
 }: {
     readonly image:
-        AdminDraftQuestion["image"];
+        AdminDraftImageAsset | null | undefined;
     readonly path: string;
     readonly draftId: string;
     readonly questionId: string;
+    readonly issueQuestionId?: string;
 }): readonly AdminDraftValidationIssue[] {
     if (!image) {
         return [];
@@ -677,7 +684,8 @@ function validateQuestionImage({
                 message:
                     "Rasm uchun alt matn kiritilishi kerak.",
                 path: `${path}.alt`,
-                questionId,
+                questionId:
+                    issueQuestionId,
             }),
         );
     } else if (normalizedAlt.length > 300) {
@@ -688,7 +696,8 @@ function validateQuestionImage({
                 message:
                     "Rasm alt matni 300 belgidan oshmasligi kerak.",
                 path: `${path}.alt`,
-                questionId,
+                questionId:
+                    issueQuestionId,
             }),
         );
     }
@@ -704,7 +713,8 @@ function validateQuestionImage({
                 message:
                     "Rasm izohi 500 belgidan oshmasligi kerak.",
                 path: `${path}.caption`,
-                questionId,
+                questionId:
+                    issueQuestionId,
             }),
         );
     }
@@ -724,7 +734,8 @@ function validateQuestionImage({
                 message:
                     "Rasm hajmi 0 dan katta va 5 MB dan oshmagan bo‘lishi kerak.",
                 path: `${path}.sizeBytes`,
-                questionId,
+                questionId:
+                    issueQuestionId,
             }),
         );
     }
@@ -741,7 +752,8 @@ function validateQuestionImage({
                 message:
                     "Faqat JPEG, PNG yoki WebP rasmga ruxsat beriladi.",
                 path: `${path}.mimeType`,
-                questionId,
+                questionId:
+                    issueQuestionId,
             }),
         );
     }
@@ -754,7 +766,8 @@ function validateQuestionImage({
                 message:
                     "Rasm metama’lumoti mavjud, lekin Storage manzili belgilanmagan.",
                 path: `${path}.storagePath`,
-                questionId,
+                questionId:
+                    issueQuestionId,
             }),
         );
     } else if (
@@ -773,7 +786,8 @@ function validateQuestionImage({
                 message:
                     "Rasm Storage manzili ushbu draft va savolga tegishli emas.",
                 path: `${path}.storagePath`,
-                questionId,
+                questionId:
+                    issueQuestionId,
             }),
         );
     }
@@ -1281,6 +1295,33 @@ export function validateAdminTestDraft(
                         question.id,
                 }),
             );
+
+            if (
+                question.type ===
+                "multiple-choice"
+            ) {
+                question.options.forEach(
+                    (option, optionIndex) => {
+                        issues.push(
+                            ...validateQuestionImage({
+                                image:
+                                    option.image,
+                                path:
+                                    `questions.${index}.options.${optionIndex}.image`,
+                                draftId:
+                                    draft.id,
+                                questionId:
+                                    getAdminOptionImageOwnerId(
+                                        question.id,
+                                        option.id,
+                                    ),
+                                issueQuestionId:
+                                    question.id,
+                            }),
+                        );
+                    },
+                );
+            }
 
             if (
                 question.type ===

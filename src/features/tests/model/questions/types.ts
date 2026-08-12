@@ -8,12 +8,23 @@ export type StandardTestOptionId =
     | "C"
     | "D";
 
+export interface StandardTestQuestionOptionImage {
+    readonly src: string;
+    readonly alt: string;
+    readonly caption?: string;
+    readonly width?: number;
+    readonly height?: number;
+}
+
 export interface StandardTestQuestionOption {
     readonly id:
         StandardTestOptionId;
 
     readonly text:
         string;
+
+    readonly image?:
+        StandardTestQuestionOptionImage;
 }
 
 export interface StandardTestQuestion {

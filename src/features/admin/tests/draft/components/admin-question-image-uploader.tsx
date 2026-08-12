@@ -28,6 +28,9 @@ interface AdminQuestionImageUploaderProps {
     readonly questionId: string;
     readonly image:
         AdminDraftImageAsset | null;
+    readonly eyebrow?: string;
+    readonly defaultAlt?: string;
+    readonly previewAltFallback?: string;
     readonly onChange: (
         image:
             AdminDraftImageAsset | null,
@@ -94,6 +97,9 @@ export function AdminQuestionImageUploader({
     draftId,
     questionId,
     image,
+    eyebrow = "SAVOL RASMI",
+    defaultAlt = "",
+    previewAltFallback = "Savol rasmi",
     onChange,
     onQueueStorageRemoval,
 }: AdminQuestionImageUploaderProps) {
@@ -104,7 +110,9 @@ export function AdminQuestionImageUploader({
     const [selectedFile, setSelectedFile] =
         useState<File | null>(null);
     const [alt, setAlt] =
-        useState(image?.alt ?? "");
+        useState(
+            image?.alt ?? defaultAlt,
+        );
     const [caption, setCaption] =
         useState(image?.caption ?? "");
     const [busy, setBusy] =
@@ -114,7 +122,7 @@ export function AdminQuestionImageUploader({
 
     useEffect(() => {
         setAlt(
-            image?.alt ?? "",
+            image?.alt ?? defaultAlt,
         );
         setCaption(
             image?.caption ?? "",
@@ -123,6 +131,7 @@ export function AdminQuestionImageUploader({
         image?.id,
         image?.alt,
         image?.caption,
+        defaultAlt,
     ]);
 
     function updateAlt(
@@ -341,7 +350,7 @@ export function AdminQuestionImageUploader({
 
         onChange(null);
         setSelectedFile(null);
-        setAlt("");
+        setAlt(defaultAlt);
         setCaption("");
 
         if (fileInputRef.current) {
@@ -379,7 +388,7 @@ export function AdminQuestionImageUploader({
             >
                 <div>
                     <span>
-                        SAVOL RASMI
+                        {eyebrow}
                     </span>
                     <strong>
                         {image
@@ -404,7 +413,7 @@ export function AdminQuestionImageUploader({
                         src={previewUrl}
                         alt={
                             image.alt ||
-                            "Savol rasmi"
+                            previewAltFallback
                         }
                     />
 

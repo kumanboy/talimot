@@ -68,6 +68,8 @@ export interface AdminDraftOption {
     readonly id:
         AdminDraftOptionId;
     readonly text: string;
+    readonly image?:
+        AdminDraftImageAsset | null;
 }
 
 export interface AdminDraftNumberedStatement {

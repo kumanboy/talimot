@@ -59,6 +59,7 @@ import type {
     AdminDraftMatchingQuestion,
     AdminDraftMultipartQuestion,
     AdminDraftMultipleChoiceQuestion,
+    AdminDraftOption,
     AdminDraftOptionId,
     AdminDraftShortAnswerQuestion,
     AdminDraftPassageBlock,
@@ -69,6 +70,9 @@ import type {
 import type {
     AdminTestDraft,
 } from "../model/admin-test-draft-types";
+import {
+    getAdminOptionImageOwnerId,
+} from "../model/admin-option-image-owner";
 import type {
     AdminParsedMcqQuestion,
 } from "../model/admin-docx-parser-types";
@@ -656,6 +660,27 @@ export function AdminMultipleChoiceDraftEditor({
                     },
                 ],
             );
+    }
+
+    function queueOptionImageStorageRemovals(
+        question:
+            AdminDraftMultipleChoiceQuestion,
+    ) {
+        question.options.forEach(
+            (option) => {
+                if (
+                    option.image?.storagePath
+                ) {
+                    queueImageStorageRemoval(
+                        getAdminOptionImageOwnerId(
+                            question.id,
+                            option.id,
+                        ),
+                        option.image.storagePath,
+                    );
+                }
+            },
+        );
     }
 
     function queueAudioStorageRemoval(
@@ -3546,6 +3571,15 @@ export function AdminMultipleChoiceDraftEditor({
 
                 if (
                     question.type ===
+                    "multiple-choice"
+                ) {
+                    queueOptionImageStorageRemovals(
+                        question,
+                    );
+                }
+
+                if (
+                    question.type ===
                     "passage-group"
                 ) {
                     question.questions.forEach(
@@ -3836,8 +3870,8 @@ export function AdminMultipleChoiceDraftEditor({
             string,
         optionId:
             AdminDraftOptionId,
-        text:
-            string,
+        update:
+            Partial<AdminDraftOption>,
     ) {
         replaceQuestions(
             questions.map(
@@ -3853,7 +3887,7 @@ export function AdminMultipleChoiceDraftEditor({
                                         optionId
                                             ? {
                                                 ...option,
-                                                text,
+                                                ...update,
                                             }
                                             : option,
                                 ),
@@ -3884,6 +3918,12 @@ export function AdminMultipleChoiceDraftEditor({
             queueImageStorageRemoval(
                 question.id,
                 question.image.storagePath,
+            );
+        }
+
+        if (question) {
+            queueOptionImageStorageRemovals(
+                question,
             );
         }
 
@@ -5393,59 +5433,107 @@ export function AdminMultipleChoiceDraftEditor({
                                     {question.options.map(
                                         (
                                             option,
-                                        ) => (
-                                            <label
-                                                key={
-                                                    option.id
-                                                }
-                                                className={
-                                                    question.correctOptionId ===
-                                                    option.id
-                                                        ? styles.correctOption
-                                                        : styles.option
-                                                }
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name={`correct-${question.id}`}
-                                                    checked={
-                                                        question.correctOptionId ===
+                                        ) => {
+                                            const optionImageOwnerId =
+                                                getAdminOptionImageOwnerId(
+                                                    question.id,
+                                                    option.id,
+                                                );
+
+                                            return (
+                                                <div
+                                                    key={
                                                         option.id
                                                     }
-                                                    onChange={() =>
-                                                        updateQuestion(
-                                                            question.id,
-                                                            {
-                                                                correctOptionId:
+                                                    className={
+                                                        question.correctOptionId ===
+                                                        option.id
+                                                            ? styles.correctOption
+                                                            : styles.option
+                                                    }
+                                                >
+                                                    <label
+                                                        className={
+                                                            styles.optionMainRow
+                                                        }
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            name={`correct-${question.id}`}
+                                                            checked={
+                                                                question.correctOptionId ===
+                                                                option.id
+                                                            }
+                                                            onChange={() =>
+                                                                updateQuestion(
+                                                                    question.id,
+                                                                    {
+                                                                        correctOptionId:
+                                                                            option.id,
+                                                                    },
+                                                                )
+                                                            }
+                                                        />
+
+                                                        <strong>
+                                                            {option.id}
+                                                        </strong>
+
+                                                        <input
+                                                            value={
+                                                                option.text
+                                                            }
+                                                            onChange={(
+                                                                event,
+                                                            ) =>
+                                                                updateOption(
+                                                                    question.id,
                                                                     option.id,
-                                                            },
-                                                        )
-                                                    }
-                                                />
+                                                                    {
+                                                                        text:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                            placeholder={`${option.id} varianti — matn ixtiyoriy, rasm ham yuklash mumkin`}
+                                                        />
+                                                    </label>
 
-                                                <strong>
-                                                    {option.id}
-                                                </strong>
-
-                                                <input
-                                                    value={
-                                                        option.text
-                                                    }
-                                                    onChange={(
-                                                        event,
-                                                    ) =>
-                                                        updateOption(
-                                                            question.id,
-                                                            option.id,
-                                                            event
-                                                                .target
-                                                                .value,
-                                                        )
-                                                    }
-                                                    placeholder={`${option.id} varianti`}
-                                                />
-                                            </label>
-                                        ),
+                                                    <AdminQuestionImageUploader
+                                                        draftId={
+                                                            draft.id
+                                                        }
+                                                        questionId={
+                                                            optionImageOwnerId
+                                                        }
+                                                        image={
+                                                            option.image ??
+                                                            null
+                                                        }
+                                                        eyebrow={`${option.id} VARIANT RASMI`}
+                                                        defaultAlt={`${option.id} javob varianti rasmi`}
+                                                        previewAltFallback={`${option.id} javob varianti rasmi`}
+                                                        onChange={(image) =>
+                                                            updateOption(
+                                                                question.id,
+                                                                option.id,
+                                                                {
+                                                                    image,
+                                                                },
+                                                            )
+                                                        }
+                                                        onQueueStorageRemoval={(storagePath) =>
+                                                            queueImageStorageRemoval(
+                                                                optionImageOwnerId,
+                                                                storagePath,
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                            );
+                                        },
                                     )}
                                 </div>
 
