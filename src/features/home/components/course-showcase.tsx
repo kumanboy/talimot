@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { getPublishedCourses } from "@/features/courses/model/course-catalog";
 import type { CourseDefinition } from "@/features/courses/model/course-types";
+import { loadHomeCatalog } from "@/features/home/api/home-catalog-client";
 
 import styles from "./course-showcase.module.css";
 
@@ -30,11 +31,7 @@ export function CourseShowcase() {
     useEffect(() => {
         let cancelled = false;
 
-        void fetch("/api/catalog/home", { cache: "no-store" })
-            .then(async (response) => {
-                if (!response.ok) return null;
-                return response.json() as Promise<{ courses?: CourseDefinition[] }>;
-            })
+        void loadHomeCatalog()
             .then((payload) => {
                 if (!cancelled && Array.isArray(payload?.courses)) setCourses(payload.courses);
             })
@@ -54,7 +51,7 @@ export function CourseShowcase() {
             </header>
 
             <div className={styles.list}>
-                {visibleCourses.map((course, index) => {
+                {visibleCourses.map((course) => {
                     const accent = uiAccent(course);
                     return (
                         <article key={course.id} className={`${styles.card} ${styles[accent]}`}>
@@ -69,8 +66,7 @@ export function CourseShowcase() {
                                     src={course.coverImage}
                                     alt={course.coverImageAlt}
                                     fill
-                                    priority={index === 0}
-                                    loading={index === 0 ? "eager" : "lazy"}
+                                    loading="lazy"
                                     sizes="(max-width: 599px) 100vw, 448px"
                                     style={{ objectPosition: imagePosition(course) }}
                                 />

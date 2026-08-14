@@ -7,7 +7,10 @@ import {
 } from "@/features/auth/model/student-session";
 import {
     TELEGRAM_ACCESS_COOKIE,
+    TELEGRAM_GATE_COOKIE,
+    createTelegramGateToken,
     telegramAccessCookieOptions,
+    telegramGateCookieOptions,
     verifyTelegramAccessToken,
 } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
@@ -24,6 +27,12 @@ function getSafeDestination(value: string | null): string {
     return value;
 }
 
+function clearAccessCookies(response: NextResponse) {
+    response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+    response.cookies.delete(TELEGRAM_GATE_COOKIE);
+    response.cookies.delete(STUDENT_SESSION_COOKIE);
+}
+
 export async function GET(request: NextRequest) {
     const token = request.nextUrl.searchParams.get("token") ?? undefined;
     const access = verifyTelegramAccessToken(token);
@@ -32,43 +41,36 @@ export async function GET(request: NextRequest) {
         const response = NextResponse.redirect(
             new URL("/access-required?reason=invalid", request.url),
         );
-        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
-        response.cookies.delete(STUDENT_SESSION_COOKIE);
+        clearAccessCookies(response);
         return response;
     }
 
-    // A signed bot entry token is never trusted on its own: membership is
-    // checked again every time the Mini App is opened.
-    const subscribed = await isTelegramChannelMember(access.telegramUserId);
+    // These two operations do not depend on each other, so do not serialize
+    // them. This path is the first server hop when the Telegram Mini App opens.
+    const [subscribed, registeredUser] = await Promise.all([
+        isTelegramChannelMember(access.telegramUserId),
+        getUserByTelegramId(access.telegramUserId),
+    ]);
 
     if (!subscribed) {
         const response = NextResponse.redirect(
             new URL("/access-required?reason=subscription", request.url),
         );
-        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
-        response.cookies.delete(STUDENT_SESSION_COOKIE);
+        clearAccessCookies(response);
+        return response;
+    }
+
+    if (registeredUser?.status === "blocked") {
+        const response = NextResponse.redirect(
+            new URL("/access-required?reason=blocked", request.url),
+        );
+        clearAccessCookies(response);
         return response;
     }
 
     const requestedDestination = getSafeDestination(
         request.nextUrl.searchParams.get("next"),
     );
-    const registeredUser = await getUserByTelegramId(access.telegramUserId);
-
-    if (registeredUser?.status === "blocked") {
-        const response = NextResponse.redirect(
-            new URL("/access-required?reason=blocked", request.url),
-        );
-        response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
-        response.cookies.delete(STUDENT_SESSION_COOKIE);
-        return response;
-    }
-
-    // Telegram itself already authenticated this Mini App entry through the
-    // signed per-user URL created by our bot. For an existing active account,
-    // create/refresh the normal student session here. This makes reopening the
-    // Mini App passwordless while profile/wallet APIs still use an HttpOnly
-    // server session cookie rather than localStorage.
     const destination = registeredUser?.status === "active"
         ? "/"
         : requestedDestination;
@@ -81,6 +83,11 @@ export async function GET(request: NextRequest) {
         TELEGRAM_ACCESS_COOKIE,
         token,
         telegramAccessCookieOptions,
+    );
+    response.cookies.set(
+        TELEGRAM_GATE_COOKIE,
+        createTelegramGateToken(access.telegramUserId),
+        telegramGateCookieOptions,
     );
 
     if (registeredUser?.status === "active") {

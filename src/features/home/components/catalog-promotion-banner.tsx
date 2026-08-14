@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { getPublishedCourses } from "@/features/courses/model/course-catalog";
 import type { CourseDefinition } from "@/features/courses/model/course-types";
+import { loadHomeCatalog } from "@/features/home/api/home-catalog-client";
 
 import { PromotionBanner } from "./promotion-banner";
 
@@ -25,11 +26,7 @@ export function CatalogPromotionBanner() {
     useEffect(() => {
         let cancelled = false;
 
-        void fetch("/api/catalog/home", { cache: "no-store" })
-            .then(async (response) => {
-                if (!response.ok) return null;
-                return response.json() as Promise<{ courses?: CourseDefinition[] }>;
-            })
+        void loadHomeCatalog()
             .then((payload) => {
                 if (!cancelled && Array.isArray(payload?.courses)) {
                     setCourse(payload.courses[0] ?? null);

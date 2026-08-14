@@ -1,9 +1,5 @@
-import {
-    NextResponse,
-} from "next/server";
-import type {
-    NextRequest,
-} from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 import {
     ADMIN_SESSION_COOKIE,
@@ -11,17 +7,17 @@ import {
 } from "@/features/admin/model/admin-session";
 import {
     TELEGRAM_ACCESS_COOKIE,
+    TELEGRAM_GATE_COOKIE,
+    createTelegramGateToken,
+    telegramGateCookieOptions,
     verifyTelegramAccessToken,
+    verifyTelegramGateToken,
 } from "@/features/auth/model/telegram-access";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 
-export async function proxy(
-    request: NextRequest,
-) {
-    const {
-        pathname,
-    } = request.nextUrl;
+export async function proxy(request: NextRequest) {
+    const { pathname } = request.nextUrl;
 
     if (pathname.startsWith("/admin")) {
         const isLoginRoute = pathname === "/admin/login";
@@ -52,15 +48,26 @@ export async function proxy(
 
         const response = NextResponse.redirect(url);
         response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        response.cookies.delete(TELEGRAM_GATE_COOKIE);
         return response;
     }
 
-    // IMPORTANT: a valid signed cookie alone is not enough. The user may have
-    // left the required Telegram channel after an earlier verification.
-    // Re-check current membership before every protected request.
-    const subscribed = await isTelegramChannelMember(
-        telegramAccess.telegramUserId,
-    );
+    // Avoid the old expensive behavior: every navigation previously waited
+    // for Telegram getChatMember and then a Postgres user lookup. A signed
+    // short-lived gate proves those checks were completed recently.
+    const gateToken = request.cookies.get(TELEGRAM_GATE_COOKIE)?.value;
+    const recentGate = verifyTelegramGateToken(gateToken);
+
+    if (recentGate?.telegramUserId === telegramAccess.telegramUserId) {
+        return NextResponse.next();
+    }
+
+    // Refresh both independent checks in parallel once the 10-minute gate
+    // expires. This keeps subscription/block enforcement reasonably fresh.
+    const [subscribed, registeredUser] = await Promise.all([
+        isTelegramChannelMember(telegramAccess.telegramUserId),
+        getUserByTelegramId(telegramAccess.telegramUserId),
+    ]);
 
     if (!subscribed) {
         const url = new URL("/access-required", request.url);
@@ -69,15 +76,9 @@ export async function proxy(
 
         const response = NextResponse.redirect(url);
         response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        response.cookies.delete(TELEGRAM_GATE_COOKIE);
         return response;
     }
-
-    // Registered users can be blocked from the admin panel. New users do not
-    // have a database record yet, so they must still be allowed to complete
-    // onboarding and registration.
-    const registeredUser = await getUserByTelegramId(
-        telegramAccess.telegramUserId,
-    );
 
     if (registeredUser?.status === "blocked") {
         const url = new URL("/access-required", request.url);
@@ -85,10 +86,17 @@ export async function proxy(
 
         const response = NextResponse.redirect(url);
         response.cookies.delete(TELEGRAM_ACCESS_COOKIE);
+        response.cookies.delete(TELEGRAM_GATE_COOKIE);
         return response;
     }
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.cookies.set(
+        TELEGRAM_GATE_COOKIE,
+        createTelegramGateToken(telegramAccess.telegramUserId),
+        telegramGateCookieOptions,
+    );
+    return response;
 }
 
 export const config = {

@@ -30,6 +30,7 @@ export default function RootLayout({
             suppressHydrationWarning
         >
             <head>
+                <link rel="preconnect" href="https://telegram.org" />
                 <Script
                     id="talimot-theme-bootstrap"
                     src="/theme-bootstrap.js"

@@ -111,19 +111,18 @@ function validateRegistration(
     return errors;
 }
 
-function openTelegramLink(url: string) {
-    const telegramWindow = window as typeof window & {
-        Telegram?: {
-            WebApp?: {
-                openTelegramLink?: (link: string) => void;
-            };
-        };
-    };
+function openTelegramBotAndCloseMiniApp(url: string) {
+    const webApp = window.Telegram?.WebApp;
 
-    const openInTelegram = telegramWindow.Telegram?.WebApp?.openTelegramLink;
+    if (typeof webApp?.openTelegramLink === "function") {
+        webApp.openTelegramLink(url);
 
-    if (typeof openInTelegram === "function") {
-        openInTelegram(url);
+        // Telegram 7.0+ no longer closes Mini Apps automatically after
+        // openTelegramLink(). Close this webview explicitly after Telegram
+        // receives the bot link. Pending verification is persisted locally.
+        window.setTimeout(() => {
+            webApp.close?.();
+        }, 120);
         return;
     }
 
@@ -390,17 +389,18 @@ export function RegistrationForm({
                         <div className={styles.verificationCopy}>
                             <h2>Telegram raqamingizni tasdiqlang</h2>
                             <p>
-                                Botni oching va <strong>“📱 Telegram raqamimni ulashish”</strong>
-                                tugmasini bosing. Bot sizga 6 xonali kod yuboradi.
+                                <strong>Telegramga o‘tish</strong> tugmasini bosing, so‘ng botda
+                                <strong> “📱 Telegram raqamimni ulashish”</strong> tugmasini tanlang.
+                                Kodni olgach TA’LIMOT Mini App’ini qayta oching — tasdiqlash sahifasi saqlanib qoladi.
                             </p>
                         </div>
 
                         <button
                             className={styles.telegramButton}
                             type="button"
-                            onClick={() => openTelegramLink(verification.botUrl)}
+                            onClick={() => openTelegramBotAndCloseMiniApp(verification.botUrl)}
                         >
-                            Telegram botni ochish
+                            Telegramga o‘tish
                         </button>
 
                         <div className={styles.field}>

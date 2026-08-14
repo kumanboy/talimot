@@ -5,7 +5,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
     TELEGRAM_ACCESS_COOKIE,
+    TELEGRAM_GATE_COOKIE,
     verifyTelegramAccessToken,
+    verifyTelegramGateToken,
 } from "@/features/auth/model/telegram-access";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 import {
@@ -89,13 +91,21 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const subscribed = await isTelegramChannelMember(access.telegramUserId);
+        const gate = verifyTelegramGateToken(
+            request.cookies.get(TELEGRAM_GATE_COOKIE)?.value,
+        );
 
-        if (!subscribed) {
-            return NextResponse.json(
-                { error: "Telegram kanal obunasi topilmadi." },
-                { status: 403 },
+        if (gate?.telegramUserId !== access.telegramUserId) {
+            const subscribed = await isTelegramChannelMember(
+                access.telegramUserId,
             );
+
+            if (!subscribed) {
+                return NextResponse.json(
+                    { error: "Telegram kanal obunasi topilmadi." },
+                    { status: 403 },
+                );
+            }
         }
 
         const body = (await request.json()) as StartRegistrationBody;
