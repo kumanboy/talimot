@@ -1,0 +1,33 @@
+.header { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
+.header div { display:grid; gap:6px; }
+.header a { color:var(--app-primary); font-size:9px; font-weight:850; text-decoration:none; }
+.header div>span,.heading>span { color:var(--app-primary); font-size:9px; font-weight:900; letter-spacing:.1em; }
+.header h1 { margin:0; font-size:clamp(26px,3vw,38px); letter-spacing:-.04em; }
+.header p { margin:0; color:var(--app-text-secondary); font-size:11px; }
+.statusBadge { display:inline-flex; min-height:30px; align-items:center; padding:0 10px; border-radius:999px; font-size:9px; font-weight:900; }
+.pending { background:color-mix(in srgb,#f59e0b 14%,var(--app-surface)); color:#a15c00; }
+.confirmed { background:color-mix(in srgb,#22c55e 12%,var(--app-surface)); color:#16803d; }
+.rejected,.cancelled { background:color-mix(in srgb,#ef4444 11%,var(--app-surface)); color:#b42318; }
+.success,.message { margin-top:18px; padding:13px 16px; border-radius:14px; font-size:10px; font-weight:800; }
+.success { border:1px solid color-mix(in srgb,#22c55e 35%,var(--app-border)); background:color-mix(in srgb,#22c55e 10%,var(--app-surface)); color:#16803d; }
+.message { border:1px solid var(--app-border); background:var(--app-surface); color:var(--app-text-secondary); }
+.infoGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:24px; }
+.infoGrid article,.card { border:1px solid var(--app-border); border-radius:18px; background:var(--app-surface); }
+.infoGrid article { display:grid; gap:7px; padding:16px; }
+.infoGrid span,.detailsGrid span,.form label>span { color:var(--app-text-secondary); font-size:8px; font-weight:850; }
+.infoGrid strong { font-size:15px; }
+.infoGrid small { color:var(--app-text-secondary); font-size:8px; overflow-wrap:anywhere; }
+.card { margin-top:18px; padding:20px; }
+.heading h2 { margin:5px 0 0; font-size:18px; }
+.heading p { max-width:760px; margin:8px 0 0; color:var(--app-text-secondary); font-size:10px; line-height:1.6; }
+.detailsGrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:16px; }
+.detailsGrid div { display:grid; gap:6px; padding:14px; border:1px solid var(--app-border); border-radius:13px; background:var(--app-background-subtle); }
+.detailsGrid strong { font-size:10px; overflow-wrap:anywhere; }
+.form { display:grid; grid-template-columns:minmax(240px,.7fr) minmax(320px,1.3fr); gap:12px; margin-top:18px; }
+.form label { display:grid; gap:7px; }
+.form input { min-height:44px; padding:0 13px; border:1px solid var(--app-border); border-radius:12px; background:var(--app-background-subtle); color:var(--app-text); font:inherit; font-size:10px; }
+.actions { grid-column:1/-1; display:flex; gap:10px; }
+.actions button { min-height:42px; padding:0 16px; border-radius:12px; font:inherit; font-size:10px; font-weight:900; cursor:pointer; }
+.confirmButton { border:1px solid #16803d; background:#16803d; color:#fff; }
+.rejectButton { border:1px solid #b42318; background:transparent; color:#b42318; }
+@media(max-width:1260px){.infoGrid,.detailsGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+
+  --app-background: #f4f7f5;
+  --app-background-subtle: #edf4fd;
+  --app-surface: #ffffff;
+  --app-surface-raised: #ffffff;
+
+  --app-text: #1e2229;
+  --app-text-secondary: #5e6872;
+
+  --app-border: #d5dde4;
+
+  --app-primary: #376fb5;
+  --app-primary-strong: #285f9f;
+  --app-primary-button: #5d9cec;
+  --app-primary-soft: #e8f1fc;
+
+  --app-secondary: #4f8b74;
+  --app-success: #4f8b74;
+  --app-warning: #c98a2e;
+  --app-error: #c45e66;
+  --app-focus: #376fb5;
+
+  --app-shadow: #1e2229;
+  --app-header-background:
+          rgb(244 247 245 / 92%);
+  --app-glass-background:
+          rgb(255 255 255 / 78%);
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --app-background: #1a252c;
+  --app-background-subtle: #202e36;
+  --app-surface: #24333c;
+  --app-surface-raised: #2a3a44;
+
+  --app-text: #f4f7f5;
+  --app-text-secondary: #bdccd6;
+
+  --app-border: #3b4c56;
+
+  --app-primary: #5d9cec;
+  --app-primary-strong: #78aff0;
+  --app-primary-button: #5d9cec;
+  --app-primary-soft: #233c57;
+
+  --app-secondary: #72a37d;
+  --app-success: #72a37d;
+  --app-warning: #e1b15f;
+  --app-error: #e18388;
+  --app-focus: #78aff0;
+
+  --app-shadow: #000000;
+  --app-header-background:
+          rgb(26 37 44 / 91%);
+  --app-glass-background:
+          rgb(36 51 60 / 76%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--app-background);
+  color: var(--app-text);
+  transition:
+          background-color 180ms ease,
+          color 180ms ease;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--app-background);
+  color: var(--app-text);
+  font-family:
+          Inter,
+          "Segoe UI",
+          Arial,
+          Helvetica,
+          sans-serif;
+  transition:
+          background-color 180ms ease,
+          color 180ms ease;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--app-primary);
+  color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    transition: none;
+  }
+}
+

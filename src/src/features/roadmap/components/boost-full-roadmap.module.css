@@ -1,0 +1,409 @@
+.scrollContent {
+  box-sizing: border-box;
+  width: 100%;
+  padding-bottom: 1px;
+}
+
+:global(div):has(> .scrollContent) {
+  scrollbar-width: none;
+}
+
+:global(div):has(> .scrollContent)::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.summary {
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #b8c6d1;
+  border-radius: 16px;
+  background: #fff;
+  color: #1e2229;
+}
+
+.summary h2,
+.summary dl,
+.summary dt,
+.summary dd {
+  margin: 0;
+}
+
+.summary h2 {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.summary dl {
+  display: grid;
+  gap: 8px;
+}
+
+.summary dl div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  color: #5e6872;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.roadmap {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  padding-top: 20px;
+}
+
+.stage {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stageHeader span {
+  color: #376fb5;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.stageHeader h2,
+.stageHeader p {
+  margin: 0;
+}
+
+.stageHeader h2 {
+  color: #1e2229;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.stageHeader p {
+  color: #5e6872;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.nodeSequence {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  list-style: none;
+}
+
+.nodeSequence li {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nodeSequence li > article {
+  align-self: stretch;
+}
+
+.nodeConnector {
+  display: block;
+  width: 3px;
+  height: 32px;
+  background: #7a8793;
+}
+
+.splitConnector {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 0 12px;
+}
+
+.splitConnector p,
+.mergeConnector p {
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  margin: 0;
+  color: #1e2229;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.splitRails,
+.mergeRails {
+  position: relative;
+  width: 76%;
+  height: 38px;
+  margin-top: 8px;
+}
+
+.splitRails::before,
+.mergeRails::before {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: #376fb5;
+  content: "";
+}
+
+.splitRails span,
+.mergeRails span {
+  position: absolute;
+  width: 3px;
+  background: #376fb5;
+}
+
+.splitRails span:first-child {
+  top: 0;
+  left: 50%;
+  height: 20px;
+}
+
+.splitRails span:nth-child(2),
+.splitRails span:nth-child(3) {
+  top: 18px;
+  height: 20px;
+}
+
+.splitRails span:nth-child(2),
+.mergeRails span:first-child {
+  left: 0;
+}
+
+.splitRails span:nth-child(3),
+.mergeRails span:nth-child(2) {
+  right: 0;
+}
+
+.branchLabels {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  color: #376fb5;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.branchLabels span {
+  display: inline-flex;
+  width: 116px;
+  justify-content: center;
+}
+
+.parallelContinuation {
+  display: grid;
+  width: 100%;
+  min-height: 72px;
+  grid-template-columns: 3px minmax(0, 1fr) 3px;
+  align-items: stretch;
+  gap: 16px;
+  padding: 14px 12%;
+  box-sizing: border-box;
+}
+
+.parallelContinuation > span {
+  background: #376fb5;
+}
+
+.parallelContinuation p {
+  align-self: center;
+  margin: 0;
+  color: #5e6872;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.essayPolicy {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-left: 4px solid #376fb5;
+  border-radius: 10px;
+  background: #edf4fd;
+  color: #1e2229;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.masteredTopics {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid #4a7c59;
+  border-radius: 16px;
+  background: #f7fbf8;
+  color: #1e2229;
+}
+
+.masteredTopics summary {
+  min-height: 44px;
+  padding: 12px 16px;
+  color: #356742;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.masteredTopics summary:focus-visible {
+  outline: 3px solid #376fb5;
+  outline-offset: -4px;
+}
+
+.masteredTopics p {
+  margin: 0;
+  padding: 0 16px 12px;
+  color: #5e6872;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.mergeConnector {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 18px;
+}
+
+.mergeRails span:first-child,
+.mergeRails span:nth-child(2) {
+  top: 0;
+  height: 20px;
+}
+
+.mergeRails span:nth-child(3) {
+  top: 18px;
+  left: 50%;
+  height: 20px;
+}
+
+.mergeConnector p {
+  padding: 10px 12px;
+  border: 1px solid #376fb5;
+  border-radius: 999px;
+  background: #edf4fd;
+  color: #376fb5;
+}
+
+
+/* Theme integration */
+
+.summary,
+.stageHeader h2,
+.stageHeader p,
+.splitConnector p,
+.mergeConnector p,
+.parallelContinuation p,
+.essayPolicy,
+.masteredTopics,
+.masteredTopics summary,
+.masteredTopics p {
+  transition:
+          background-color 180ms ease,
+          color 180ms ease,
+          border-color 180ms ease,
+          box-shadow 180ms ease;
+}
+
+:global(html[data-theme="dark"]) .summary {
+  border-color: var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+  box-shadow:
+          0 10px 26px rgb(0 0 0 / 16%),
+          inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
+:global(html[data-theme="dark"]) .summary dl div,
+:global(html[data-theme="dark"]) .stageHeader p,
+:global(html[data-theme="dark"]) .parallelContinuation p,
+:global(html[data-theme="dark"]) .masteredTopics p {
+  color: var(--app-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .stageHeader span,
+:global(html[data-theme="dark"]) .branchLabels {
+  color: var(--app-primary);
+}
+
+:global(html[data-theme="dark"]) .stageHeader h2,
+:global(html[data-theme="dark"]) .splitConnector p {
+  color: var(--app-text);
+}
+
+:global(html[data-theme="dark"]) .nodeConnector {
+  background: var(--app-border);
+}
+
+:global(html[data-theme="dark"]) .splitRails::before,
+:global(html[data-theme="dark"]) .mergeRails::before,
+:global(html[data-theme="dark"]) .splitRails span,
+:global(html[data-theme="dark"]) .mergeRails span,
+:global(html[data-theme="dark"]) .parallelContinuation > span {
+  background: var(--app-primary);
+}
+
+:global(html[data-theme="dark"]) .essayPolicy {
+  border-left-color: var(--app-primary);
+  background: var(--app-primary-soft);
+  color: var(--app-text);
+}
+
+:global(html[data-theme="dark"]) .masteredTopics {
+  border-color:
+          color-mix(in srgb, var(--app-success) 70%, var(--app-border));
+  background:
+          color-mix(in srgb, var(--app-success) 8%, var(--app-surface));
+  color: var(--app-text);
+}
+
+:global(html[data-theme="dark"]) .masteredTopics summary {
+  color: var(--app-success);
+}
+
+:global(html[data-theme="dark"]) .masteredTopics summary:focus-visible {
+  outline-color: var(--app-focus);
+}
+
+:global(html[data-theme="dark"]) .mergeConnector p {
+  border-color: var(--app-primary);
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary,
+  .stageHeader h2,
+  .stageHeader p,
+  .splitConnector p,
+  .mergeConnector p,
+  .parallelContinuation p,
+  .essayPolicy,
+  .masteredTopics,
+  .masteredTopics summary,
+  .masteredTopics p {
+    transition: none;
+  }
+}

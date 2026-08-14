@@ -1,0 +1,358 @@
+.page {
+    --background: var(--app-background);
+    --surface: var(--app-surface);
+    --surface-soft:
+            var(--app-background-subtle);
+    --primary: var(--app-primary);
+    --primary-strong:
+            var(--app-primary-strong);
+    --primary-button:
+            var(--app-primary-button);
+    --text: var(--app-text);
+    --muted: var(--app-text-secondary);
+    --border: var(--app-border);
+
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 100vh;
+    padding-bottom: 96px;
+    overflow-x: hidden;
+    background: var(--background);
+    color: var(--text);
+    font-family:
+            Inter,
+            "Segoe UI",
+            sans-serif;
+    transition:
+            background-color 180ms ease,
+            color 180ms ease,
+            border-color 180ms ease;
+}
+
+.page button,
+.page a {
+    font: inherit;
+}
+
+.header {
+    position: sticky;
+    z-index: 30;
+    top: 0;
+    box-sizing: border-box;
+    display: flex;
+    width: 100%;
+    min-height: 72px;
+    align-items: center;
+    justify-content: space-between;
+    padding:
+            calc(
+                    12px +
+                    env(safe-area-inset-top)
+            )
+            16px
+            12px;
+    border-bottom:
+            1px solid
+            color-mix(
+                    in srgb,
+                    var(--border) 72%,
+                    transparent
+            );
+    background:
+            var(--app-header-background);
+    box-shadow:
+            0 7px 22px
+            color-mix(
+                    in srgb,
+                    var(--app-shadow) 5%,
+                    transparent
+            );
+    backdrop-filter:
+            blur(20px)
+            saturate(140%);
+    transition:
+            background-color 180ms ease,
+            border-color 180ms ease,
+            box-shadow 180ms ease;
+}
+
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.notificationButton,
+.menuButton {
+    position: relative;
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    color: var(--text);
+    cursor: pointer;
+    transition:
+            color 180ms ease,
+            border-color 180ms ease,
+            background-color 180ms ease,
+            transform 160ms ease,
+            box-shadow 180ms ease;
+}
+
+.notificationButton {
+    border: 1px solid transparent;
+    background: transparent;
+}
+
+.notificationButton:hover,
+.menuButton:hover {
+    border-color: var(--border);
+    background: var(--surface-soft);
+    color: var(--primary);
+}
+
+.notificationButton:active,
+.menuButton:active {
+    transform: scale(0.94);
+}
+
+.notificationButton svg {
+    width: 23px;
+    height: 23px;
+}
+
+.notificationButton > span {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 7px;
+    height: 7px;
+    border:
+            2px solid
+            var(--app-header-background);
+    border-radius: 999px;
+    background: var(--primary);
+}
+
+.menuButton {
+    flex-direction: column;
+    gap: 4px;
+    border: 1px solid var(--border);
+    background:
+            linear-gradient(
+                    145deg,
+                    color-mix(
+                            in srgb,
+                            var(--surface) 94%,
+                            transparent
+                    ),
+                    color-mix(
+                            in srgb,
+                            var(--surface-soft) 82%,
+                            transparent
+                    )
+            );
+    box-shadow:
+            0 7px 18px
+            color-mix(
+                    in srgb,
+                    var(--app-shadow) 7%,
+                    transparent
+            ),
+            inset 0 1px 0
+            rgb(255 255 255 / 32%);
+}
+
+.menuButton span {
+    display: block;
+    width: 19px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+}
+
+.heroSection {
+    padding: 16px 14px 2px;
+}
+
+.heroBanner {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 9 / 5;
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow:
+            0 10px 28px
+            color-mix(
+                    in srgb,
+                    var(--app-shadow) 11%,
+                    transparent
+            );
+    cursor: pointer;
+    animation:
+            banner-enter
+            240ms ease-out;
+}
+
+.heroBannerImage {
+    object-fit: cover;
+}
+
+.heroBanner:active {
+    transform: scale(0.995);
+}
+
+.carouselDots {
+    display: flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.carouselDots button {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--muted) 32%,
+                    transparent
+            );
+    cursor: pointer;
+    transition:
+            width 160ms ease-out,
+            background-color 160ms ease-out;
+}
+
+.carouselDots .activeDot {
+    width: 22px;
+    background: var(--primary);
+}
+
+.section {
+    padding: 22px 16px 4px;
+}
+
+.sectionHeading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.sectionHeading > div {
+    min-width: 0;
+}
+
+.sectionHeading span,
+.sectionHeading h2 {
+    margin: 0;
+}
+
+.sectionHeading span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.09em;
+}
+
+.sectionHeading h2 {
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+}
+
+.sectionHeading > button {
+    flex: none;
+    padding: 8px 0 8px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.page button:focus-visible,
+.page a:focus-visible {
+    outline: 3px solid var(--app-focus);
+    outline-offset: 3px;
+}
+
+@keyframes banner-enter {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (min-width: 600px) {
+    .page {
+        width: 480px;
+        margin: 0 auto;
+        border-right:
+                1px solid var(--border);
+        border-left:
+                1px solid var(--border);
+    }
+}
+
+@media (max-width: 390px) {
+    .header {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    .headerActions {
+        gap: 5px;
+    }
+
+    .notificationButton,
+    .menuButton {
+        width: 41px;
+        height: 41px;
+    }
+}
+
+@media (max-width: 360px) {
+    .heroSection {
+        padding-inline: 12px;
+    }
+
+    .heroBanner {
+        border-radius: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page,
+    .header,
+    .notificationButton,
+    .menuButton,
+    .heroBanner,
+    .carouselDots button {
+        animation: none;
+        transition: none;
+    }
+}

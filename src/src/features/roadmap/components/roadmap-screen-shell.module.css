@@ -1,0 +1,177 @@
+.screen {
+  --roadmap-background: var(--app-background);
+  --roadmap-primary-soft: var(--app-primary-soft);
+  --roadmap-primary-text: var(--app-text);
+
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  height: 100vh;
+  height: 100svh;
+  justify-content: center;
+  overflow: hidden;
+  padding:
+          calc(20px + env(safe-area-inset-top))
+          max(24px, env(safe-area-inset-right))
+          0
+          max(24px, env(safe-area-inset-left));
+  background: var(--roadmap-background);
+  color: var(--roadmap-primary-text);
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+.shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  max-width: 342px;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding-bottom: 18px;
+}
+
+
+.headerTop {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header h1 {
+  margin: 0;
+  color: var(--roadmap-primary-text);
+  font-size: 26px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.scrollRegion {
+  min-height: 0;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-inline: -8px;
+  padding: 20px 8px 40px;
+}
+
+.stickyFooter {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  flex: none;
+  padding: 12px 0 0;
+  background: var(--roadmap-background);
+}
+
+.decorativeShape {
+  position: absolute;
+  border-radius: 999px;
+  background: var(--roadmap-primary-soft);
+  pointer-events: none;
+}
+
+.topShape {
+  top: -82px;
+  right: -76px;
+  width: 220px;
+  height: 220px;
+  opacity: 0.72;
+}
+
+.bottomShape {
+  bottom: 34%;
+  left: -58px;
+  width: 112px;
+  height: 112px;
+  opacity: 0.48;
+}
+
+@media (min-width: 430px) {
+  .screen {
+    padding-right: max(44px, env(safe-area-inset-right));
+    padding-left: max(44px, env(safe-area-inset-left));
+  }
+}
+
+@media (max-height: 820px) {
+  .header {
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+
+  .headerTop {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .scrollRegion {
+    padding-top: 16px;
+  }
+}
+
+
+.screen,
+.stickyFooter,
+.header h1,
+.decorativeShape {
+  transition:
+          background-color 180ms ease,
+          color 180ms ease,
+          border-color 180ms ease,
+          opacity 180ms ease;
+}
+
+:global(html[data-theme="dark"]) .screen {
+  background:
+          radial-gradient(
+                  circle at 100% 0,
+                  rgb(93 156 236 / 8%),
+                  transparent 28%
+          ),
+          var(--app-background);
+}
+
+:global(html[data-theme="dark"]) .stickyFooter {
+  background:
+          linear-gradient(
+                  180deg,
+                  rgb(26 37 44 / 0%),
+                  var(--app-background) 24%
+          );
+}
+
+:global(html[data-theme="dark"]) .decorativeShape {
+  opacity: 0.34;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen,
+  .stickyFooter,
+  .header h1,
+  .decorativeShape {
+    transition: none;
+  }
+}

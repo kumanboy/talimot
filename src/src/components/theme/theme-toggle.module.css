@@ -1,0 +1,102 @@
+.button {
+    position: relative;
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    background:
+            linear-gradient(
+                    145deg,
+                    color-mix(
+                            in srgb,
+                            var(--app-surface) 92%,
+                            transparent
+                    ),
+                    color-mix(
+                            in srgb,
+                            var(--app-surface-soft) 82%,
+                            transparent
+                    )
+            );
+    color: var(--app-text);
+    box-shadow:
+            0 7px 18px
+            color-mix(
+                    in srgb,
+                    var(--app-shadow) 9%,
+                    transparent
+            ),
+            inset 0 1px 0
+            color-mix(
+                    in srgb,
+                    #ffffff 55%,
+                    transparent
+            );
+    cursor: pointer;
+    backdrop-filter: blur(14px);
+    transition:
+            color 180ms ease,
+            border-color 180ms ease,
+            background-color 180ms ease,
+            transform 160ms ease,
+            box-shadow 180ms ease;
+}
+
+.button svg {
+    position: relative;
+    z-index: 1;
+    width: 22px;
+    height: 22px;
+}
+
+.glow {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: var(--app-primary);
+    opacity: 0.08;
+    filter: blur(8px);
+    transition:
+            opacity 180ms ease,
+            transform 180ms ease;
+}
+
+.button:hover {
+    border-color: var(--app-primary);
+    color: var(--app-primary);
+}
+
+.button:hover .glow {
+    opacity: 0.17;
+    transform: scale(1.25);
+}
+
+.button:active {
+    transform: scale(0.94);
+}
+
+.button:focus-visible {
+    outline: 3px solid var(--app-focus);
+    outline-offset: 3px;
+}
+
+:global(html[data-theme="dark"])
+.button {
+    box-shadow:
+            0 9px 22px rgb(0 0 0 / 20%),
+            inset 0 1px 0
+            rgb(255 255 255 / 7%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .button,
+    .glow {
+        transition: none;
+    }
+}

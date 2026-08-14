@@ -1,0 +1,208 @@
+.uploader {
+    display: grid;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--app-primary) 3%, var(--app-background));
+}
+
+.heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
+.heading span,
+.heading strong,
+.heading small {
+    display: block;
+}
+
+.heading span {
+    margin-bottom: 5px;
+    color: var(--app-primary);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.heading strong {
+    color: var(--app-text);
+}
+
+.heading small {
+    color: var(--app-text-muted);
+    text-align: right;
+}
+
+.preview {
+    display: grid;
+    grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    background: var(--app-surface);
+}
+
+.preview img {
+    display: block;
+    width: 100%;
+    max-height: 180px;
+    border-radius: 10px;
+    object-fit: contain;
+    background: var(--app-background);
+}
+
+.preview figcaption strong,
+.preview figcaption span {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.preview figcaption strong {
+    color: var(--app-text);
+}
+
+.preview figcaption span {
+    margin-top: 6px;
+    color: var(--app-text-muted);
+    font-size: 13px;
+}
+
+.fieldGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.fieldGrid label {
+    display: grid;
+    gap: 7px;
+}
+
+.fieldGrid label > span {
+    color: var(--app-text);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.fieldGrid input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--app-border);
+    border-radius: 11px;
+    background: var(--app-surface);
+    color: var(--app-text);
+    font: inherit;
+    outline: none;
+}
+
+.fieldGrid input:focus {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-primary) 14%, transparent);
+}
+
+.fieldGrid input:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.fileField input {
+    padding: 8px;
+}
+
+.fileField small {
+    color: var(--app-text-muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.actions button {
+    min-height: 42px;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 11px;
+    background: var(--app-primary);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+}
+
+.actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.actions .removeButton {
+    border: 1px solid rgba(220, 38, 38, 0.25);
+    background: rgba(220, 38, 38, 0.07);
+    color: #dc2626;
+}
+
+.success,
+.warning,
+.error {
+    margin: 0;
+    padding: 11px 13px;
+    border-radius: 11px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.success {
+    background: rgba(22, 163, 74, 0.08);
+    color: #15803d;
+}
+
+.warning {
+    background: rgba(217, 119, 6, 0.08);
+    color: #a16207;
+}
+
+.error {
+    background: rgba(220, 38, 38, 0.08);
+    color: #b91c1c;
+}
+
+@media (max-width: 760px) {
+    .heading,
+    .preview {
+        grid-template-columns: 1fr;
+    }
+
+    .heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .heading small {
+        text-align: left;
+    }
+
+    .fieldGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .fullWidth {
+        grid-column: auto;
+    }
+}

@@ -1,0 +1,108 @@
+.button {
+    position: fixed;
+    z-index: 46;
+    right: 18px;
+    bottom:
+            calc(92px + env(safe-area-inset-bottom));
+    display: flex;
+    width: 46px;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 74%);
+    border-radius: 16px;
+    background:
+            linear-gradient(
+                    145deg,
+                    rgb(255 255 255 / 82%),
+                    rgb(225 239 253 / 76%)
+            );
+    color: #376fb5;
+    box-shadow:
+            0 12px 28px rgb(55 111 181 / 20%),
+            inset 0 1px 0 rgb(255 255 255 / 94%);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(14px) scale(0.9);
+    backdrop-filter: blur(18px) saturate(145%);
+    transition:
+            opacity 220ms ease,
+            transform 220ms ease,
+            box-shadow 180ms ease;
+}
+
+.button::before {
+    position: absolute;
+    inset: 5px;
+    border-radius: 11px;
+    background:
+            linear-gradient(
+                    145deg,
+                    rgb(93 156 236 / 15%),
+                    transparent
+            );
+    content: "";
+}
+
+.button svg {
+    position: relative;
+    z-index: 1;
+    width: 23px;
+    height: 23px;
+}
+
+.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.button:active {
+    transform: scale(0.92);
+}
+
+.button:focus-visible {
+    outline: 3px solid #376fb5;
+    outline-offset: 3px;
+}
+
+@media (min-width: 600px) {
+    .button {
+        right: calc(50% - 222px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .button {
+        transition: none;
+    }
+}
+
+/* Dark mode */
+:global(html[data-theme="dark"]) .button {
+    border-color: rgb(255 255 255 / 8%);
+    background:
+            linear-gradient(
+                    145deg,
+                    rgb(42 58 68 / 88%),
+                    rgb(35 60 87 / 80%)
+            );
+    color: var(--app-primary);
+    box-shadow:
+            0 14px 30px rgb(0 0 0 / 30%),
+            inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+
+:global(html[data-theme="dark"]) .button::before {
+    background:
+            linear-gradient(
+                    145deg,
+                    rgb(93 156 236 / 18%),
+                    transparent
+            );
+}
+
+:global(html[data-theme="dark"]) .button:focus-visible {
+    outline-color: var(--app-focus);
+}
