@@ -6,8 +6,8 @@ import {
 } from "next/navigation";
 
 import {
-    TestRunner,
-} from "@/features/tests/components/test-runner";
+    TestRunnerClientOnly,
+} from "@/features/tests/components/test-runner-client-only";
 import {
     MixedTestRunner,
 } from "@/features/national-certificate/components/mixed-test-runner";
@@ -40,13 +40,19 @@ export default async function StandardTestRoute({
         notFound();
     }
 
+    if (test.kind === "standard") {
+        return (
+            <TestRunnerClientOnly
+                test={test}
+            />
+        );
+    }
+
     return (
         <Suspense fallback={null}>
-            {test.kind === "mixed" ? (
-                <MixedTestRunner test={test} />
-            ) : (
-                <TestRunner test={test} />
-            )}
+            <MixedTestRunner
+                test={test}
+            />
         </Suspense>
     );
 }

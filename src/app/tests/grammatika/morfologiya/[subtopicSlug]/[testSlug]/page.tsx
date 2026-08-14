@@ -1,13 +1,10 @@
 import {
-    Suspense,
-} from "react";
-import {
     notFound,
 } from "next/navigation";
 
 import {
-    TestRunner,
-} from "@/features/tests/components/test-runner";
+    TestRunnerClientOnly,
+} from "@/features/tests/components/test-runner-client-only";
 import {
     isMorphologySubtopicSlug,
 } from "@/features/tests/model/morphology-categories";
@@ -55,16 +52,14 @@ export default async function MorphologyTestRoute({
         `${collectionsHref}/${testSlug}`;
 
     return (
-        <Suspense fallback={null}>
-            <TestRunner
-                test={test}
-                collectionsHref={
-                    collectionsHref
-                }
-                testHref={
-                    testHref
-                }
-            />
-        </Suspense>
+        <TestRunnerClientOnly
+            test={test}
+            collectionsHref={
+                collectionsHref
+            }
+            testHref={
+                testHref
+            }
+        />
     );
 }
