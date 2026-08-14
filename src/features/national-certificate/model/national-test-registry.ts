@@ -29,10 +29,6 @@ import type {
 } from "@/features/national-certificate/model/diagnostic-test-types";
 
 import type {
-    NationalTestTopic,
-} from "./national-test-types";
-
-import type {
     StandardFiveTestDefinition,
 } from "@/features/national-certificate/model/standard-five-test-types";
 
@@ -61,8 +57,11 @@ export const nationalTestRegistry:
     diagnosticTestOne,
 ];
 
+type RegisteredNationalTestTopic =
+    RegisteredNationalTest["topic"];
+
 function createRegistryKey(
-    topic: NationalTestTopic,
+    topic: RegisteredNationalTestTopic,
     slug: string,
 ): string {
     return `${topic}/${slug}`;
@@ -80,7 +79,7 @@ const nationalTestRegistryKeys =
     );
 
 export function isNationalTestRegistered(
-    topic: NationalTestTopic,
+    topic: RegisteredNationalTestTopic,
     slug: string,
 ): boolean {
     return nationalTestRegistryKeys.has(
@@ -92,7 +91,7 @@ export function isNationalTestRegistered(
 }
 
 export function getNationalTest(
-    topic: NationalTestTopic,
+    topic: RegisteredNationalTestTopic,
     slug: string,
 ): RegisteredNationalTest | null {
     return (
