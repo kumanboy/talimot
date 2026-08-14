@@ -137,10 +137,6 @@ const morphologySubtopics = [
         label: "Sifat",
     },
     {
-        value: "son",
-        label: "Son",
-    },
-    {
         value: "olmosh",
         label: "Olmosh",
     },
@@ -159,10 +155,6 @@ const morphologySubtopics = [
     {
         value: "boglovchi",
         label: "Bog‘lovchi",
-    },
-    {
-        value: "yuklama",
-        label: "Yuklama",
     },
 ] as const;
 

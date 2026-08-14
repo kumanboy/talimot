@@ -5,13 +5,11 @@ import type {
 export type MorphologySubtopicSlug =
     | "ot"
     | "sifat"
-    | "son"
     | "olmosh"
     | "ravish"
     | "fel"
     | "komakchi"
-    | "boglovchi"
-    | "yuklama";
+    | "boglovchi";
 
 export interface MorphologyCategory {
     readonly id: string;
@@ -84,32 +82,6 @@ export const morphologyCategories:
 
             href:
                 "/tests/grammatika/morfologiya/sifat",
-
-            itemCountLabel:
-                "Tez orada",
-
-            icon:
-                "morphology",
-
-            isAvailable:
-                false,
-        },
-
-        {
-            id:
-                "morphology-number",
-
-            slug:
-                "son",
-
-            title:
-                "Son",
-
-            description:
-                "Sonning ma’no turlari, tuzilishi va grammatik xususiyatlariga doir testlar.",
-
-            href:
-                "/tests/grammatika/morfologiya/son",
 
             itemCountLabel:
                 "Tez orada",
@@ -240,32 +212,6 @@ export const morphologyCategories:
 
             href:
                 "/tests/grammatika/morfologiya/boglovchi",
-
-            itemCountLabel:
-                "Tez orada",
-
-            icon:
-                "morphology",
-
-            isAvailable:
-                false,
-        },
-
-        {
-            id:
-                "morphology-particle",
-
-            slug:
-                "yuklama",
-
-            title:
-                "Yuklama",
-
-            description:
-                "Yuklamalarning ma’no turlari va gapga qo‘shadigan qo‘shimcha ma’nolariga doir testlar.",
-
-            href:
-                "/tests/grammatika/morfologiya/yuklama",
 
             itemCountLabel:
                 "Tez orada",
