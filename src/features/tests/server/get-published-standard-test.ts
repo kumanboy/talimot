@@ -9,6 +9,9 @@ import {
 import type {
     StandardTestDefinition,
 } from "@/features/tests/model/questions/types";
+import type {
+    MixedTestDefinition,
+} from "@/features/national-certificate/model/mixed-test-types";
 
 async function getPublishedDraft(
     topicSlug: string,
@@ -96,5 +99,51 @@ export async function isPublishedStandardTest(
             error,
         );
         return false;
+    }
+}
+
+
+export async function getStudentGrammarTest(
+    topicSlug: string,
+    testSlug: string,
+): Promise<
+    StandardTestDefinition | MixedTestDefinition | null
+> {
+    try {
+        const draft =
+            await getPublishedDraft(
+                topicSlug,
+                testSlug,
+                "grammar",
+            );
+
+        if (!draft) {
+            return null;
+        }
+
+        const converted =
+            convertAdminTestDraftToStudentTest(
+                draft,
+            );
+
+        if (converted.kind === "standard") {
+            return converted;
+        }
+
+        if (
+            topicSlug === "sintaksis" &&
+            converted.kind === "mixed" &&
+            converted.topic === "sintaksis"
+        ) {
+            return converted;
+        }
+
+        return null;
+    } catch (error) {
+        console.error(
+            "Published grammar test lookup failed.",
+            error,
+        );
+        return null;
     }
 }

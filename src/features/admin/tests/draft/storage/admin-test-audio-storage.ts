@@ -142,6 +142,54 @@ export async function createAdminTestAudioSignedUpload(
     };
 }
 
+
+export async function createAdminTestAudioSignedUploads(
+    storagePaths: readonly string[],
+): Promise<readonly {
+    readonly storagePath: string;
+    readonly token: string;
+}[]> {
+    if (storagePaths.length === 0) {
+        return [];
+    }
+
+    await ensureAdminTestAudioBucket();
+
+    const storage =
+        getSupabaseAdminStorageClient();
+    const bucket =
+        storage.from(
+            getAdminTestAudioBucket(),
+        );
+
+    return Promise.all(
+        storagePaths.map(
+            async (storagePath) => {
+                const {
+                    data,
+                    error,
+                } = await bucket.createSignedUploadUrl(
+                    storagePath,
+                    {
+                        upsert: false,
+                    },
+                );
+
+                if (error || !data?.token) {
+                    throw new AdminTestAudioStorageError(
+                        `Audio uchun xavfsiz yuklash manzilini yaratib bo‘lmadi: ${error?.message ?? "token qaytmadi"}`,
+                    );
+                }
+
+                return {
+                    storagePath,
+                    token: data.token,
+                };
+            },
+        ),
+    );
+}
+
 export async function removeAdminTestAudioObject(
     storagePath: string,
 ): Promise<void> {

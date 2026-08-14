@@ -56,8 +56,8 @@ export async function getStandardTestsByTopic(
     // Next.js will continue from here only for a real request.
     await connection();
 
-    const publishedDrafts =
-        await adminTestDraftService.listPublished(
+    const standardPromise =
+        adminTestDraftService.listPublished(
             "grammar",
             {
                 topicSlug,
@@ -65,15 +65,41 @@ export async function getStandardTestsByTopic(
             },
         );
 
-    return publishedDrafts
+    const mixedPromise =
+        topicSlug === "sintaksis"
+            ? adminTestDraftService.listPublished(
+                "grammar",
+                {
+                    topicSlug,
+                    format: "mixed",
+                },
+            )
+            : Promise.resolve([] as readonly AdminTestDraftSummary[]);
+
+    const [standardDrafts, mixedDrafts] =
+        await Promise.all([
+            standardPromise,
+            mixedPromise,
+        ]);
+
+    return [
+        ...standardDrafts,
+        ...mixedDrafts,
+    ]
         .filter(
             (draft) =>
-                draft.topicSlug ===
-                    topicSlug &&
-                draft.format ===
-                    "standard" &&
-                draft.questionCount ===
-                    20,
+                draft.topicSlug === topicSlug &&
+                (
+                    (
+                        draft.format === "standard" &&
+                        draft.questionCount === 20
+                    ) ||
+                    (
+                        topicSlug === "sintaksis" &&
+                        draft.format === "mixed" &&
+                        draft.questionCount === 60
+                    )
+                ),
         )
         .map(
             publishedStandardSummary,

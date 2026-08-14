@@ -68,10 +68,23 @@ type RunnerView =
     | "test"
     | "result";
 
-const collectionsHref =
-    getNationalCollectionHref(
-        "aralash",
-    );
+function getMixedCollectionsHref(
+    test: MixedTestDefinition,
+): string {
+    return test.topic === "sintaksis"
+        ? "/tests/grammatika/sintaksis"
+        : getNationalCollectionHref(
+            "aralash",
+        );
+}
+
+function getMixedCollectionLabel(
+    test: MixedTestDefinition,
+): string {
+    return test.topic === "sintaksis"
+        ? "Sintaksis · 33–34–35"
+        : "Aralash testlar";
+}
 
 const optionIds = [
     "A",
@@ -2098,6 +2111,15 @@ export function MixedTestRunner({
             "attempt",
         );
 
+    const collectionsHref =
+        getMixedCollectionsHref(
+            test,
+        );
+    const collectionLabel =
+        getMixedCollectionLabel(
+            test,
+        );
+
     const testHref =
         `${collectionsHref}/${test.slug}`;
 
@@ -2108,7 +2130,7 @@ export function MixedTestRunner({
                 test.title,
 
                 category:
-                    "Aralash testlar",
+                    collectionLabel,
 
                 href:
                 testHref,
@@ -2132,6 +2154,7 @@ export function MixedTestRunner({
                 test.taskCount,
                 test.title,
                 testHref,
+                collectionLabel,
             ],
         );
 
@@ -2706,7 +2729,7 @@ export function MixedTestRunner({
                     >
                         <button
                             type="button"
-                            aria-label="Aralash testlarga qaytish"
+                            aria-label={`${collectionLabel} testlariga qaytish`}
                             onClick={() =>
                                 router.replace(
                                     collectionsHref,
@@ -2718,8 +2741,7 @@ export function MixedTestRunner({
 
                         <div>
                             <span>
-                                Aralash
-                                testlar
+                                {collectionLabel}
                             </span>
 
                             <strong>
@@ -2757,10 +2779,9 @@ export function MixedTestRunner({
                         </h1>
 
                         <p>
-                            Aralash
-                            topshiriqlar
-                            bo‘yicha
-                            natijangiz
+                            {test.topic === "sintaksis"
+                                ? "33–34–35 sintaktik moslashtirish bo‘yicha natijangiz"
+                                : "Aralash topshiriqlar bo‘yicha natijangiz"}
                         </p>
 
                         <div
@@ -2927,7 +2948,7 @@ export function MixedTestRunner({
                 >
                     <button
                         type="button"
-                        aria-label="Aralash testlarga qaytish"
+                        aria-label={`${collectionLabel} testlariga qaytish`}
                         onClick={() =>
                             setIsExitDialogOpen(
                                 true,
@@ -2939,8 +2960,7 @@ export function MixedTestRunner({
 
                     <div>
                         <span>
-                            Aralash
-                            testlar
+                            {collectionLabel}
                         </span>
 
                         <strong>

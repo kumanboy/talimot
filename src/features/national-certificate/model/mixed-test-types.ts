@@ -3,7 +3,8 @@ import type {
 } from "@/features/tests/model/question-explanation";
 
 export type MixedTestTopic =
-    "aralash";
+    | "aralash"
+    | "sintaksis";
 
 export type MixedOptionId =
     | "A"

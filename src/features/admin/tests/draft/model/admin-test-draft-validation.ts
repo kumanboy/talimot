@@ -332,6 +332,112 @@ function validateQuestionSpecific(
                 }),
             );
         }
+
+        const matchingChoiceIds =
+            question.choices.map(
+                (choice) => choice.id,
+            );
+
+        if (
+            new Set(matchingChoiceIds).size !==
+            matchingChoiceIds.length
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code: "MATCHING_CHOICE_IDS_DUPLICATED",
+                    message: "Moslashtirish tanlov harflari takrorlanmasligi kerak.",
+                    path: `${path}.choices`,
+                    questionId: question.id,
+                }),
+            );
+        }
+
+        if (
+            question.choices.some(
+                (choice) =>
+                    choice.text.trim().length === 0,
+            )
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code: "MATCHING_CHOICE_CONTENT_REQUIRED",
+                    message: "Moslashtirishdagi A–F tanlovlarning har birida matn bo‘lishi kerak.",
+                    path: `${path}.choices`,
+                    questionId: question.id,
+                }),
+            );
+        }
+
+        if (
+            question.items.some(
+                (item) =>
+                    item.prompt.trim().length === 0,
+            )
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code: "MATCHING_ITEM_PROMPT_REQUIRED",
+                    message: "Har bir moslashtirish bandining gap/matni kiritilishi kerak.",
+                    path: `${path}.items`,
+                    questionId: question.id,
+                }),
+            );
+        }
+
+        if (
+            question.items.some(
+                (item) =>
+                    !item.correctChoiceId,
+            )
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code: "MATCHING_ITEM_CORRECT_ANSWER_REQUIRED",
+                    message: "Har bir moslashtirish bandi uchun to‘g‘ri javob belgilanishi kerak.",
+                    path: `${path}.items`,
+                    questionId: question.id,
+                }),
+            );
+        } else if (
+            question.items.some(
+                (item) =>
+                    !matchingChoiceIds.includes(
+                        item.correctChoiceId!,
+                    ),
+            )
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code: "MATCHING_ITEM_CORRECT_ANSWER_NOT_FOUND",
+                    message: "Moslashtirish bandining javobi A–F tanlovlari ichida mavjud bo‘lishi kerak.",
+                    path: `${path}.items`,
+                    questionId: question.id,
+                }),
+            );
+        }
+
+        if (
+            question.items.some(
+                (item) =>
+                    !Number.isFinite(item.maximumScore) ||
+                    item.maximumScore <= 0,
+            )
+        ) {
+            issues.push(
+                issue({
+                    severity: "error",
+                    code: "MATCHING_ITEM_SCORE_INVALID",
+                    message: "Moslashtirish bandining balli 0 dan katta bo‘lishi kerak.",
+                    path: `${path}.items`,
+                    questionId: question.id,
+                }),
+            );
+        }
     }
 
     if (
@@ -1456,6 +1562,21 @@ export function calculateAdminDraftMaximumScore(
                                 nestedTotal +
                                 nestedQuestion
                                     .maximumScore,
+                            0,
+                        )
+                    );
+                }
+
+                if (
+                    question.type ===
+                    "matching"
+                ) {
+                    return (
+                        total +
+                        question.items.reduce(
+                            (itemTotal, item) =>
+                                itemTotal +
+                                item.maximumScore,
                             0,
                         )
                     );

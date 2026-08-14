@@ -1591,7 +1591,10 @@ function convertMixedDraft(
         slug:
             draft.metadata.slug,
         topic:
-            "aralash",
+            draft.metadata.group === "grammar" &&
+            draft.metadata.topicSlug === "sintaksis"
+                ? "sintaksis"
+                : "aralash",
         title:
             draft.metadata.title,
         description:

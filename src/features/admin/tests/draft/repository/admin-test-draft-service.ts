@@ -30,6 +30,13 @@ const STANDARD_DRAFT_INCOMPLETE_ERROR_CODES =
         "MCQ_CORRECT_ANSWER_REQUIRED",
     ]);
 
+const SYNTAX_MATCHING_DRAFT_INCOMPLETE_ERROR_CODES =
+    new Set([
+        "MATCHING_CHOICE_CONTENT_REQUIRED",
+        "MATCHING_ITEM_PROMPT_REQUIRED",
+        "MATCHING_ITEM_CORRECT_ANSWER_REQUIRED",
+    ]);
+
 /**
  * A draft is allowed to be incomplete while an admin is still building it.
  * Publication remains strict and still runs the full validator plus the
@@ -56,6 +63,12 @@ function assertDraftIsValidForSave(
                 "morphology-standard"
         );
 
+    const isSyntaxMatchingDraft =
+        draft.status === "draft" &&
+        draft.metadata.group === "grammar" &&
+        draft.metadata.topicSlug === "sintaksis" &&
+        draft.metadata.format === "mixed";
+
     const blockingErrors =
         isStandardDraft
             ? result.errors.filter(
@@ -64,7 +77,14 @@ function assertDraftIsValidForSave(
                         validationIssue.code,
                     ),
             )
-            : result.errors;
+            : isSyntaxMatchingDraft
+              ? result.errors.filter(
+                    (validationIssue) =>
+                        !SYNTAX_MATCHING_DRAFT_INCOMPLETE_ERROR_CODES.has(
+                            validationIssue.code,
+                        ),
+                )
+              : result.errors;
 
     if (
         blockingErrors.length === 0

@@ -37,6 +37,9 @@ import {
     AdminTestZipBulkImporter,
 } from "./admin-test-zip-bulk-importer";
 import {
+    AdminAudioZipBulkImporter,
+} from "./admin-audio-zip-bulk-importer";
+import {
     createEmptyMatchingQuestion,
     createEmptyMultipartQuestion,
     createEmptyMultipleChoiceQuestion,
@@ -296,6 +299,55 @@ function createClientId(
     return `${prefix}-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2, 10)}`;
+}
+
+function createSyntaxMatchingPracticeTemplate(): readonly AdminDraftMatchingQuestion[] {
+    const instruction =
+        "Gaplar (33, 34, 35) va sintaktik tahlilga oid izohlar (A–F)ni o‘zaro to‘g‘ri moslashtiring.";
+
+    return Array.from(
+        { length: 20 },
+        (_, index) => {
+            const emptyQuestion =
+                createEmptyMatchingQuestion({
+                    order: index + 1,
+                    section: "syntax",
+                });
+
+            return {
+                ...emptyQuestion,
+                sourceOrder: index + 1,
+                question: instruction,
+                instruction,
+                title: `${index + 1}-topshiriq`,
+                maximumScore: 3,
+                choices: [
+                    { id: "A", text: "" },
+                    { id: "B", text: "" },
+                    { id: "C", text: "" },
+                    { id: "D", text: "" },
+                    { id: "E", text: "" },
+                    { id: "F", text: "" },
+                ],
+                items: [33, 34, 35].map(
+                    (sourceOrder, itemIndex) => ({
+                        id: createClientId(
+                            "matching-item",
+                        ),
+                        order: itemIndex + 1,
+                        sourceOrder,
+                        prompt: "",
+                        correctChoiceId: null,
+                        maximumScore: 1,
+                        explanation: {
+                            text: "",
+                            audio: null,
+                        },
+                    }),
+                ),
+            } satisfies AdminDraftMatchingQuestion;
+        },
+    );
 }
 
 function normalizeOrders(
@@ -834,6 +886,114 @@ export function AdminMultipleChoiceDraftEditor({
             ],
         );
 
+
+    const supportsAudioZipImport =
+        draft.metadata.format !== "diagnostic" &&
+        (draft.metadata.format === "standard" ||
+            draft.metadata.format === "morphology-standard" ||
+            draft.metadata.format === "standard-five" ||
+            draft.metadata.format === "passage-five");
+
+    const audioZipTargets =
+        useMemo(
+            () => {
+                if (!supportsAudioZipImport) {
+                    return [];
+                }
+
+                if (
+                    questions.length > 0 &&
+                    passageGroups.length === 0
+                ) {
+                    return [...questions]
+                        .sort((left, right) => left.order - right.order)
+                        .map((question, index) => ({
+                            questionId: question.id,
+                            label: `${question.sourceOrder ?? index + 1}-savol`,
+                            audio: question.explanation.audio,
+                        }));
+                }
+
+                if (
+                    passageGroups.length > 0 &&
+                    questions.length === 0
+                ) {
+                    return [...passageGroups]
+                        .sort((left, right) => left.order - right.order)
+                        .flatMap((group) =>
+                            [...group.questions]
+                                .sort((left, right) => left.order - right.order)
+                                .map((question, index) => ({
+                                    questionId: question.id,
+                                    label: `${question.sourceOrder ?? index + 1}-savol`,
+                                    audio: question.explanation.audio,
+                                })),
+                        );
+                }
+
+                return [];
+            },
+            [
+                passageGroups,
+                questions,
+                supportsAudioZipImport,
+            ],
+        );
+
+    function applyAudioZipUpdates(
+        updates: readonly {
+            readonly questionId: string;
+            readonly audio: AdminDraftMultipleChoiceQuestion["explanation"]["audio"];
+        }[],
+    ) {
+        const audioByQuestionId =
+            new Map(
+                updates.map((update) => [
+                    update.questionId,
+                    update.audio,
+                ]),
+            );
+
+        setDraft((currentDraft) => ({
+            ...currentDraft,
+            questions: currentDraft.questions.map((question) => {
+                if (isMultipleChoice(question)) {
+                    const audio = audioByQuestionId.get(question.id);
+
+                    return audio
+                        ? {
+                            ...question,
+                            explanation: {
+                                ...question.explanation,
+                                audio,
+                            },
+                        }
+                        : question;
+                }
+
+                if (isPassageGroup(question)) {
+                    return {
+                        ...question,
+                        questions: question.questions.map((nestedQuestion) => {
+                            const audio = audioByQuestionId.get(nestedQuestion.id);
+
+                            return audio
+                                ? {
+                                    ...nestedQuestion,
+                                    explanation: {
+                                        ...nestedQuestion.explanation,
+                                        audio,
+                                    },
+                                }
+                                : nestedQuestion;
+                        }),
+                    };
+                }
+
+                return question;
+            }),
+        }));
+    }
 
     const structuredQuestions =
         useMemo(
@@ -4021,6 +4181,12 @@ export function AdminMultipleChoiceDraftEditor({
         );
 
 
+    const isSyntaxMatchingPractice =
+        draft.metadata.group === "grammar" &&
+        draft.metadata.category === "Sintaksis" &&
+        draft.metadata.topicSlug === "sintaksis" &&
+        draft.metadata.format === "mixed";
+
     const isDiagnostic =
         draft.metadata.format ===
         "diagnostic";
@@ -4059,7 +4225,9 @@ export function AdminMultipleChoiceDraftEditor({
             ? calculateAdminDraftTaskCount(
                 draft,
             )
-            : questions.length +
+            : isSyntaxMatchingPractice
+              ? structuredQuestions.length
+              : questions.length +
                 passageGroups.reduce(
                     (
                         total,
@@ -4075,7 +4243,11 @@ export function AdminMultipleChoiceDraftEditor({
             ? draft.metadata.diagnostic
                 ?.finalMaximumScore ??
                 maximumScore
-            : maximumScore;
+            : isSyntaxMatchingPractice
+              ? calculateAdminDraftMaximumScore(
+                    draft,
+                )
+              : maximumScore;
 
     const diagnosticRawMaximumScore =
         isDiagnostic
@@ -4258,7 +4430,9 @@ export function AdminMultipleChoiceDraftEditor({
                     >
                         {isDiagnostic
                             ? "DIAGNOSTIKA MUHARRIRI"
-                            : "MULTIPLE-CHOICE MUHARRIRI"}
+                            : isSyntaxMatchingPractice
+                              ? "33–34–35 MATCHING MUHARRIRI"
+                              : "MULTIPLE-CHOICE MUHARRIRI"}
                     </span>
 
                     <h1>
@@ -4268,7 +4442,9 @@ export function AdminMultipleChoiceDraftEditor({
                     <p>
                         {isDiagnostic
                             ? "45 ta topshiriq, uchta matn bloki, yozma savollar va esseni tekshiring."
-                            : "Savollarni tahrirlang, tartiblang va Supabase bazasiga saqlang."}
+                            : isSyntaxMatchingPractice
+                              ? "20 ta blokning har birida 33, 34, 35 bandlarini A–F sintaktik izohlar bilan moslashtiring."
+                              : "Savollarni tahrirlang, tartiblang va Supabase bazasiga saqlang."}
                     </p>
                 </div>
 
@@ -4296,6 +4472,43 @@ export function AdminMultipleChoiceDraftEditor({
                     </div>
                 </div>
             </header>
+
+            {isSyntaxMatchingPractice &&
+                draft.questions.length === 0 && (
+                <section
+                    className={styles.diagnosticSummary}
+                    aria-label="33–34–35 matching shabloni"
+                >
+                    <div>
+                        <span>
+                            33–34–35 shabloni
+                        </span>
+                        <strong>
+                            20 blok · 60 band
+                        </strong>
+                    </div>
+
+                    <p>
+                        Bir marta yarating: har blokda A–F tanlovlari va 33/34/35 bandlari tayyor bo‘ladi. Draftni keyin bosqichma-bosqich to‘ldirib saqlash mumkin.
+                    </p>
+
+                    <button
+                        type="button"
+                        disabled={isLocked}
+                        onClick={() =>
+                            setDraft(
+                                (currentDraft) => ({
+                                    ...currentDraft,
+                                    questions:
+                                        createSyntaxMatchingPracticeTemplate(),
+                                }),
+                            )
+                        }
+                    >
+                        20 ta 33–34–35 blok yaratish
+                    </button>
+                </section>
+            )}
 
             {isDiagnostic && (
                 <section
@@ -4470,6 +4683,31 @@ export function AdminMultipleChoiceDraftEditor({
                     }
                     onImportDiagnostic={
                         importParsedDiagnostic
+                    }
+                />
+            )}
+
+            {supportsAudioZipImport && (
+                <AdminAudioZipBulkImporter
+                    draftId={draft.id}
+                    targets={audioZipTargets}
+                    disabled={
+                        isLocked ||
+                        hasUnsavedChanges ||
+                        audioZipTargets.length === 0
+                    }
+                    disabledReason={
+                        isLocked
+                            ? "Nashr qilingan yoki arxivlangan testga audio ZIP yuklab bo‘lmaydi."
+                            : hasUnsavedChanges
+                              ? "Audio ZIP’dan oldin savollarni “Draftni saqlash” orqali saqlang."
+                              : audioZipTargets.length === 0
+                                ? "Avval test savollarini DOCX/import orqali kiriting va draftni saqlang."
+                                : null
+                    }
+                    onApply={applyAudioZipUpdates}
+                    onQueueStorageRemoval={
+                        queueAudioStorageRemoval
                     }
                 />
             )}

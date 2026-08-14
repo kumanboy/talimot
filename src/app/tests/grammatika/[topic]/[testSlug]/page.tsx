@@ -9,7 +9,10 @@ import {
     TestRunner,
 } from "@/features/tests/components/test-runner";
 import {
-    getStudentStandardTest,
+    MixedTestRunner,
+} from "@/features/national-certificate/components/mixed-test-runner";
+import {
+    getStudentGrammarTest,
 } from "@/features/tests/server/get-published-standard-test";
 
 type StandardTestRouteProps = {
@@ -28,7 +31,7 @@ export default async function StandardTestRoute({
     } = await params;
 
     const test =
-        await getStudentStandardTest(
+        await getStudentGrammarTest(
             topic,
             testSlug,
         );
@@ -39,7 +42,11 @@ export default async function StandardTestRoute({
 
     return (
         <Suspense fallback={null}>
-            <TestRunner test={test} />
+            {test.kind === "mixed" ? (
+                <MixedTestRunner test={test} />
+            ) : (
+                <TestRunner test={test} />
+            )}
         </Suspense>
     );
 }

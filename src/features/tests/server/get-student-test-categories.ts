@@ -86,8 +86,15 @@ function isPublishedGrammarDraft(
         AdminTestDraftSummary,
 ): boolean {
     return (
-        draft.format === "standard" &&
-        draft.questionCount === 20
+        (
+            draft.format === "standard" &&
+            draft.questionCount === 20
+        ) ||
+        (
+            draft.topicSlug === "sintaksis" &&
+            draft.format === "mixed" &&
+            draft.questionCount === 60
+        )
     );
 }
 

@@ -25,7 +25,7 @@ const formatLabels:
             "Matn + 5 savol",
         "standard-five":
             "5 ta savol",
-        mixed: "Aralash",
+        mixed: "Aralash / moslashtirish",
         diagnostic:
             "To‘liq imtihon",
         "morphology-standard":

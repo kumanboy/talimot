@@ -67,7 +67,7 @@ const formatLabels:
             "Matn + 5 savol",
         "standard-five":
             "5 ta savol",
-        mixed: "Aralash",
+        mixed: "Aralash / moslashtirish",
         diagnostic:
             "To‘liq imtihon",
         "morphology-standard":
@@ -373,7 +373,13 @@ export function AdminTestsPage({
                                             {formatLabels[record.format] ??
                                                 record.format}
                                         </td>
-                                        <td>{record.questionCount}</td>
+                                        <td>
+                                            {record.group === "grammar" &&
+                                            record.topicSlug === "sintaksis" &&
+                                            record.format === "mixed"
+                                                ? "20 blok / 60 band"
+                                                : record.questionCount}
+                                        </td>
                                         <td>{record.maximumScore}</td>
                                         <td>{record.estimatedMinutes} daq.</td>
                                         <td>

@@ -199,13 +199,87 @@ export function getAdminTestDraftPublishValidationMessages(
         draft.metadata.format ===
         "mixed"
     ) {
-        if (
-            draft.metadata.group !==
-                "national-certificate" ||
-            draft.metadata.topicSlug !==
-                "aralash" ||
-            draft.questions.length ===
-                0 ||
+        const isNationalMixed =
+            draft.metadata.group ===
+                "national-certificate" &&
+            draft.metadata.topicSlug ===
+                "aralash";
+
+        const isSyntaxMatchingPractice =
+            draft.metadata.group ===
+                "grammar" &&
+            draft.metadata.category ===
+                "Sintaksis" &&
+            draft.metadata.topicSlug ===
+                "sintaksis";
+
+        if (isSyntaxMatchingPractice) {
+            const expectedChoiceIds =
+                ["A", "B", "C", "D", "E", "F"] as const;
+            const expectedSourceOrders =
+                [33, 34, 35] as const;
+
+            if (
+                draft.questions.length !== 20 ||
+                draft.questions.some(
+                    (question) =>
+                        question.type !==
+                        "matching",
+                )
+            ) {
+                messages.push(
+                    "33–34–35 Sintaksis testi nashr uchun aynan 20 ta moslashtirish blokidan iborat bo‘lishi kerak.",
+                );
+            } else {
+                const invalidBlock =
+                    draft.questions.some(
+                        (question) => {
+                            if (question.type !== "matching") {
+                                return true;
+                            }
+
+                            const choiceIds =
+                                question.choices.map(
+                                    (choice) => choice.id,
+                                );
+                            const sourceOrders =
+                                question.items.map(
+                                    (item) =>
+                                        item.sourceOrder ?? null,
+                                );
+
+                            return (
+                                question.section !== "syntax" ||
+                                question.choices.length !== 6 ||
+                                expectedChoiceIds.some(
+                                    (id, index) =>
+                                        choiceIds[index] !== id,
+                                ) ||
+                                question.items.length !== 3 ||
+                                expectedSourceOrders.some(
+                                    (sourceOrder, index) =>
+                                        sourceOrders[index] !== sourceOrder,
+                                ) ||
+                                question.items.some(
+                                    (item) =>
+                                        !approximately(
+                                            item.maximumScore,
+                                            1,
+                                        ),
+                                )
+                            );
+                        },
+                    );
+
+                if (invalidBlock) {
+                    messages.push(
+                        "Har bir 33–34–35 blokida A–F bo‘yicha 6 ta tanlov, 33/34/35 raqamli 3 ta band va har bir band uchun 1 ball bo‘lishi kerak.",
+                    );
+                }
+            }
+        } else if (
+            !isNationalMixed ||
+            draft.questions.length === 0 ||
             draft.questions.some(
                 (question) =>
                     question.type ===
@@ -215,7 +289,7 @@ export function getAdminTestDraftPublishValidationMessages(
             )
         ) {
             messages.push(
-                "Aralash test faqat variantli, moslashtirish, qisqa javob va ko‘p qismli savollardan iborat bo‘lishi kerak.",
+                "Aralash test faqat Milliy sertifikat / Aralash yoki Grammatika / Sintaksis 33–34–35 formatida ishlatilishi mumkin.",
             );
         }
     }

@@ -245,6 +245,10 @@ export function AdminCreateTestDraftPage() {
         category ===
             "Morfologiya";
 
+    const isSyntax =
+        group === "grammar" &&
+        category === "Sintaksis";
+
     const isDiagnostic =
         format ===
         "diagnostic";
@@ -771,7 +775,9 @@ export function AdminCreateTestDraftPage() {
                                     5 ta savol
                                 </option>
                                 <option value="mixed">
-                                    Aralash
+                                    {isSyntax
+                                        ? "33–34–35 moslashtirish"
+                                        : "Aralash"}
                                 </option>
                                 <option value="diagnostic">
                                     To‘liq diagnostika
