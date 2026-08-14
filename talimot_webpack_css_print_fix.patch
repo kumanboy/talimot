@@ -1,0 +1,59 @@
+--- a/src/features/national-certificate/components/diagnostic-certificate-preview.module.css
++++ b/src/features/national-certificate/components/diagnostic-certificate-preview.module.css
+@@ -435,12 +435,21 @@
+         margin: 0;
+     }
+ 
+-    :global(body *) {
++    /*
++     * Webpack/CSS Modules requires every selector in a *.module.css file
++     * to contain at least one local class or id.  The old
++     * `:global(body *)` selector was therefore rejected as "not pure".
++     *
++     * During printing we temporarily add the local `printMode` class to
++     * <body>.  This keeps the selector pure while preserving the original
++     * behaviour: hide the application and print only this certificate.
++     */
++    :global(body).printMode * {
+         visibility: hidden !important;
+     }
+ 
+-    .layer,
+-    .layer * {
++    :global(body).printMode .layer,
++    :global(body).printMode .layer * {
+         visibility: visible !important;
+     }
+ 
+--- a/src/features/national-certificate/components/diagnostic-certificate-preview.tsx
++++ b/src/features/national-certificate/components/diagnostic-certificate-preview.tsx
+@@ -125,7 +125,28 @@
+         );
+ 
+     const handleDownload = () => {
+-        window.print();
++        const body = document.body;
++        body.classList.add(styles.printMode);
++
++        const cleanupPrintMode = () => {
++            body.classList.remove(styles.printMode);
++            window.removeEventListener(
++                "afterprint",
++                cleanupPrintMode,
++            );
++        };
++
++        window.addEventListener(
++            "afterprint",
++            cleanupPrintMode,
++        );
++
++        try {
++            window.print();
++        } catch (error) {
++            cleanupPrintMode();
++            throw error;
++        }
+     };
+ 
+     return (

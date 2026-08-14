@@ -125,7 +125,28 @@ export function DiagnosticCertificatePreview({
         );
 
     const handleDownload = () => {
-        window.print();
+        const body = document.body;
+        body.classList.add(styles.printMode);
+
+        const cleanupPrintMode = () => {
+            body.classList.remove(styles.printMode);
+            window.removeEventListener(
+                "afterprint",
+                cleanupPrintMode,
+            );
+        };
+
+        window.addEventListener(
+            "afterprint",
+            cleanupPrintMode,
+        );
+
+        try {
+            window.print();
+        } catch (error) {
+            cleanupPrintMode();
+            throw error;
+        }
     };
 
     return (
