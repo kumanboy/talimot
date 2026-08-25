@@ -1,6 +1,8 @@
 .page {
     position: relative;
+    display: flex;
     min-height: 100dvh;
+    flex-direction: column;
     overflow-x: hidden;
     background:
             linear-gradient(
@@ -38,7 +40,6 @@
     position: relative;
     z-index: 1;
     width: min(100%, 520px);
-    min-height: 100dvh;
     margin: 0 auto;
     padding:
             calc(
@@ -46,7 +47,16 @@
                     14px
             )
             16px
-            112px;
+            28px;
+}
+
+.content {
+    flex: 1 0 auto;
+}
+
+.resultContent,
+.confirmContent {
+    min-height: 100dvh;
 }
 
 .topBar {
@@ -656,17 +666,16 @@
 }
 
 .navigationActions {
-    position: fixed;
-    z-index: 70;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    position: relative;
+    z-index: 1;
+    width: min(100%, 520px);
+    margin: 0 auto;
     padding:
             10px
             16px
             calc(
                     env(safe-area-inset-bottom) +
-                    10px
+                    14px
             );
     border-top:
             1px solid
@@ -678,10 +687,9 @@
     background:
             color-mix(
                     in srgb,
-                    var(--app-background) 86%,
+                    var(--app-background) 94%,
                     transparent
             );
-    backdrop-filter: blur(20px);
 }
 
 .navigationActions > div {
