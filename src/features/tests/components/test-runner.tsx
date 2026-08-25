@@ -365,7 +365,7 @@ function splitStructuredQuestionPrefix(
 
     const sentenceMatch =
         normalized.match(
-            /^(.+?[.!?])\s+([A-ZА-ЯЁOʻʼ“\"«].+)$/u,
+            /^(.+?[.!?])\s+([A-ZА-ЯЁOʻʼ“"«].+)$/u,
         );
 
     if (
