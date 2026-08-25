@@ -4473,6 +4473,115 @@ export function AdminMultipleChoiceDraftEditor({
                 </div>
             </header>
 
+            <section
+                className={styles.accessSettings}
+                aria-label="Test kirish va Tanga narxi"
+            >
+                <div className={styles.accessSettingsHeading}>
+                    <div>
+                        <span>KIRISH VA NARX</span>
+                        <h2>Pullik test sozlamalari</h2>
+                        <p>
+                            Bepul test 0 Tanga bo‘ladi. Pullik test uchun studentdan yechiladigan Tanga miqdorini belgilang.
+                        </p>
+                    </div>
+
+                    <strong
+                        className={
+                            draft.metadata.access === "premium"
+                                ? styles.paidAccessBadge
+                                : styles.freeAccessBadge
+                        }
+                    >
+                        {draft.metadata.access === "premium"
+                            ? `${draft.metadata.tangaPrice} Tanga`
+                            : "Bepul"}
+                    </strong>
+                </div>
+
+                <div className={styles.accessSettingsGrid}>
+                    <label>
+                        <span>Kirish turi</span>
+                        <select
+                            value={draft.metadata.access}
+                            disabled={isLocked}
+                            onChange={(event) => {
+                                const nextAccess =
+                                    event.target.value === "premium"
+                                        ? "premium"
+                                        : "free";
+
+                                setDraft((currentDraft) => ({
+                                    ...currentDraft,
+                                    metadata: {
+                                        ...currentDraft.metadata,
+                                        access: nextAccess,
+                                        tangaPrice:
+                                            nextAccess === "premium"
+                                                ? Math.max(
+                                                    1,
+                                                    currentDraft.metadata.tangaPrice ||
+                                                        (currentDraft.metadata.format === "diagnostic"
+                                                            ? 2
+                                                            : 1),
+                                                )
+                                                : 0,
+                                    },
+                                }));
+                            }}
+                        >
+                            <option value="free">Bepul</option>
+                            <option value="premium">Pullik</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Tanga narxi</span>
+                        <input
+                            type="number"
+                            min={1}
+                            max={1000}
+                            step={1}
+                            disabled={
+                                isLocked ||
+                                draft.metadata.access !== "premium"
+                            }
+                            value={
+                                draft.metadata.access === "premium"
+                                    ? draft.metadata.tangaPrice
+                                    : 0
+                            }
+                            onChange={(event) => {
+                                const nextPrice =
+                                    Number(event.target.value);
+
+                                if (
+                                    !Number.isInteger(nextPrice) ||
+                                    nextPrice < 1 ||
+                                    nextPrice > 1000
+                                ) {
+                                    return;
+                                }
+
+                                setDraft((currentDraft) => ({
+                                    ...currentDraft,
+                                    metadata: {
+                                        ...currentDraft.metadata,
+                                        tangaPrice: nextPrice,
+                                    },
+                                }));
+                            }}
+                        />
+                    </label>
+                </div>
+
+                {isLocked && (
+                    <small>
+                        Published yoki arxivlangan testning narxini o‘zgartirish uchun avval uni tahrirlanadigan holatga qaytarish kerak.
+                    </small>
+                )}
+            </section>
+
             {isSyntaxMatchingPractice &&
                 draft.questions.length === 0 && (
                 <section

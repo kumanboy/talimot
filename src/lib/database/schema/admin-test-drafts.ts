@@ -106,6 +106,11 @@ export const adminTestDrafts =
                     >()
                     .notNull(),
 
+            tangaPrice:
+                integer("tanga_price")
+                    .notNull()
+                    .default(0),
+
             questionCount:
                 integer(
                     "question_count",

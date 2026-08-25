@@ -38,6 +38,8 @@ describe(
                                 "medium",
                             access:
                                 "free",
+                            tangaPrice:
+                                0,
                             estimatedMinutes:
                                 25,
                         },
@@ -82,6 +84,8 @@ describe(
                                 "medium",
                             access:
                                 "free",
+                            tangaPrice:
+                                0,
                             estimatedMinutes:
                                 25,
                         },

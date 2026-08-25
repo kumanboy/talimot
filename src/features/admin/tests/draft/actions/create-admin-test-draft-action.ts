@@ -173,6 +173,11 @@ export async function createAdminTestDraftAction(
                 formData,
                 "access",
             ),
+        tangaPrice:
+            readText(
+                formData,
+                "tangaPrice",
+            ),
         estimatedMinutes:
             readText(
                 formData,
@@ -321,7 +326,31 @@ export async function createAdminTestDraftAction(
         )
     ) {
         fieldErrors.access =
-            "Access turini tanlang.";
+            "Kirish turini tanlang.";
+    }
+
+    const requestedTangaPrice =
+        Number(
+            values.tangaPrice,
+        );
+
+    const tangaPrice =
+        values.access === "premium"
+            ? requestedTangaPrice
+            : 0;
+
+    if (
+        values.access === "premium" &&
+        (
+            !Number.isInteger(
+                requestedTangaPrice,
+            ) ||
+            requestedTangaPrice < 1 ||
+            requestedTangaPrice > 1000
+        )
+    ) {
+        fieldErrors.tangaPrice =
+            "Pullik test narxi 1 dan 1000 gacha bo‘lgan butun Tanga miqdori bo‘lishi kerak.";
     }
 
     const estimatedMinutes =
@@ -380,6 +409,7 @@ export async function createAdminTestDraftAction(
                 access:
                     values.access as
                         AdminTestDraftAccess,
+                tangaPrice,
                 estimatedMinutes,
             },
             source:

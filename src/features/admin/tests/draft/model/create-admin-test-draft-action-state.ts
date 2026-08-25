@@ -17,6 +17,7 @@ export interface CreateAdminTestDraftActionState {
                     | "format"
                     | "difficulty"
                     | "access"
+                    | "tangaPrice"
                     | "estimatedMinutes",
                     string
                 >
@@ -32,6 +33,7 @@ export interface CreateAdminTestDraftActionState {
         readonly format: string;
         readonly difficulty: string;
         readonly access: string;
+        readonly tangaPrice: string;
         readonly estimatedMinutes: string;
     };
 }
@@ -51,6 +53,7 @@ export const initialCreateAdminTestDraftActionState:
             format: "standard",
             difficulty: "medium",
             access: "free",
+            tangaPrice: "0",
             estimatedMinutes: "30",
         },
     };

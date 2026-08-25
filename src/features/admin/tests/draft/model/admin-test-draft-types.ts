@@ -56,6 +56,7 @@ export interface AdminTestDraftMetadata {
         AdminTestDraftDifficulty;
     readonly access:
         AdminTestDraftAccess;
+    readonly tangaPrice: number;
     readonly estimatedMinutes:
         number;
     readonly diagnostic?:
@@ -105,6 +106,7 @@ export interface AdminTestDraftSummary {
         AdminTestDraftDifficulty;
     readonly access:
         AdminTestDraftAccess;
+    readonly tangaPrice: number;
     readonly estimatedMinutes:
         number;
     readonly questionCount:

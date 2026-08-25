@@ -1065,6 +1065,38 @@ export function validateAdminTestDraft(
         );
     }
 
+    if (
+        !Number.isInteger(
+            draft.metadata.tangaPrice,
+        ) ||
+        draft.metadata.tangaPrice < 0 ||
+        (
+            draft.metadata.access === "free" &&
+            draft.metadata.tangaPrice !== 0
+        ) ||
+        (
+            draft.metadata.access === "premium" &&
+            (
+                draft.metadata.tangaPrice < 1 ||
+                draft.metadata.tangaPrice > 1000
+            )
+        )
+    ) {
+        issues.push(
+            issue({
+                severity: "error",
+                code:
+                    "TEST_TANGA_PRICE_INVALID",
+                message:
+                    draft.metadata.access === "premium"
+                        ? "Pullik test narxi 1 dan 1000 gacha bo‘lgan butun Tanga miqdori bo‘lishi kerak."
+                        : "Bepul testning Tanga narxi 0 bo‘lishi kerak.",
+                path:
+                    "metadata.tangaPrice",
+            }),
+        );
+    }
+
 
     if (
         draft.metadata.group ===

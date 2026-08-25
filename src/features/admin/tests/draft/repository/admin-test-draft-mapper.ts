@@ -44,6 +44,8 @@ export function mapDraftToStorageRecord(
             draft.metadata.format,
         access:
             draft.metadata.access,
+        tangaPrice:
+            draft.metadata.tangaPrice,
         questionCount:
             calculateAdminDraftTaskCount(
                 draft,
@@ -69,7 +71,25 @@ export function mapStorageRecordToDraft(
     record:
         AdminTestDraftStorageRecord,
 ): AdminTestDraft {
-    return record.payload;
+    const payloadPrice =
+        record.payload.metadata.tangaPrice;
+
+    const normalizedTangaPrice =
+        Number.isInteger(payloadPrice) &&
+        payloadPrice >= 0
+            ? payloadPrice
+            : record.tangaPrice;
+
+    return {
+        ...record.payload,
+        metadata: {
+            ...record.payload.metadata,
+            tangaPrice:
+                record.payload.metadata.access === "premium"
+                    ? Math.max(1, normalizedTangaPrice)
+                    : 0,
+        },
+    };
 }
 
 export function mapStorageRecordToSummary(
@@ -101,6 +121,8 @@ export function mapStorageRecordToSummary(
             record.difficulty,
         access:
             record.access,
+        tangaPrice:
+            record.tangaPrice,
         estimatedMinutes:
             record.estimatedMinutes,
         questionCount:

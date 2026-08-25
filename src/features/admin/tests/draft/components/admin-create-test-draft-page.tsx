@@ -225,6 +225,14 @@ export function AdminCreateTestDraftPage() {
         useState(
             state.values.difficulty,
         );
+    const [access, setAccess] =
+        useState(
+            state.values.access,
+        );
+    const [tangaPrice, setTangaPrice] =
+        useState(
+            state.values.tangaPrice,
+        );
     const [estimatedMinutes, setEstimatedMinutes] =
         useState(
             state.values.estimatedMinutes,
@@ -318,6 +326,12 @@ export function AdminCreateTestDraftPage() {
             );
             setDifficulty(
                 state.values.difficulty,
+            );
+            setAccess(
+                state.values.access,
+            );
+            setTangaPrice(
+                state.values.tangaPrice,
             );
             setEstimatedMinutes(
                 state.values.estimatedMinutes,
@@ -894,20 +908,37 @@ export function AdminCreateTestDraftPage() {
                     >
                         <label>
                             <span>
-                                Access *
+                                Kirish turi *
                             </span>
                             <select
                                 name="access"
-                                defaultValue={
-                                    state.values
-                                        .access
-                                }
+                                value={access}
+                                onChange={(event) => {
+                                    const nextAccess =
+                                        event.target.value;
+
+                                    setAccess(
+                                        nextAccess,
+                                    );
+
+                                    if (nextAccess === "free") {
+                                        setTangaPrice("0");
+                                    } else if (
+                                        Number(tangaPrice) < 1
+                                    ) {
+                                        setTangaPrice(
+                                            isDiagnostic
+                                                ? "2"
+                                                : "1",
+                                        );
+                                    }
+                                }}
                             >
                                 <option value="free">
                                     Bepul
                                 </option>
                                 <option value="premium">
-                                    Premium
+                                    Pullik
                                 </option>
                             </select>
                             <FieldError
@@ -917,6 +948,45 @@ export function AdminCreateTestDraftPage() {
                                 }
                             />
                         </label>
+
+                        {access === "premium" && (
+                            <label>
+                                <span>
+                                    Tanga narxi *
+                                </span>
+                                <input
+                                    name="tangaPrice"
+                                    type="number"
+                                    min={1}
+                                    max={1000}
+                                    step={1}
+                                    value={tangaPrice}
+                                    onChange={(event) =>
+                                        setTangaPrice(
+                                            event.target.value,
+                                        )
+                                    }
+                                    required
+                                />
+                                <small>
+                                    Oddiy topic test uchun 1 Tanga, diagnostika/mock uchun odatda 2 Tanga.
+                                </small>
+                                <FieldError
+                                    message={
+                                        state.fieldErrors
+                                            .tangaPrice
+                                    }
+                                />
+                            </label>
+                        )}
+
+                        {access === "free" && (
+                            <input
+                                type="hidden"
+                                name="tangaPrice"
+                                value="0"
+                            />
+                        )}
 
                         <label>
                             <span>

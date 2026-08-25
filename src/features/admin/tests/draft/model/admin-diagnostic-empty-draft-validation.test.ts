@@ -46,6 +46,8 @@ function createEmptyDiagnosticDraft({
                 "hard",
             access:
                 "free",
+            tangaPrice:
+                0,
             estimatedMinutes:
                 180,
             diagnostic:

@@ -126,6 +126,8 @@ function toStorageRecord(
             row.format,
         access:
             row.access,
+        tangaPrice:
+            row.tangaPrice,
         questionCount:
             row.questionCount,
         maximumScore:
@@ -370,6 +372,7 @@ export class DrizzleAdminTestDraftRepository
                 slug: adminTestDrafts.slug,
                 format: adminTestDrafts.format,
                 access: adminTestDrafts.access,
+                tangaPrice: adminTestDrafts.tangaPrice,
                 questionCount: adminTestDrafts.questionCount,
                 maximumScore: adminTestDrafts.maximumScore,
                 updatedAt: adminTestDrafts.updatedAt,
@@ -407,6 +410,7 @@ export class DrizzleAdminTestDraftRepository
             format: row.format,
             difficulty: row.difficulty,
             access: row.access,
+            tangaPrice: row.tangaPrice,
             estimatedMinutes: row.estimatedMinutes,
             questionCount: row.questionCount,
             maximumScore: Number(row.maximumScore),
@@ -480,6 +484,8 @@ export class DrizzleAdminTestDraftRepository
                             record.format,
                         access:
                             record.access,
+                        tangaPrice:
+                            record.tangaPrice,
                         questionCount:
                             record.questionCount,
                         maximumScore:

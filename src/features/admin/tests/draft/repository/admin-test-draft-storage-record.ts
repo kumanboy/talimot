@@ -28,6 +28,7 @@ export interface AdminTestDraftStorageRecord {
         AdminTestDraftFormat;
     readonly access:
         AdminTestDraftAccess;
+    readonly tangaPrice: number;
     readonly questionCount: number;
 
     /**

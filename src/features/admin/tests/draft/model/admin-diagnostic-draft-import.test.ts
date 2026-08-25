@@ -314,6 +314,8 @@ describe(
                             "medium",
                         access:
                             "free",
+                        tangaPrice:
+                            0,
                         estimatedMinutes:
                             30,
                         ...imported.metadata,

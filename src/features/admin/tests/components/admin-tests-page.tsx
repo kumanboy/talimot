@@ -57,7 +57,7 @@ const statusLabels:
 const accessLabels:
     Readonly<Record<AdminTestDraftAccess, string>> = {
         free: "Bepul",
-        premium: "Premium",
+        premium: "Pullik",
     };
 
 const formatLabels:
@@ -328,7 +328,7 @@ export function AdminTestsPage({
                         >
                             <option value="all">Barchasi</option>
                             <option value="free">Bepul</option>
-                            <option value="premium">Premium</option>
+                            <option value="premium">Pullik</option>
                         </select>
                     </label>
                 </div>
@@ -392,6 +392,9 @@ export function AdminTestsPage({
                                                 }
                                             >
                                                 {accessLabels[record.access]}
+                                                {record.access === "premium"
+                                                    ? ` · ${record.tangaPrice} Tanga`
+                                                    : ""}
                                             </span>
                                         </td>
                                         <td>

@@ -78,6 +78,8 @@ async function main() {
                     "easy",
                 access:
                     "free",
+                tangaPrice:
+                    0,
                 estimatedMinutes:
                     1,
             },
