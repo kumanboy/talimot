@@ -17,7 +17,7 @@ import {
     DiagnosticCertificatePreview,
 } from "@/features/national-certificate/components/diagnostic-certificate-preview";
 import {
-    readDiagnosticCertificates,
+    fetchDiagnosticCertificates,
 } from "@/features/national-certificate/model/diagnostic-certificate-storage";
 import type {
     DiagnosticCertificateRecord,
@@ -87,19 +87,6 @@ function formatDate(
     ).format(new Date(timestamp));
 }
 
-function getLevel(
-    percentage: number,
-): string {
-    if (percentage >= 90) return "A+";
-    if (percentage >= 80) return "A";
-    if (percentage >= 70) return "B+";
-    if (percentage >= 60) return "B";
-    if (percentage >= 50) return "C+";
-    if (percentage >= 40) return "C";
-
-    return "—";
-}
-
 export function ProfilePage() {
     const router = useRouter();
     const {
@@ -137,7 +124,13 @@ export function ProfilePage() {
     useEffect(() => {
         let cancelled = false;
 
-        setCertificates(readDiagnosticCertificates());
+        void fetchDiagnosticCertificates()
+            .then((items) => {
+                if (!cancelled) setCertificates(items);
+            })
+            .catch(() => {
+                if (!cancelled) setCertificates([]);
+            });
 
         void fetch("/api/profile", {
             method: "GET",
@@ -335,8 +328,8 @@ export function ProfilePage() {
                     <article>
                         <strong>
                             {certificates[0]
-                                ?.result.percentage ?? 0}
-                            %
+                                ? `${(certificates[0].result.finalScore ?? certificates[0].result.testScore).toFixed(2)} / 75`
+                                : "—"}
                         </strong>
                         <span>So‘nggi natija</span>
                     </article>
@@ -520,28 +513,14 @@ export function ProfilePage() {
                                                 }
                                             </span>
                                             <strong>
-                                                {
-                                                    certificate
-                                                        .result.score
-                                                }{" "}
-                                                /{" "}
-                                                {
-                                                    certificate
-                                                        .result
-                                                        .maximumScore
-                                                }
+                                                {certificate.result.finalScore === null
+                                                    ? `Test: ${certificate.result.testScore.toFixed(2)} / 75`
+                                                    : `${certificate.result.finalScore.toFixed(2)} / 75`}
                                             </strong>
                                             <small>
-                                                {formatDate(
-                                                    certificate.issuedAt,
-                                                )}
+                                                {formatDate(certificate.issuedAt)}
                                                 {" · "}
-                                                Daraja{" "}
-                                                {getLevel(
-                                                    certificate
-                                                        .result
-                                                        .percentage,
-                                                )}
+                                                Daraja {certificate.result.grade ?? "—"}
                                             </small>
                                         </div>
 

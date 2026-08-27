@@ -28,6 +28,7 @@ type DrawerIcon =
     | "books"
     | "essay"
     | "wallet"
+    | "calculator"
     | "profile";
 
 type DrawerItem = {
@@ -74,6 +75,11 @@ const drawerItems = [
         label: "Tanga",
         href: "/packages",
         icon: "wallet",
+    },
+    {
+        label: "Natija hisoblagich",
+        href: "/hisoblagich",
+        icon: "calculator",
     },
     {
         label: "Profil",
@@ -298,6 +304,15 @@ function DrawerItemIcon({
                     stroke="currentColor"
                     strokeWidth="1.8"
                 />
+            </svg>
+        );
+    }
+
+    if (type === "calculator") {
+        return (
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="5" y="3.5" width="14" height="17" rx="2.2" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M8 7.5h8M8 12h2m4 0h2M8 16h2m4 0h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
         );
     }

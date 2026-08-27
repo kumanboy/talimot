@@ -111,6 +111,12 @@ export interface SaveTestProgressInput {
 }
 
 export interface SaveCompletedTestInput {
+    /** Optional server-issued attempt id. Existing runners can omit it. */
+    readonly attemptId?: string;
+    /** Optional server completion timestamp. */
+    readonly completedAt?: number;
+    /** Skip legacy /api/test-attempts persistence when already saved atomically by a dedicated endpoint. */
+    readonly skipRemotePersistence?: boolean;
     readonly testId: string;
     readonly metadata: StoredTestMetadata;
     readonly answers: StoredTestAnswers;
@@ -761,15 +767,18 @@ export function saveCompletedTest(
         const attempts =
             readCompletedTests();
 
-        const completedAt =
-            Date.now();
+        const completedAt = input.completedAt ?? Date.now();
+        const {
+            attemptId: suppliedAttemptId,
+            completedAt: _suppliedCompletedAt,
+            skipRemotePersistence,
+            ...completedInput
+        } = input;
 
-        const completedTest:
-            StoredCompletedTest = {
+        const completedTest: StoredCompletedTest = {
             version: 1,
-            attemptId:
-                `${input.testId}-${completedAt}`,
-            ...input,
+            attemptId: suppliedAttemptId ?? `${input.testId}-${completedAt}`,
+            ...completedInput,
             completedAt,
         };
 
@@ -799,14 +808,16 @@ export function saveCompletedTest(
 
         // Persist the completed attempt to the authenticated database history.
         // Local storage remains as an offline/browser cache for existing result UI.
-        void fetch("/api/test-attempts", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(completedTest),
-            keepalive: true,
-        }).catch(() => {
-            // The local result is still retained; roadmap legacy sync retries later.
-        });
+        if (!skipRemotePersistence) {
+            void fetch("/api/test-attempts", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify(completedTest),
+                keepalive: true,
+            }).catch(() => {
+                // The local result is still retained; roadmap legacy sync retries later.
+            });
+        }
 
         return completedTest;
     } catch {

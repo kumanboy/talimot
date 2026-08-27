@@ -103,6 +103,7 @@ export interface AdminParsedDiagnosticMetadata {
     readonly instruction: string | null;
     readonly estimatedMinutes: number | null;
     readonly access: "free" | "premium" | null;
+    readonly tangaPrice: number | null;
     readonly difficulty:
         | "easy"
         | "medium"

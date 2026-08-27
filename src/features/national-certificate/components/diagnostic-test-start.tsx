@@ -302,7 +302,7 @@ export function DiagnosticTestStart({
                                 1
                             </strong>
                             <small>
-                                ta esse
+                                esse mavzusi
                             </small>
                         </div>
                     </article>
@@ -342,7 +342,7 @@ export function DiagnosticTestStart({
                         <li>
                             <CheckIcon />
                             <span>
-                                Yakunda bo‘limlar kesimida batafsil tahlil beriladi.
+                                45-topshiriqda esse mavzusi va qoidalari ko‘rsatiladi; esse saytda yozilmaydi.
                             </span>
                         </li>
                     </ul>
@@ -353,7 +353,7 @@ export function DiagnosticTestStart({
                         styles.warning
                     }
                 >
-                    Imtihonni boshlaganingizdan keyin 180 daqiqalik vaqt hisoblanadi. Barqaror internet va tinch muhitni oldindan tayyorlang.
+                    Imtihonni boshlaganingizdan keyin {test.estimatedMinutes} daqiqalik vaqt hisoblanadi. Barqaror internet va tinch muhitni oldindan tayyorlang.
                 </section>
 
                 <button

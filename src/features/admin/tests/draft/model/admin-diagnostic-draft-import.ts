@@ -492,6 +492,14 @@ export function createAdminDiagnosticDraftImport(
                         parsedDiagnostic.metadata.access,
                 }
                 : {}),
+            ...(parsedDiagnostic.metadata.tangaPrice !== null
+                ? {
+                    tangaPrice:
+                        parsedDiagnostic.metadata.access === "free"
+                            ? 0
+                            : Math.max(0, Math.round(parsedDiagnostic.metadata.tangaPrice)),
+                }
+                : {}),
             ...(parsedDiagnostic.metadata.estimatedMinutes !==
             null
                 ? {

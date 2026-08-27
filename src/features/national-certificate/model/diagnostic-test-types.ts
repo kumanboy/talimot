@@ -326,7 +326,7 @@ export interface DiagnosticEssayQuestion {
     readonly requirements:
         DiagnosticEssayRequirements;
 
-    readonly maximumScore: 24;
+    readonly maximumScore: number;
 
     readonly explanation?:
         QuestionExplanation;
@@ -462,14 +462,35 @@ export interface DiagnosticSectionScoreResult {
 }
 
 export interface DiagnosticTestScoreResult {
-    readonly score:
-        number;
+    /** Raw weighted score from questions 1–44 before 76→75 normalization. */
+    readonly rawTestScore: number;
 
-    readonly maximumScore:
-        number;
+    /** Raw maximum derived from the published 1–44 question weights. */
+    readonly rawTestMaximumScore: number;
 
-    readonly percentage:
-        number;
+    /** Normalized test-part score. Maximum is always 75. */
+    readonly testScore: number;
+
+    /** Optional previous essay score supplied by the student (0–75). */
+    readonly essayScore: number | null;
+
+    /** (testScore + essayScore) / 2 when essayScore exists. */
+    readonly finalScore: number | null;
+
+    /** A+, A, B+, B, C+, C; null until a final score exists or below C. */
+    readonly grade: string | null;
+
+    /** Official-style indicator: score / 65 × 100, capped at 100. */
+    readonly finalPercentage: number | null;
+
+    /** Backwards-compatible display score: finalScore when available, otherwise testScore. */
+    readonly score: number;
+
+    /** TA’LIMOT diagnostic scale maximum. */
+    readonly maximumScore: 75;
+
+    /** Display indicator for existing result UI. */
+    readonly percentage: number;
 
     readonly correctCount:
         number;

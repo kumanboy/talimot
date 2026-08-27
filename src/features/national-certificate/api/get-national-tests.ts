@@ -1,5 +1,8 @@
 import { connection } from "next/server";
 
+import { getActiveStudentUserId } from "@/features/auth/server/get-active-student-user";
+import { getPurchasedTestIds } from "@/features/tests/server/get-test-access";
+
 import {
     adminTestDraftService,
 } from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
@@ -40,10 +43,9 @@ function expectedFormat(
 }
 
 function publishedNationalSummary(
-    draft:
-        AdminTestDraftSummary,
-    topic:
-        NationalTestTopic,
+    draft: AdminTestDraftSummary,
+    topic: NationalTestTopic,
+    purchasedIds: ReadonlySet<string>,
 ): NationalTestSummary {
     return {
         id:
@@ -67,6 +69,12 @@ function publishedNationalSummary(
             draft.difficulty,
         access:
             draft.access,
+        tangaPrice:
+            draft.access === "premium"
+                ? Math.max(1, draft.tangaPrice)
+                : 0,
+        isPurchased:
+            purchasedIds.has(draft.id),
         href:
             `/tests/milliy-sertifikat/${topic}/${draft.slug}`,
         isAvailable:
@@ -98,6 +106,12 @@ export async function getNationalTestsByTopic(
             },
         );
 
+    const userId = await getActiveStudentUserId();
+    const purchasedIds = await getPurchasedTestIds(
+        userId,
+        publishedDrafts.map((draft) => draft.id),
+    );
+
     return publishedDrafts
         .filter(
             (draft) =>
@@ -111,6 +125,7 @@ export async function getNationalTestsByTopic(
                 publishedNationalSummary(
                     draft,
                     topic,
+                    purchasedIds,
                 ),
         );
 }

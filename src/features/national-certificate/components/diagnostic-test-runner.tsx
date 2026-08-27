@@ -18,16 +18,11 @@ import {
 } from "@/features/national-certificate/model/diagnostic-test-scoring";
 
 import {
-    createDiagnosticCertificateRecord,
-    readDiagnosticCertificateRecord,
+    parseDiagnosticCertificateRecord,
 } from "@/features/national-certificate/model/diagnostic-certificate-storage";
 import type {
     DiagnosticCertificateRecord,
 } from "@/features/national-certificate/model/diagnostic-certificate-storage";
-
-import {
-    readUserProfile,
-} from "@/features/profile/model/profile-storage";
 
 import {
     DiagnosticCertificatePreview,
@@ -203,6 +198,24 @@ function toUppercaseAnswer(
     return value.toLocaleUpperCase(
         "uz",
     );
+}
+
+function getOptionalEssayScore(
+    test: DiagnosticTestDefinition,
+    answers: DiagnosticAnswers,
+): number | null {
+    const essayQuestion = test.questions.find(
+        (question) => question.type === "essay",
+    );
+    if (!essayQuestion) return null;
+
+    const raw = answers[essayQuestion.id];
+    if (typeof raw !== "string" || raw.trim() === "") return null;
+
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) && parsed >= 0 && parsed <= 75
+        ? Math.round(parsed * 100) / 100
+        : null;
 }
 
 function createPages(
@@ -1062,152 +1075,77 @@ function MultipartQuestion({
 }
 
 function EssayQuestion({
-                           page,
-                           value,
-                           onChange,
-                       }: {
-    readonly page:
-        Extract<
-            DiagnosticPage,
-            {
-                readonly type:
-                    "essay";
-            }
-        >;
-    readonly value:
-        string;
-    readonly onChange:
-        (
-            value: string,
-        ) => void;
+    page,
+    value,
+    onChange,
+}: {
+    readonly page: Extract<DiagnosticPage, { readonly type: "essay" }>;
+    readonly value: string;
+    readonly onChange: (value: string) => void;
 }) {
-    const wordCount =
-        value
-            .trim()
-            .split(
-                /\s+/,
-            )
-            .filter(Boolean)
-            .length;
-
     const requirements = [
-        ...page.question
-            .requirements
-            .introduction,
-        ...page.question
-            .requirements.body,
-        ...page.question
-            .requirements
-            .conclusion,
-        ...(
-            page.question
-                .requirements
-                .warnings ??
-            []
-        ),
+        ...page.question.requirements.introduction,
+        ...page.question.requirements.body,
+        ...page.question.requirements.conclusion,
+        ...(page.question.requirements.warnings ?? []),
     ];
 
     return (
         <>
-            <h2>
-                {
-                    page.question
-                        .title
-                }
-            </h2>
+            <h2>{page.question.title}</h2>
 
-            <p
-                className={
-                    styles.instruction
-                }
-            >
-                {
-                    page.question
-                        .prompt
-                }
+            <p className={styles.instruction}>
+                {page.question.prompt}
             </p>
 
             {page.question.situation ? (
-                <div
-                    className={
-                        styles.essaySituation
-                    }
-                >
-                    {
-                        page.question
-                            .situation
-                    }
+                <div className={styles.essaySituation}>
+                    {page.question.situation}
                 </div>
             ) : null}
 
-            <details
-                className={
-                    styles.requirements
-                }
-            >
-                <summary>
-                    Esse talablari
-                </summary>
-
+            <div className={styles.requirements}>
+                <strong>Esse talablari</strong>
                 <ul>
-                    {requirements.map(
-                        (
-                            requirement,
-                        ) => (
-                            <li
-                                key={
-                                    requirement
-                                }
-                            >
-                                {
-                                    requirement
-                                }
-                            </li>
-                        ),
-                    )}
+                    {requirements.map((requirement) => (
+                        <li key={requirement}>{requirement}</li>
+                    ))}
                 </ul>
-            </details>
-
-            <div
-                className={
-                    styles.essayMeta
-                }
-            >
-                <span>
-                    Kamida{" "}
-                    {
-                        page.question
-                            .requirements
-                            .minimumWords
-                    }{" "}
-                    so‘z
-                </span>
-
-                <strong>
-                    {wordCount} so‘z
-                </strong>
             </div>
 
-            <textarea
-                className={
-                    styles.essayArea
-                }
-                value={value}
-                rows={18}
-                placeholder="ESSENI SHU YERGA YOZING..."
-                onChange={(
-                    event,
-                ) =>
-                    onChange(
-                        event.target
-                            .value,
-                    )
-                }
-            />
+            <section className={styles.essayScoreSection}>
+                <span className={styles.essayScoreEyebrow}>OLDINGI ESSE NATIJANGIZ</span>
+                <h3>Avvalgi esse natijangizni bilasizmi?</h3>
+                <p>
+                    Agar avval esse yozib, natijangizni aniq bilsangiz,
+                    0 dan 75 gacha bo‘lgan ballni kiriting.
+                </p>
+
+                <label className={styles.essayScoreField}>
+                    <span>Esse qismi</span>
+                    <span className={styles.essayScoreInputWrap}>
+                        <input
+                            type="number"
+                            min="0"
+                            max="75"
+                            step="0.01"
+                            inputMode="decimal"
+                            value={value}
+                            placeholder="Masalan: 63"
+                            onChange={(event) => onChange(event.target.value)}
+                        />
+                        <strong>/ 75 ball</strong>
+                    </span>
+                </label>
+
+                <p className={styles.optionalNote}>
+                    Bu qism ixtiyoriy. Esse natijangizni bilmasangiz,
+                    ushbu qismni bo‘sh qoldirib “Yakunlash”ni bosing.
+                </p>
+            </section>
         </>
     );
 }
-
 
 function getVerdictLabel(
     verdict:
@@ -1929,32 +1867,22 @@ export function DiagnosticResultView({
                         {test.title}
                     </h1>
 
-                    <div
-                        className={
-                            styles.scoreCircle
-                        }
-                    >
+                    <div className={styles.scoreCircle}>
                         <strong>
-                            {
-                                result.score
-                            }
+                            {(result.finalScore ?? result.testScore).toFixed(2)}
                         </strong>
-                        <small>
-                            /{" "}
-                            {
-                                result.maximumScore
-                            }
-                        </small>
+                        <small>/ 75</small>
                     </div>
 
-                    {result.pendingCount >
-                    0 ? (
-                        <p>
-                            Esse tekshirilmoqda.
-                            Hozirgi ball esse
-                            balisiz ko‘rsatildi.
-                        </p>
-                    ) : null}
+                    <p>
+                        Test qismi: <strong>{result.testScore.toFixed(2)} / 75</strong>
+                        {result.essayScore === null
+                            ? " · Esse qismi kiritilmagan"
+                            : ` · Esse: ${result.essayScore.toFixed(2)} / 75`}
+                        {result.finalScore !== null
+                            ? ` · Yakuniy: ${result.finalScore.toFixed(2)} / 75 · Daraja: ${result.grade ?? "—"}`
+                            : ""}
+                    </p>
                 </section>
 
                 <section
@@ -2096,11 +2024,21 @@ export function DiagnosticResultView({
                     </button>
                 </section>
 
-                <DiagnosticAnswerReview
-                    test={test}
-                    result={result}
-                    answers={answers}
-                />
+                {result.questionResults.length > 0 ? (
+                    <DiagnosticAnswerReview
+                        test={test}
+                        result={result}
+                        answers={answers}
+                    />
+                ) : (
+                    <section className={styles.certificateCallout}>
+                        <div>
+                            <span>DATABASE NATIJASI</span>
+                            <h2>Batafsil javoblar faqat imtihon topshirilgan qurilmada mavjud.</h2>
+                            <p>Sertifikat va yakuniy natija hisobingizda doimiy saqlanadi.</p>
+                        </div>
+                    </section>
+                )}
 
                 <div
                     className={
@@ -2274,21 +2212,35 @@ export function DiagnosticTestRunner({
             false,
         );
 
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [finishError, setFinishError] = useState("");
+
     const completedRef =
         useRef(
             false,
         );
+
+    // Keep one stable attempt id across finish retries so a network retry cannot
+    // create a second DB attempt/certificate for the same exam submission.
+    const submissionAttemptIdRef = useRef<string | null>(null);
 
     const currentPage =
         pages[
             currentIndex
             ];
 
+    const requiredPages = useMemo(
+        () => pages.filter((page) => page.type !== "essay"),
+        [pages],
+    );
+
     const answeredCount =
         countAnsweredUnits(
-            pages,
+            requiredPages,
             answers,
         );
+
+    const requiredQuestionCount = Math.max(0, test.questionCount - 1);
 
     useEffect(() => {
         if (attemptId) {
@@ -2310,6 +2262,7 @@ export function DiagnosticTestRunner({
                     calculateDiagnosticTestScore(
                         test,
                         restoredAnswers,
+                        getOptionalEssayScore(test, restoredAnswers),
                     );
 
                 setAnswers(
@@ -2320,11 +2273,7 @@ export function DiagnosticTestRunner({
                     restoredResult,
                 );
 
-                setCertificateRecord(
-                    readDiagnosticCertificateRecord(
-                        attemptId,
-                    ),
-                );
+                setCertificateRecord(null);
 
                 setOpenCertificateOnResult(
                     false,
@@ -2474,110 +2423,107 @@ export function DiagnosticTestRunner({
     ]);
 
     const finish =
-        useCallback(() => {
-            if (
-                completedRef.current
-            ) {
+        useCallback(async () => {
+            if (completedRef.current || isSubmitting) {
                 return;
             }
 
-            completedRef.current =
-                true;
+            const essayQuestion = test.questions.find((question) => question.type === "essay");
+            const essayRaw = essayQuestion
+                ? answers[essayQuestion.id]
+                : undefined;
+            const essayText = typeof essayRaw === "string" ? essayRaw.trim() : "";
+            const essayScore = essayText === "" ? null : Number(essayText);
 
-            const finalResult =
-                calculateDiagnosticTestScore(
-                    test,
-                    answers,
-                );
+            if (essayScore !== null && (!Number.isFinite(essayScore) || essayScore < 0 || essayScore > 75)) {
+                setFinishError("Esse natijasi 0 dan 75 gacha bo‘lishi kerak.");
+                setIsFinishOpen(false);
+                return;
+            }
 
-            setResult(
-                finalResult,
-            );
+            setFinishError("");
+            setIsSubmitting(true);
 
-            setIsFinishOpen(
-                false,
-            );
+            try {
+                if (!submissionAttemptIdRef.current) {
+                    submissionAttemptIdRef.current = `${test.id}-${Date.now()}-${
+                        typeof crypto !== "undefined" && "randomUUID" in crypto
+                            ? crypto.randomUUID()
+                            : Math.random().toString(36).slice(2)
+                    }`;
+                }
 
-            const completed =
-                saveCompletedTest({
-                    testId:
-                    test.id,
-                    metadata,
-                    answers:
-                        answers as
-                            StoredTestAnswers,
-                    correctCount:
-                    finalResult.correctCount,
-                    incorrectCount:
-                    finalResult.incorrectCount,
-                    unansweredCount:
-                    finalResult.unansweredCount,
-                    needsReviewCount:
-                    finalResult.pendingCount,
-                    percentage:
-                    finalResult.percentage,
-                    durationSeconds:
-                        test.estimatedMinutes *
-                        60 -
-                        remainingSeconds,
-                    score:
-                    finalResult.score,
-                    maximumScore:
-                    finalResult.maximumScore,
+                const clientAttemptId = submissionAttemptIdRef.current!;
+
+                const response = await fetch("/api/diagnostic-attempts/complete", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        attemptId: clientAttemptId,
+                        testSlug: test.slug,
+                        answers,
+                        essayScore,
+                        durationSeconds: test.estimatedMinutes * 60 - remainingSeconds,
+                    }),
                 });
 
-            if (completed) {
-                const nextCertificateRecord =
-                    createDiagnosticCertificateRecord({
-                        attemptId:
-                            completed.attemptId,
-                        profile:
-                            readUserProfile(),
-                        testTitle:
-                            test.title,
-                        score:
-                            finalResult.score,
-                        maximumScore:
-                            finalResult.maximumScore,
-                        percentage:
-                            finalResult.percentage,
-                        correctCount:
-                            finalResult.correctCount,
-                        incorrectCount:
-                            finalResult.incorrectCount,
-                        unansweredCount:
-                            finalResult.unansweredCount,
-                        pendingCount:
-                            finalResult.pendingCount,
-                    });
+                const payload = await response.json() as {
+                    error?: string;
+                    attemptId?: string;
+                    result?: DiagnosticTestScoreResult;
+                    certificate?: unknown;
+                };
 
-                setCertificateRecord(
-                    nextCertificateRecord,
-                );
+                if (!response.ok || !payload.attemptId || !payload.result) {
+                    throw new Error(payload.error || "Diagnostikani yakunlab bo‘lmadi.");
+                }
 
-                removeTestProgress(
-                    test.id,
-                );
+                const savedCertificate = parseDiagnosticCertificateRecord(payload.certificate);
+                if (!savedCertificate) {
+                    throw new Error("Sertifikat databasega saqlanmadi.");
+                }
 
-                // A completed diagnostic exam now has its own result URL.
-                // This keeps the exam runner and the result/certificate flow
-                // separate and makes the browser URL match what the user sees.
+                completedRef.current = true;
+                setResult(payload.result);
+                setCertificateRecord(savedCertificate);
+                setIsFinishOpen(false);
+
+                saveCompletedTest({
+                    attemptId: payload.attemptId,
+                    skipRemotePersistence: true,
+                    testId: test.id,
+                    metadata,
+                    answers: answers as StoredTestAnswers,
+                    correctCount: payload.result.correctCount,
+                    incorrectCount: payload.result.incorrectCount,
+                    unansweredCount: payload.result.unansweredCount,
+                    needsReviewCount: 0,
+                    percentage: Math.round(payload.result.percentage),
+                    durationSeconds: test.estimatedMinutes * 60 - remainingSeconds,
+                    score: payload.result.finalScore ?? payload.result.testScore,
+                    maximumScore: 75,
+                });
+
+                removeTestProgress(test.id);
+
                 router.replace(
-                    `/tests/milliy-sertifikat/diagnostika/${test.slug}/natija?attempt=${completed.attemptId}`,
+                    `/tests/milliy-sertifikat/diagnostika/${test.slug}/natija?attempt=${encodeURIComponent(payload.attemptId)}`,
                 );
-
-                return;
+            } catch (error) {
+                completedRef.current = false;
+                setFinishError(
+                    error instanceof Error
+                        ? error.message
+                        : "Diagnostikani yakunlab bo‘lmadi. Qayta urinib ko‘ring.",
+                );
+                setIsFinishOpen(false);
+            } finally {
+                setIsSubmitting(false);
             }
-
-            setOpenCertificateOnResult(
-                false,
-            );
-
-            setView(
-                "result",
-            );
         }, [
             answers,
+            isSubmitting,
             metadata,
             remainingSeconds,
             router,
@@ -2634,6 +2580,8 @@ export function DiagnosticTestRunner({
 
         completedRef.current =
             false;
+        submissionAttemptIdRef.current =
+            null;
 
         setAnswers(
             {},
@@ -2780,7 +2728,7 @@ export function DiagnosticTestRunner({
                         <strong>
                             {answeredCount}/
                             {
-                                test.questionCount
+                                requiredQuestionCount
                             }
                         </strong>
                     </article>
@@ -2800,7 +2748,7 @@ export function DiagnosticTestRunner({
                             {Math.round(
                                 (
                                     answeredCount /
-                                    test.questionCount
+                                    Math.max(1, requiredQuestionCount)
                                 ) *
                                 100,
                             )}
@@ -2819,7 +2767,7 @@ export function DiagnosticTestRunner({
                                     `${Math.round(
                                         (
                                             answeredCount /
-                                            test.questionCount
+                                            Math.max(1, requiredQuestionCount)
                                         ) *
                                         100,
                                     )}%`,
@@ -3184,6 +3132,10 @@ export function DiagnosticTestRunner({
                 </footer>
             </div>
 
+            {finishError ? (
+                <div className={styles.finishError} role="alert">{finishError}</div>
+            ) : null}
+
             <TestExitDialog
                 open={isExitDialogOpen}
                 onContinue={() =>
@@ -3232,7 +3184,7 @@ export function DiagnosticTestRunner({
 
                         <p>
                             {
-                                test.questionCount -
+                                requiredQuestionCount -
                                 answeredCount
                             }{" "}
                             ta topshiriq
@@ -3253,11 +3205,10 @@ export function DiagnosticTestRunner({
 
                             <button
                                 type="button"
-                                onClick={
-                                    finish
-                                }
+                                onClick={finish}
+                                disabled={isSubmitting}
                             >
-                                Yakunlash
+                                {isSubmitting ? "Saqlanmoqda..." : "Yakunlash"}
                             </button>
                         </div>
                     </section>

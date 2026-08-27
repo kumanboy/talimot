@@ -1,0 +1,188 @@
+.page {
+    min-height: 100svh;
+    background: #f5f8fb;
+    color: #102033;
+    padding: 20px 16px 110px;
+}
+
+.shell {
+    width: min(720px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 18px;
+}
+
+.header {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+.header > button {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #d7e2ef;
+    border-radius: 14px;
+    background: #fff;
+    color: #2f73c5;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.header span,
+.resultCard > span {
+    color: #2f73c5;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.header h1 {
+    margin: 4px 0 6px;
+    font-size: clamp(28px, 6vw, 40px);
+}
+
+.header p,
+.resultCard p,
+.formula p {
+    margin: 0;
+    color: #687789;
+    line-height: 1.55;
+}
+
+.card,
+.resultCard,
+.formula {
+    border: 1px solid #dce7f3;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 12px 34px rgb(42 90 145 / 7%);
+}
+
+.card {
+    padding: 22px;
+    display: grid;
+    gap: 14px;
+}
+
+.card label {
+    display: grid;
+    gap: 8px;
+    font-weight: 750;
+}
+
+.card label > div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #cbd9e8;
+    border-radius: 16px;
+    padding: 0 15px;
+    min-height: 58px;
+}
+
+.card input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 18px;
+    color: #102033;
+}
+
+.card input[aria-invalid="true"] {
+    color: #b63d3d;
+}
+
+.card small {
+    color: #b63d3d;
+}
+
+.plus {
+    justify-self: center;
+    color: #2f73c5;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.resultCard {
+    padding: 28px 22px;
+    text-align: center;
+}
+
+.resultCard > strong {
+    display: block;
+    margin-top: 10px;
+    font-size: clamp(48px, 13vw, 76px);
+    color: #286fc5;
+}
+
+.resultCard > strong small {
+    font-size: .35em;
+    color: #647386;
+}
+
+.gradeRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.gradeRow > div {
+    padding: 15px;
+    border-radius: 16px;
+    background: #f3f7fc;
+}
+
+.gradeRow span {
+    display: block;
+    color: #687789;
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+.gradeRow strong {
+    font-size: 24px;
+}
+
+.formula {
+    padding: 18px 20px;
+}
+
+.formula strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+@media (max-width: 480px) {
+    .page { padding-inline: 12px; }
+    .card { padding: 18px; }
+    .gradeRow { grid-template-columns: 1fr; }
+}
+
+:global(html[data-theme="dark"]) .page {
+    background: #101a22;
+    color: #edf5ff;
+}
+
+:global(html[data-theme="dark"]) .card,
+:global(html[data-theme="dark"]) .resultCard,
+:global(html[data-theme="dark"]) .formula,
+:global(html[data-theme="dark"]) .header > button {
+    background: #182630;
+    border-color: #314553;
+}
+
+:global(html[data-theme="dark"]) .card label > div,
+:global(html[data-theme="dark"]) .gradeRow > div {
+    background: #13212a;
+    border-color: #314553;
+}
+
+:global(html[data-theme="dark"]) .card input {
+    color: #edf5ff;
+}

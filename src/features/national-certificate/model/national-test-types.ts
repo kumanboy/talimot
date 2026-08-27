@@ -66,6 +66,9 @@ export interface NationalTestSummary {
     readonly access:
         NationalTestAccess;
 
+    readonly tangaPrice: number;
+    readonly isPurchased: boolean;
+
     readonly href: string;
     readonly isAvailable: boolean;
 }

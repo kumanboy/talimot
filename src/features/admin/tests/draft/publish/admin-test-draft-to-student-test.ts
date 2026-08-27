@@ -2056,17 +2056,9 @@ function mapDiagnosticQuestion(
             mapExplanation(
                 question.explanation,
             );
+        // Q45 is display-only in the diagnostic runner. Word-count fields are optional.
         const minimumWords =
-            question.requirements
-                .minimumWords;
-
-        if (
-            minimumWords === null
-        ) {
-            return fail(
-                "Esse uchun minimal so‘z soni kiritilishi kerak.",
-            );
-        }
+            question.requirements.minimumWords ?? 0;
 
         return {
             type:
@@ -2124,8 +2116,10 @@ function mapDiagnosticQuestion(
                     }
                     : {}),
             },
+            // Essay score is optionally supplied from a previous essay result (0–75).
+            // The displayed Q45 itself is not auto-scored.
             maximumScore:
-                24,
+                0,
             ...(explanation
                 ? {
                     explanation,
@@ -2164,12 +2158,9 @@ function convertDiagnosticDraft(
             45,
         estimatedMinutes:
             180,
+        // Questions 1–44 are normalized to the TA’LIMOT 75-point test scale.
         maximumScore:
-            draft.metadata.diagnostic
-                ?.finalMaximumScore ??
-            calculateAdminDraftMaximumScore(
-                draft,
-            ),
+            75,
         difficulty:
             draft.metadata.difficulty,
         access:

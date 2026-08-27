@@ -7,6 +7,9 @@ import {
 import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import {
+    TestPurchaseButton,
+} from "@/features/tests/components/test-purchase-button";
 
 import type {
     NationalTestDifficulty,
@@ -251,7 +254,9 @@ function NationalTestCard({
                         }
                     >
                         {isPremium
-                            ? "Premium"
+                            ? collection.isPurchased
+                                ? "Sotib olingan"
+                                : `${collection.tangaPrice} Tanga`
                             : "Bepul"}
                     </span>
 
@@ -328,39 +333,31 @@ function NationalTestCard({
                 </div>
             </div>
 
-            <button
-                type="button"
-                disabled={
-                    !collection.isAvailable
-                }
-                aria-disabled={
-                    !collection.isAvailable
-                }
-                onClick={() => {
-                    if (
-                        collection.isAvailable
-                    ) {
-                        onOpen(
-                            collection.href,
-                        );
-                    }
-                }}
-            >
-                {collection.isAvailable ? (
-                    <>
-                        {collection.topic ===
-                        "diagnostika"
-                            ? "Imtihonni ko‘rish"
-                            : "Testni boshlash"}
-                        <ArrowIcon />
-                    </>
-                ) : (
-                    <>
-                        Hozircha mavjud emas
-                        <LockIcon />
-                    </>
-                )}
-            </button>
+            {!collection.isAvailable ? (
+                <button type="button" disabled aria-disabled="true">
+                    Hozircha mavjud emas
+                    <LockIcon />
+                </button>
+            ) : isPremium && !collection.isPurchased ? (
+                <TestPurchaseButton
+                    testId={collection.id}
+                    title={collection.title}
+                    href={collection.href}
+                    price={collection.tangaPrice}
+                >
+                    Sotib olish · {collection.tangaPrice} Tanga
+                </TestPurchaseButton>
+            ) : (
+                <button
+                    type="button"
+                    onClick={() => onOpen(collection.href)}
+                >
+                    {collection.topic === "diagnostika"
+                        ? "Diagnostikani boshlash"
+                        : "Testni boshlash"}
+                    <ArrowIcon />
+                </button>
+            )}
         </article>
     );
 }

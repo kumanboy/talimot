@@ -12,3 +12,5 @@ export * from "./essay-submission-files";
 export * from "./essay-reviews";
 
 export * from "./test-purchases";
+
+export * from "./diagnostic-certificates";

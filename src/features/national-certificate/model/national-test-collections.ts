@@ -13,7 +13,7 @@ export const plannedNationalTests:
             "To‘liq diagnostika — 1",
 
         description:
-            "45 ta savol, 180 daqiqa va 1 ta esse topshirig‘idan iborat to‘liq diagnostika imtihoni.",
+            "44 ta baholanadigan topshiriq, 45-esse mavzusi va 180 daqiqalik to‘liq diagnostika imtihoni.",
 
         topic:
             "diagnostika",

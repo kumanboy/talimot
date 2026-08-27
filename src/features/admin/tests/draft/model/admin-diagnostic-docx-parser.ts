@@ -1043,12 +1043,14 @@ function parseEssay({
         );
     }
 
+    // Q45 is display-only in TA’LIMOT diagnostics. Its own score can be 0;
+    // the optional previous essay result (0–75) is entered by the student at finish time.
     if (
-        maximumScore <=
+        maximumScore <
         0
     ) {
         issues.push(
-            "Esse balli topilmadi yoki noto‘g‘ri.",
+            "Esse balli 0 yoki undan katta bo‘lishi kerak.",
         );
     }
 
@@ -1069,7 +1071,7 @@ function parseEssay({
         confidenceFromIssues(
             issues,
             !question ||
-                maximumScore <=
+                maximumScore <
                     0,
         );
 
@@ -1703,7 +1705,9 @@ export function parseDiagnosticDocxDocument(
                 ),
             access:
                 accessText ===
-                "PREMIUM"
+                    "PREMIUM" ||
+                accessText ===
+                    "PULLIK"
                     ? "premium"
                     : accessText ===
                             "FREE" ||
@@ -1711,6 +1715,15 @@ export function parseDiagnosticDocxDocument(
                             "BEPUL"
                       ? "free"
                       : null,
+            tangaPrice:
+                parseNumber(
+                    first(
+                        metadataFields,
+                        "TANGA NARXI",
+                        "TANGA PRICE",
+                        "PRICE",
+                    ),
+                ),
             difficulty:
                 difficultyText ===
                 "EASY"

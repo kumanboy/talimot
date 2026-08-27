@@ -19,7 +19,7 @@ export type StudentTestAccess = {
 };
 
 type TestRoute = {
-    readonly group: "grammar" | "morphology";
+    readonly group: "grammar" | "morphology" | "national-certificate";
     readonly topicSlug: string;
     readonly testSlug: string;
     readonly href: string;

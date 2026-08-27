@@ -19,19 +19,6 @@ type DiagnosticCertificatePreviewProps = {
     readonly onClose: () => void;
 };
 
-function getPlatformLevel(
-    percentage: number,
-): string {
-    if (percentage >= 90) return "A+";
-    if (percentage >= 80) return "A";
-    if (percentage >= 70) return "B+";
-    if (percentage >= 60) return "B";
-    if (percentage >= 50) return "C+";
-    if (percentage >= 40) return "C";
-
-    return "Darajaga erishilmadi";
-}
-
 function formatDate(
     timestamp: number,
 ): string {
@@ -101,28 +88,14 @@ export function DiagnosticCertificatePreview({
         testTitle ??
         record.result.testTitle;
 
-    const resolvedResult =
-        result ?? {
-            score:
-                record.result.score,
-            maximumScore:
-                record.result.maximumScore,
-            percentage:
-                record.result.percentage,
-            correctCount:
-                record.result.correctCount,
-            incorrectCount:
-                record.result.incorrectCount,
-            unansweredCount:
-                record.result.unansweredCount,
-            pendingCount:
-                record.result.pendingCount,
-        };
-
-    const level =
-        getPlatformLevel(
-            resolvedResult.percentage,
-        );
+    const testScore = result?.testScore ?? record.result.testScore;
+    const essayScore = result?.essayScore ?? record.result.essayScore;
+    const finalScore = result?.finalScore ?? record.result.finalScore;
+    const finalPercentage = result?.finalPercentage ?? (finalScore === null ? null : record.result.percentage);
+    const level = result?.grade ?? record.result.grade;
+    const correctCount = result?.correctCount ?? record.result.correctCount;
+    const incorrectCount = result?.incorrectCount ?? record.result.incorrectCount;
+    const unansweredCount = result?.unansweredCount ?? record.result.unansweredCount;
 
     const handleDownload = () => {
         const body = document.body;
@@ -185,9 +158,6 @@ export function DiagnosticCertificatePreview({
                 </div>
 
                 <article className={styles.certificate}>
-                    <div className={styles.pattern} aria-hidden="true" />
-                    <div className={styles.cornerTop} aria-hidden="true" />
-                    <div className={styles.cornerBottom} aria-hidden="true" />
 
                     <div className={styles.content}>
                         <header className={styles.certificateHeader}>
@@ -256,23 +226,28 @@ export function DiagnosticCertificatePreview({
                         </div>
 
                         <div>
-                            <span>Umumiy to‘plagan bali:</span>
-                            <strong>{resolvedResult.score}</strong>
+                            <span>Test qismi:</span>
+                            <strong>{testScore.toFixed(2)} / 75</strong>
                         </div>
 
                         <div>
-                            <span>Maksimal ball:</span>
-                            <strong>{resolvedResult.maximumScore}</strong>
+                            <span>Esse qismi:</span>
+                            <strong>{essayScore === null ? "Kiritilmagan" : `${essayScore.toFixed(2)} / 75`}</strong>
                         </div>
 
                         <div>
-                            <span>Umumiy ballga nisbatan foiz:</span>
-                            <strong>{resolvedResult.percentage}%</strong>
+                            <span>Yakuniy ball:</span>
+                            <strong>{finalScore === null ? "—" : `${finalScore.toFixed(2)} / 75`}</strong>
+                        </div>
+
+                        <div>
+                            <span>Foiz ko‘rsatkichi:</span>
+                            <strong>{finalPercentage === null ? "—" : `${finalPercentage.toFixed(2)}%`}</strong>
                         </div>
 
                         <div>
                             <span>Sertifikat darajasi:</span>
-                            <strong>{level}</strong>
+                            <strong>{level ?? "—"}</strong>
                         </div>
                     </section>
 
@@ -281,24 +256,22 @@ export function DiagnosticCertificatePreview({
 
                         <div>
                             <span>To‘g‘ri javoblar:</span>
-                            <strong>{resolvedResult.correctCount}</strong>
+                            <strong>{correctCount}</strong>
                         </div>
 
                         <div>
                             <span>Noto‘g‘ri javoblar:</span>
-                            <strong>{resolvedResult.incorrectCount}</strong>
+                            <strong>{incorrectCount}</strong>
                         </div>
 
                         <div>
                             <span>Javobsiz savollar:</span>
-                            <strong>{resolvedResult.unansweredCount}</strong>
+                            <strong>{unansweredCount}</strong>
                         </div>
 
                         <div>
-                            <span>Umumiy ball:</span>
-                            <strong>
-                                {resolvedResult.score} / {resolvedResult.maximumScore}
-                            </strong>
+                            <span>Test qismi:</span>
+                            <strong>{testScore.toFixed(2)} / 75</strong>
                         </div>
                     </section>
 

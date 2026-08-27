@@ -1001,3 +1001,112 @@
         width: 100%;
     }
 }
+
+/* Diagnostic v1: Q45 is display-only; this optional score section lets a student
+   reuse a known previous essay score without writing the essay on the website. */
+.essayScoreSection {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+    padding: 18px;
+    border: 1px solid rgb(47 115 197 / 24%);
+    border-radius: 20px;
+    background: rgb(239 246 255 / 72%);
+}
+
+.essayScoreEyebrow {
+    color: #2f73c5;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .09em;
+}
+
+.essayScoreSection h3,
+.essayScoreSection p {
+    margin: 0;
+}
+
+.essayScoreSection h3 {
+    font-size: 18px;
+}
+
+.essayScoreSection p {
+    color: #687789;
+    line-height: 1.55;
+}
+
+.essayScoreField {
+    display: grid;
+    gap: 7px;
+    font-weight: 800;
+}
+
+.essayScoreInputWrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 0 14px;
+    border: 1px solid #bed0e5;
+    border-radius: 15px;
+    background: #fff;
+}
+
+.essayScoreInputWrap input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #132338;
+    font: inherit;
+    font-size: 17px;
+}
+
+.essayScoreInputWrap strong {
+    color: #2f73c5;
+    white-space: nowrap;
+}
+
+.optionalNote {
+    padding-top: 2px;
+    font-size: 12px;
+}
+
+.finishError {
+    position: fixed;
+    z-index: 120;
+    right: 16px;
+    bottom: calc(92px + env(safe-area-inset-bottom));
+    left: 16px;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 13px 16px;
+    border: 1px solid rgb(194 74 74 / 28%);
+    border-radius: 14px;
+    background: #fff1f1;
+    box-shadow: 0 14px 30px rgb(80 30 30 / 15%);
+    color: #9d3030;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+:global(html[data-theme="dark"]) .essayScoreSection {
+    border-color: #315273;
+    background: #142736;
+}
+
+:global(html[data-theme="dark"]) .essayScoreInputWrap {
+    border-color: #36516b;
+    background: #0f1e29;
+}
+
+:global(html[data-theme="dark"]) .essayScoreInputWrap input {
+    color: #eef6ff;
+}
+
+:global(html[data-theme="dark"]) .finishError {
+    border-color: #6e3d3d;
+    background: #321f23;
+    color: #ffb8b8;
+}

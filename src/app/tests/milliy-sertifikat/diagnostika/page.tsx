@@ -16,7 +16,7 @@ export default async function DiagnosticTestsCollectionsRoute() {
         <NationalTestCollectionPage
             categoryLabel="Milliy sertifikat"
             title="Diagnostika testlari"
-            description="Bilimingizni 45 ta savol, yozma topshiriqlar va esse orqali to‘liq tekshiring. Natijada kuchli va rivojlantirilishi kerak bo‘lgan bo‘limlaringiz aniqlanadi."
+            description="Bilimingizni 44 ta baholanadigan topshiriq va 45-esse mavzusi bilan to‘liq tekshiring. Esse saytda yozilmaydi; avvalgi esse natijangiz bo‘lsa, yakunda ixtiyoriy ravishda kirita olasiz."
             collections={collections}
         />
     );
