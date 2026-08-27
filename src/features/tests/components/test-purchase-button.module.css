@@ -1,0 +1,151 @@
+.trigger {
+    cursor: pointer;
+}
+
+.trigger:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+.overlay {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    place-items: end center;
+    padding: 18px;
+    background: color-mix(in srgb, #07101a 58%, transparent);
+    backdrop-filter: blur(8px);
+}
+
+.dialog {
+    width: min(100%, 440px);
+    padding: 20px;
+    border: 1px solid color-mix(in srgb, var(--app-border) 85%, transparent);
+    border-radius: 24px;
+    background: var(--app-surface);
+    color: var(--app-text);
+    box-shadow: 0 24px 70px color-mix(in srgb, #000 28%, transparent);
+}
+
+.dialogHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.dialogHeader span {
+    display: inline-flex;
+    min-height: 26px;
+    align-items: center;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.closeButton {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--app-border);
+    border-radius: 11px;
+    background: transparent;
+    color: var(--app-text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.dialog h3 {
+    margin: 14px 0 6px;
+    font-size: 22px;
+    line-height: 1.16;
+    letter-spacing: -0.025em;
+}
+
+.dialogText {
+    margin: 0;
+    color: var(--app-text-secondary);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.balanceCard {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 9px 16px;
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid var(--app-border);
+    border-radius: 16px;
+    background: var(--app-subtle);
+}
+
+.balanceCard span {
+    color: var(--app-text-secondary);
+    font-size: 12px;
+}
+
+.balanceCard strong {
+    font-size: 13px;
+    text-align: right;
+}
+
+.afterBalance {
+    color: var(--app-primary) !important;
+}
+
+.error {
+    margin: 14px 0 0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--app-error) 12%, transparent);
+    color: var(--app-error);
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.45;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.actions button {
+    min-height: 48px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.secondaryButton {
+    border: 1px solid var(--app-border);
+    background: transparent;
+    color: var(--app-text);
+}
+
+.primaryButton {
+    border: 0;
+    background: var(--app-primary);
+    color: white;
+}
+
+.primaryButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+@media (min-width: 640px) {
+    .overlay {
+        place-items: center;
+    }
+}

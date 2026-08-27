@@ -315,6 +315,7 @@
 .difficultyBadge,
 .freeBadge,
 .premiumBadge,
+.purchasedBadge,
 .soonBadge {
     display: inline-flex;
     min-height: 24px;
@@ -373,6 +374,11 @@
                     transparent
             );
     color: var(--app-warning);
+}
+
+.purchasedBadge {
+    background: color-mix(in srgb, var(--app-success) 14%, transparent);
+    color: var(--app-success);
 }
 .soonBadge {
     background:

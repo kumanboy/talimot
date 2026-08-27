@@ -6,41 +6,41 @@ import {
 import type {
     AdminTestDraftSummary,
 } from "@/features/admin/tests/draft/model/admin-test-draft-types";
+import {
+    getActiveStudentUserId,
+} from "@/features/auth/server/get-active-student-user";
 import type {
     MorphologySubtopicSlug,
 } from "@/features/tests/model/morphology-categories";
 import type {
     MorphologyTestCollection,
 } from "@/features/tests/model/morphology-test-collections";
+import {
+    getPurchasedTestIds,
+} from "@/features/tests/server/get-test-access";
 
 function publishedMorphologySummary(
-    draft:
-        AdminTestDraftSummary,
-    subtopic:
-        MorphologySubtopicSlug,
+    draft: AdminTestDraftSummary,
+    subtopic: MorphologySubtopicSlug,
+    purchasedIds: ReadonlySet<string>,
 ): MorphologyTestCollection {
     return {
-        id:
-            draft.id,
-        slug:
-            draft.slug,
+        id: draft.id,
+        slug: draft.slug,
         subtopic,
-        title:
-            draft.title,
-        description:
-            draft.description,
-        questionCount:
-            draft.questionCount,
-        estimatedMinutes:
-            draft.estimatedMinutes,
-        difficulty:
-            draft.difficulty,
-        access:
-            draft.access,
-        isAvailable:
-            true,
-        href:
-            `/tests/grammatika/morfologiya/${subtopic}/${draft.slug}`,
+        title: draft.title,
+        description: draft.description,
+        questionCount: draft.questionCount,
+        estimatedMinutes: draft.estimatedMinutes,
+        difficulty: draft.difficulty,
+        access: draft.access,
+        tangaPrice:
+            draft.access === "premium"
+                ? Math.max(1, draft.tangaPrice)
+                : 0,
+        isPurchased: purchasedIds.has(draft.id),
+        isAvailable: true,
+        href: `/tests/grammatika/morfologiya/${subtopic}/${draft.slug}`,
     };
 }
 
@@ -49,11 +49,8 @@ function publishedMorphologySummary(
  * No planned/locked placeholder tests are returned.
  */
 export async function getStudentMorphologyTestsBySubtopic(
-    subtopic:
-        MorphologySubtopicSlug,
-): Promise<
-    readonly MorphologyTestCollection[]
-> {
+    subtopic: MorphologySubtopicSlug,
+): Promise<readonly MorphologyTestCollection[]> {
     await connection();
 
     const publishedDrafts =
@@ -65,21 +62,24 @@ export async function getStudentMorphologyTestsBySubtopic(
             },
         );
 
-    return publishedDrafts
-        .filter(
-            (draft) =>
-                draft.topicSlug ===
-                    subtopic &&
-                draft.format ===
-                    "morphology-standard" &&
-                draft.questionCount ===
-                    20,
-        )
-        .map(
-            (draft) =>
-                publishedMorphologySummary(
-                    draft,
-                    subtopic,
-                ),
-        );
+    const drafts = publishedDrafts.filter(
+        (draft) =>
+            draft.topicSlug === subtopic &&
+            draft.format === "morphology-standard" &&
+            draft.questionCount === 20,
+    );
+
+    const userId = await getActiveStudentUserId();
+    const purchasedIds = await getPurchasedTestIds(
+        userId,
+        drafts.map((draft) => draft.id),
+    );
+
+    return drafts.map((draft) =>
+        publishedMorphologySummary(
+            draft,
+            subtopic,
+            purchasedIds,
+        ),
+    );
 }

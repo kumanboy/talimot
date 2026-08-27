@@ -36,6 +36,9 @@ export interface MorphologyTestCollection {
     readonly access:
         MorphologyTestAccess;
 
+    readonly tangaPrice: number;
+    readonly isPurchased: boolean;
+
     readonly isAvailable:
         boolean;
 
@@ -72,6 +75,12 @@ export const morphologyTestCollections:
 
             access:
                 "free",
+
+            tangaPrice:
+                0,
+
+            isPurchased:
+                false,
 
             isAvailable:
                 isStandardTestRegistered(

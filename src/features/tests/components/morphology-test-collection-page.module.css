@@ -290,6 +290,11 @@
     color: var(--app-warning);
 }
 
+.purchasedBadge {
+    background: color-mix(in srgb, var(--app-success) 14%, transparent);
+    color: var(--app-success);
+}
+
 .soonBadge {
     background:
             color-mix(

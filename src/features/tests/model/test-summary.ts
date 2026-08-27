@@ -22,6 +22,9 @@ export interface StandardTestSummary {
     readonly access:
         StandardTestAccess;
 
+    readonly tangaPrice: number;
+    readonly isPurchased: boolean;
+
     readonly href: string;
 
     /**

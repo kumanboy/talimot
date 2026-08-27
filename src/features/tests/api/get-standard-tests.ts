@@ -6,39 +6,38 @@ import {
 import type {
     AdminTestDraftSummary,
 } from "@/features/admin/tests/draft/model/admin-test-draft-types";
+import {
+    getActiveStudentUserId,
+} from "@/features/auth/server/get-active-student-user";
+import {
+    getPurchasedTestIds,
+} from "@/features/tests/server/get-test-access";
 import type {
     StandardTestSummary,
 } from "@/features/tests/model/test-summary";
 
 function publishedStandardSummary(
-    draft:
-        AdminTestDraftSummary,
+    draft: AdminTestDraftSummary,
+    purchasedIds: ReadonlySet<string>,
 ): StandardTestSummary {
     return {
-        id:
-            draft.id,
-        slug:
-            draft.slug,
-        title:
-            draft.title,
-        description:
-            draft.description,
-        category:
-            draft.category,
-        topicSlug:
-            draft.topicSlug,
-        questionCount:
-            20,
-        estimatedMinutes:
-            draft.estimatedMinutes,
-        difficulty:
-            draft.difficulty,
-        access:
-            draft.access,
-        href:
-            `/tests/grammatika/${draft.topicSlug}/${draft.slug}`,
-        isAvailable:
-            true,
+        id: draft.id,
+        slug: draft.slug,
+        title: draft.title,
+        description: draft.description,
+        category: draft.category,
+        topicSlug: draft.topicSlug,
+        questionCount: 20,
+        estimatedMinutes: draft.estimatedMinutes,
+        difficulty: draft.difficulty,
+        access: draft.access,
+        tangaPrice:
+            draft.access === "premium"
+                ? Math.max(1, draft.tangaPrice)
+                : 0,
+        isPurchased: purchasedIds.has(draft.id),
+        href: `/tests/grammatika/${draft.topicSlug}/${draft.slug}`,
+        isAvailable: true,
     };
 }
 
@@ -49,11 +48,7 @@ function publishedStandardSummary(
  */
 export async function getStandardTestsByTopic(
     topicSlug: string,
-): Promise<
-    readonly StandardTestSummary[]
-> {
-    // Do not query the external database during `next build`.
-    // Next.js will continue from here only for a real request.
+): Promise<readonly StandardTestSummary[]> {
     await connection();
 
     const standardPromise =
@@ -76,32 +71,37 @@ export async function getStandardTestsByTopic(
             )
             : Promise.resolve([] as readonly AdminTestDraftSummary[]);
 
-    const [standardDrafts, mixedDrafts] =
-        await Promise.all([
-            standardPromise,
-            mixedPromise,
-        ]);
+    const [standardDrafts, mixedDrafts] = await Promise.all([
+        standardPromise,
+        mixedPromise,
+    ]);
 
-    return [
+    const drafts = [
         ...standardDrafts,
         ...mixedDrafts,
-    ]
-        .filter(
-            (draft) =>
-                draft.topicSlug === topicSlug &&
+    ].filter(
+        (draft) =>
+            draft.topicSlug === topicSlug &&
+            (
                 (
-                    (
-                        draft.format === "standard" &&
-                        draft.questionCount === 20
-                    ) ||
-                    (
-                        topicSlug === "sintaksis" &&
-                        draft.format === "mixed" &&
-                        draft.questionCount === 60
-                    )
-                ),
-        )
-        .map(
-            publishedStandardSummary,
-        );
+                    draft.format === "standard" &&
+                    draft.questionCount === 20
+                ) ||
+                (
+                    topicSlug === "sintaksis" &&
+                    draft.format === "mixed" &&
+                    draft.questionCount === 60
+                )
+            ),
+    );
+
+    const userId = await getActiveStudentUserId();
+    const purchasedIds = await getPurchasedTestIds(
+        userId,
+        drafts.map((draft) => draft.id),
+    );
+
+    return drafts.map((draft) =>
+        publishedStandardSummary(draft, purchasedIds),
+    );
 }

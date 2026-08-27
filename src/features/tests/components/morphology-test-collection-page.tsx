@@ -17,6 +17,10 @@ import {
 } from "@/features/home/components/mobile-navigation";
 
 import {
+    TestPurchaseButton,
+} from "@/features/tests/components/test-purchase-button";
+
+import {
     TEST_ROUTES,
 } from "@/features/tests/model/test-navigation";
 
@@ -346,15 +350,17 @@ export function MorphologyTestCollectionPage({
 
                                                 <span
                                                     className={
-                                                        collection.access ===
-                                                        "premium"
-                                                            ? styles.premiumBadge
+                                                        collection.access === "premium"
+                                                            ? collection.isPurchased
+                                                                ? styles.purchasedBadge
+                                                                : styles.premiumBadge
                                                             : styles.freeBadge
                                                     }
                                                 >
-                                                    {collection.access ===
-                                                    "premium"
-                                                        ? "Premium"
+                                                    {collection.access === "premium"
+                                                        ? collection.isPurchased
+                                                            ? "Sotib olingan"
+                                                            : `${collection.tangaPrice} Tanga`
                                                         : "Bepul"}
                                                 </span>
 
@@ -412,30 +418,36 @@ export function MorphologyTestCollectionPage({
                                             </div>
                                         </div>
 
-                                        <button
-                                            type="button"
-                                            className={
-                                                styles.openButton
-                                            }
-                                            disabled={
-                                                !collection.isAvailable
-                                            }
-                                            onClick={() =>
-                                                router.push(
-                                                    collection.href,
-                                                )
-                                            }
-                                        >
-                                            {collection.isAvailable
-                                                ? "Testni boshlash"
-                                                : "Tez orada"}
-
-                                            {collection.isAvailable ? (
-                                                <ArrowIcon />
-                                            ) : (
+                                        {!collection.isAvailable ? (
+                                            <button
+                                                type="button"
+                                                className={styles.openButton}
+                                                disabled
+                                            >
+                                                Tez orada
                                                 <LockIcon />
-                                            )}
-                                        </button>
+                                            </button>
+                                        ) : collection.access === "premium" && !collection.isPurchased ? (
+                                            <TestPurchaseButton
+                                                testId={collection.id}
+                                                title={collection.title}
+                                                href={collection.href}
+                                                price={collection.tangaPrice}
+                                                className={styles.openButton}
+                                            >
+                                                Sotib olish · {collection.tangaPrice} Tanga
+                                                <LockIcon />
+                                            </TestPurchaseButton>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className={styles.openButton}
+                                                onClick={() => router.push(collection.href)}
+                                            >
+                                                Testni boshlash
+                                                <ArrowIcon />
+                                            </button>
+                                        )}
                                     </article>
                                 ),
                             )}

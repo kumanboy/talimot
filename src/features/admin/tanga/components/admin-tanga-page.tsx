@@ -32,6 +32,8 @@ function sourceLabel(value: string): string {
             return "Promo bonus";
         case "manual_correction":
             return "Qo‘lda tuzatish";
+        case "test_purchase":
+            return "Test xaridi";
         case "other":
             return "Boshqa";
         case "admin_adjustment":

@@ -1,0 +1,96 @@
+.page {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px 18px;
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--app-primary) 16%, transparent), transparent 34%),
+        var(--app-background);
+    color: var(--app-text);
+}
+
+.card {
+    width: min(100%, 460px);
+    padding: 26px 22px;
+    border: 1px solid var(--app-border);
+    border-radius: 28px;
+    background: color-mix(in srgb, var(--app-surface) 94%, transparent);
+    box-shadow: 0 20px 60px color-mix(in srgb, #000 12%, transparent);
+}
+
+.badge {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.card h1 {
+    margin: 15px 0 8px;
+    font-size: 28px;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+}
+
+.card > p {
+    margin: 0;
+    color: var(--app-text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.price {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 20px;
+    padding: 15px 16px;
+    border: 1px solid var(--app-border);
+    border-radius: 17px;
+    background: var(--app-subtle);
+}
+
+.price span {
+    color: var(--app-text-secondary);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.price strong {
+    color: var(--app-primary);
+    font-size: 18px;
+}
+
+.purchaseButton {
+    width: 100%;
+    min-height: 52px;
+    margin-top: 14px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--app-primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 850;
+}
+
+.backLink {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    border: 1px solid var(--app-border);
+    border-radius: 15px;
+    color: var(--app-text);
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
