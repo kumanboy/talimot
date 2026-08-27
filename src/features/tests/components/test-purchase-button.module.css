@@ -9,23 +9,35 @@
 
 .overlay {
     position: fixed;
-    z-index: 1000;
+    z-index: 10000;
     inset: 0;
     display: grid;
-    place-items: end center;
-    padding: 18px;
+    place-items: center;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding:
+        max(20px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(104px, calc(env(safe-area-inset-bottom) + 92px))
+        max(18px, env(safe-area-inset-left));
     background: color-mix(in srgb, #07101a 58%, transparent);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .dialog {
     width: min(100%, 440px);
+    max-height: calc(100vh - 150px);
+    max-height: calc(100dvh - 150px);
+    overflow-y: auto;
+    margin: auto;
     padding: 20px;
     border: 1px solid color-mix(in srgb, var(--app-border) 85%, transparent);
     border-radius: 24px;
     background: var(--app-surface);
     color: var(--app-text);
     box-shadow: 0 24px 70px color-mix(in srgb, #000 28%, transparent);
+    animation: purchase-dialog-enter 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .dialogHeader {
@@ -146,6 +158,41 @@
 
 @media (min-width: 640px) {
     .overlay {
-        place-items: center;
+        padding: 24px;
+    }
+
+    .dialog {
+        max-height: calc(100vh - 48px);
+        max-height: calc(100dvh - 48px);
+    }
+}
+
+@media (max-height: 640px) and (max-width: 639px) {
+    .overlay {
+        place-items: start center;
+        padding-top: max(20px, env(safe-area-inset-top));
+    }
+
+    .dialog {
+        max-height: calc(100vh - 132px);
+        max-height: calc(100dvh - 132px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dialog {
+        animation: none;
+    }
+}
+
+@keyframes purchase-dialog-enter {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 }

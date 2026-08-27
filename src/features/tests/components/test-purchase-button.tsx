@@ -1,9 +1,11 @@
 "use client";
 
 import {
+    useEffect,
     useState,
     type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
 import styles from "./test-purchase-button.module.css";
@@ -53,6 +55,28 @@ export function TestPurchaseButton({
     const loginHref = `/auth/login?next=${encodeURIComponent(href)}`;
     const safePrice = Math.max(1, Math.trunc(price));
     const enoughBalance = balance !== null && balance >= safePrice;
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape" && !isPurchasing) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isOpen, isPurchasing]);
 
     const openPurchase = async () => {
         setError("");
@@ -151,96 +175,99 @@ export function TestPurchaseButton({
                 {isLoadingWallet ? "Balans tekshirilmoqda..." : children}
             </button>
 
-            {isOpen ? (
-                <div
-                    className={styles.overlay}
-                    role="presentation"
-                    onMouseDown={(event) => {
-                        if (event.currentTarget === event.target && !isPurchasing) {
-                            setIsOpen(false);
-                        }
-                    }}
-                >
-                    <section
-                        className={styles.dialog}
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby={`purchase-title-${testId}`}
+            {isOpen && typeof document !== "undefined"
+                ? createPortal(
+                    <div
+                        className={styles.overlay}
+                        role="presentation"
+                        onMouseDown={(event) => {
+                            if (event.currentTarget === event.target && !isPurchasing) {
+                                setIsOpen(false);
+                            }
+                        }}
                     >
-                        <div className={styles.dialogHeader}>
-                            <span>Pullik test</span>
+                        <section
+                            className={styles.dialog}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby={`purchase-title-${testId}`}
+                        >
+                            <div className={styles.dialogHeader}>
+                                <span>Pullik test</span>
 
-                            <button
-                                type="button"
-                                className={styles.closeButton}
-                                aria-label="Oynani yopish"
-                                disabled={isPurchasing}
-                                onClick={() => setIsOpen(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
+                                <button
+                                    type="button"
+                                    className={styles.closeButton}
+                                    aria-label="Oynani yopish"
+                                    disabled={isPurchasing}
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    ×
+                                </button>
+                            </div>
 
-                        <h3 id={`purchase-title-${testId}`}>{title}</h3>
-                        <p className={styles.dialogText}>
-                            Test bir marta sotib olinadi va hisobingizda doimiy ochiq qoladi.
-                        </p>
-
-                        <div className={styles.balanceCard}>
-                            <span>Joriy balans</span>
-                            <strong>{balance ?? "—"} Tanga</strong>
-
-                            <span>Test narxi</span>
-                            <strong>{safePrice} Tanga</strong>
-
-                            <span>Qoladigan balans</span>
-                            <strong className={styles.afterBalance}>
-                                {balance === null
-                                    ? "—"
-                                    : `${Math.max(0, balance - safePrice)} Tanga`}
-                            </strong>
-                        </div>
-
-                        {error ? (
-                            <p className={styles.error} role="alert">
-                                {error}
+                            <h3 id={`purchase-title-${testId}`}>{title}</h3>
+                            <p className={styles.dialogText}>
+                                Test bir marta sotib olinadi va hisobingizda doimiy ochiq qoladi.
                             </p>
-                        ) : null}
 
-                        <div className={styles.actions}>
-                            <button
-                                type="button"
-                                className={styles.secondaryButton}
-                                disabled={isPurchasing}
-                                onClick={() => setIsOpen(false)}
-                            >
-                                Bekor qilish
-                            </button>
+                            <div className={styles.balanceCard}>
+                                <span>Joriy balans</span>
+                                <strong>{balance ?? "—"} Tanga</strong>
 
-                            {balance !== null && !enoughBalance ? (
+                                <span>Test narxi</span>
+                                <strong>{safePrice} Tanga</strong>
+
+                                <span>Qoladigan balans</span>
+                                <strong className={styles.afterBalance}>
+                                    {balance === null
+                                        ? "—"
+                                        : `${Math.max(0, balance - safePrice)} Tanga`}
+                                </strong>
+                            </div>
+
+                            {error ? (
+                                <p className={styles.error} role="alert">
+                                    {error}
+                                </p>
+                            ) : null}
+
+                            <div className={styles.actions}>
                                 <button
                                     type="button"
-                                    className={styles.primaryButton}
-                                    onClick={() => router.push("/packages")}
+                                    className={styles.secondaryButton}
+                                    disabled={isPurchasing}
+                                    onClick={() => setIsOpen(false)}
                                 >
-                                    Tanga sotib olish
+                                    Bekor qilish
                                 </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className={styles.primaryButton}
-                                    disabled={isPurchasing || !enoughBalance}
-                                    onClick={purchase}
-                                >
-                                    {isPurchasing
-                                        ? "Sotib olinmoqda..."
-                                        : `${safePrice} Tanga bilan ochish`}
-                                </button>
-                            )}
-                        </div>
-                    </section>
-                </div>
-            ) : null}
+
+                                {balance !== null && !enoughBalance ? (
+                                    <button
+                                        type="button"
+                                        className={styles.primaryButton}
+                                        onClick={() => router.push("/packages")}
+                                    >
+                                        Tanga sotib olish
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className={styles.primaryButton}
+                                        disabled={isPurchasing || !enoughBalance}
+                                        onClick={purchase}
+                                    >
+                                        {isPurchasing
+                                            ? "Sotib olinmoqda..."
+                                            : `${safePrice} Tanga bilan ochish`}
+                                    </button>
+                                )}
+                            </div>
+                        </section>
+                    </div>,
+                    document.body,
+                )
+                : null}
         </>
     );
 }
