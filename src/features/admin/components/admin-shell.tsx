@@ -46,7 +46,7 @@ const adminNavigationItems:
         {
             key: "results",
             label: "Natijalar",
-            disabled: true,
+            href: "/admin/results",
         },
         {
             key: "users",

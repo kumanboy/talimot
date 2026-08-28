@@ -14,3 +14,4 @@ export * from "./essay-reviews";
 export * from "./test-purchases";
 
 export * from "./diagnostic-certificates";
+export * from "./diagnostic-attempt-item-results";

@@ -23,9 +23,10 @@ const dashboardSections = [
     {
         title: "Natijalar",
         description:
-            "Diagnostika urinishlari va ballar.",
-        status: "Backend kerak",
-        enabled: false,
+            "Diagnostika urinishlari, item tahlili va Rasch 1PL analitikasi.",
+        status: "Ishlayapti",
+        href: "/admin/results",
+        enabled: true,
     },
     {
         title: "Foydalanuvchilar",

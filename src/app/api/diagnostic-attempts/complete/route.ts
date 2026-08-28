@@ -14,12 +14,16 @@ import type {
     DiagnosticAnswers,
 } from "@/features/national-certificate/model/diagnostic-test-types";
 import {
+    createDiagnosticItemResultRows,
+} from "@/features/national-certificate/server/create-diagnostic-item-result-rows";
+import {
     getStudentNationalTest,
 } from "@/features/national-certificate/server/get-published-national-test";
 import {
     getStudentTestAccessByRoute,
 } from "@/features/tests/server/get-test-access";
 import { db } from "@/lib/database/db";
+import { diagnosticAttemptItemResults } from "@/lib/database/schema/diagnostic-attempt-item-results";
 import { diagnosticCertificates } from "@/lib/database/schema/diagnostic-certificates";
 import { studentTestAttempts } from "@/lib/database/schema/student-test-attempts";
 import { users } from "@/lib/database/schema/users";
@@ -192,6 +196,11 @@ export async function POST(request: NextRequest) {
             const certificate = rowToCertificate(existing);
             const recalculated = calculateDiagnosticTestScore(test, body.answers, essayScore);
 
+            // Never backfill item analytics for an already-issued certificate from a
+            // later browser retry: the original answers were not persisted historically,
+            // so a replayed request cannot be proven to match the issuance-time answers.
+            // Keep historical item data absent rather than accepting forgeable analytics.
+
             // A normal retry carries the same answers. Still, keep all summary fields
             // authoritative to the immutable certificate already stored in the DB.
             const result = {
@@ -227,6 +236,14 @@ export async function POST(request: NextRequest) {
         const certificateCode = createCertificateCode(attemptId, now);
         const displayPercentage = result.finalPercentage
             ?? result.percentage;
+        const itemRows = createDiagnosticItemResultRows({
+            attemptId,
+            userId: user.id,
+            test,
+            answers: body.answers,
+            result,
+            completedAt: now,
+        });
 
         await db.transaction(async (tx) => {
             await tx
@@ -251,6 +268,13 @@ export async function POST(request: NextRequest) {
                     createdAt: now,
                 })
                 .onConflictDoNothing({ target: studentTestAttempts.id });
+
+            if (itemRows.length > 0) {
+                await tx
+                    .insert(diagnosticAttemptItemResults)
+                    .values(itemRows)
+                    .onConflictDoNothing();
+            }
 
             await tx
                 .insert(diagnosticCertificates)
