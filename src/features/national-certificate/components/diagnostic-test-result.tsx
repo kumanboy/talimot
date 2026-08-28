@@ -32,6 +32,8 @@ import {
     removeTestProgress,
 } from "@/features/tests/model/test-progress-storage";
 
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
+
 import styles from "./diagnostic-test-runner.module.css";
 
 type DiagnosticTestResultProps = {
@@ -135,9 +137,9 @@ export function DiagnosticTestResult({
                         <span>TA’LIMOT</span>
                         <h1>{loadError || "Natija yuklanmoqda..."}</h1>
                         {loadError ? (
-                            <button type="button" onClick={() => router.replace("/natijalar")}>
+                            <PendingNavigationButton mode="replace" href="/natijalar" pendingText="Qaytilmoqda...">
                                 Natijalarga qaytish
-                            </button>
+                            </PendingNavigationButton>
                         ) : null}
                     </section>
                 </div>

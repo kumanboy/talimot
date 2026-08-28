@@ -24,6 +24,8 @@ import {
     TEST_ROUTES,
 } from "@/features/tests/model/test-navigation";
 
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
+
 import styles from "./morphology-test-collection-page.module.css";
 
 type MorphologyTestCollectionPageProps = {
@@ -225,17 +227,14 @@ export function MorphologyTestCollectionPage({
                         styles.topBar
                     }
                 >
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        mode="replace"
+                        href={TEST_ROUTES.morphologyHome}
                         aria-label="Morfologiya bo‘limlariga qaytish"
-                        onClick={() =>
-                            router.replace(
-                                TEST_ROUTES.morphologyHome,
-                            )
-                        }
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>

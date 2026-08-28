@@ -1,10 +1,10 @@
 .page {
-    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: calc(108px + env(safe-area-inset-bottom));
     background:
-        radial-gradient(circle at top right, rgba(77, 143, 218, 0.11), transparent 30rem),
-        #f5f8f8;
-    color: #142131;
-    padding-bottom: 112px;
+        radial-gradient(circle at 100% 0, color-mix(in srgb, var(--app-primary) 10%, transparent), transparent 28rem),
+        linear-gradient(180deg, var(--app-background), color-mix(in srgb, var(--app-background-subtle) 50%, var(--app-background)));
+    color: var(--app-text);
 }
 
 .content {
@@ -21,16 +21,17 @@
 }
 
 .header > button {
+    display: grid;
     width: 44px;
     height: 44px;
     flex: 0 0 44px;
-    border: 1px solid #d8e1e7;
-    border-radius: 14px;
-    background: #fff;
-    color: #26384a;
-    display: grid;
     place-items: center;
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    background: var(--app-surface);
+    color: var(--app-text);
     cursor: pointer;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--app-shadow) 5%, transparent);
 }
 
 .header > button svg {
@@ -38,28 +39,27 @@
     height: 20px;
 }
 
-.header div {
-    min-width: 0;
-}
+.header div { min-width: 0; }
 
 .header span,
 .sectionHeading > span {
     display: block;
-    color: #2f78c7;
+    color: var(--app-primary);
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 850;
     letter-spacing: 0.11em;
 }
 
 .header h1 {
-    margin: 4px 0 4px;
+    margin: 4px 0;
+    color: var(--app-text);
     font-size: clamp(1.7rem, 5vw, 2.25rem);
     line-height: 1.06;
 }
 
 .header p {
     margin: 0;
-    color: #6b7886;
+    color: var(--app-text-secondary);
     font-size: 0.94rem;
 }
 
@@ -71,21 +71,22 @@
 }
 
 .summaryGrid article {
-    border: 1px solid #dce5ea;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.92);
     padding: 16px;
-    box-shadow: 0 8px 28px rgba(30, 54, 77, 0.045);
+    border: 1px solid var(--app-border);
+    border-radius: 18px;
+    background: var(--app-surface);
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--app-shadow) 5%, transparent);
 }
 
 .summaryGrid span {
     display: block;
-    color: #72808d;
-    font-size: 0.78rem;
     margin-bottom: 8px;
+    color: var(--app-text-secondary);
+    font-size: 0.78rem;
 }
 
 .summaryGrid strong {
+    color: var(--app-text);
     font-size: 1.4rem;
     line-height: 1;
 }
@@ -97,6 +98,7 @@
 
 .sectionHeading h2 {
     margin: 4px 0 0;
+    color: var(--app-text);
     font-size: 1.35rem;
 }
 
@@ -104,9 +106,9 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     padding: 4px;
-    border: 1px solid #dce5ea;
+    border: 1px solid var(--app-border);
     border-radius: 16px;
-    background: #fff;
+    background: var(--app-surface);
 }
 
 .filters button {
@@ -114,16 +116,16 @@
     border: 0;
     border-radius: 12px;
     background: transparent;
-    color: #6b7783;
+    color: var(--app-text-secondary);
     font: inherit;
     font-weight: 750;
     cursor: pointer;
 }
 
 .filters button.activeFilter {
-    background: #eaf3fe;
-    color: #2f73bf;
-    box-shadow: inset 0 0 0 1px #b9d4f2;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-primary) 30%, var(--app-border));
 }
 
 .testList {
@@ -132,11 +134,33 @@
 }
 
 .testCard {
-    border: 1px solid #d9e3e9;
-    border-radius: 22px;
-    background: #fff;
+    position: relative;
+    overflow: hidden;
     padding: 18px;
-    box-shadow: 0 12px 32px rgba(31, 58, 83, 0.055);
+    border: 1px solid color-mix(in srgb, var(--app-border) 92%, transparent);
+    border-radius: 22px;
+    background:
+        linear-gradient(
+            150deg,
+            color-mix(in srgb, var(--app-surface-raised) 96%, var(--app-primary) 4%),
+            var(--app-surface)
+        );
+    color: var(--app-text);
+    box-shadow:
+        0 12px 32px color-mix(in srgb, var(--app-shadow) 6%, transparent),
+        inset 0 1px 0 color-mix(in srgb, white 42%, transparent);
+}
+
+.testCard::before {
+    position: absolute;
+    top: -90px;
+    right: -80px;
+    width: 190px;
+    height: 190px;
+    border-radius: 999px;
+    background: radial-gradient(circle, color-mix(in srgb, var(--app-primary) 10%, transparent), transparent 70%);
+    content: "";
+    pointer-events: none;
 }
 
 .cardTopline,
@@ -150,6 +174,8 @@
 }
 
 .cardTopline {
+    position: relative;
+    z-index: 1;
     justify-content: space-between;
     gap: 10px;
 }
@@ -167,18 +193,18 @@
 .attemptPill {
     border-radius: 999px;
     font-size: 0.72rem;
-    font-weight: 800;
+    font-weight: 820;
     line-height: 1;
     white-space: nowrap;
 }
 
 .categoryLabel {
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
     padding: 8px 10px;
-    background: #edf5fd;
-    color: #2d70b9;
+    overflow: hidden;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+    text-overflow: ellipsis;
 }
 
 .purchasedBadge {
@@ -186,8 +212,8 @@
     align-items: center;
     gap: 4px;
     padding: 8px 10px;
-    color: #16714d;
-    background: #e9f7ef;
+    background: color-mix(in srgb, var(--app-success) 14%, var(--app-surface));
+    color: var(--app-success);
 }
 
 .purchasedBadge svg {
@@ -197,101 +223,107 @@
 
 .freeBadge {
     padding: 8px 10px;
-    color: #5c6873;
-    background: #f1f4f6;
+    background: color-mix(in srgb, var(--app-text-secondary) 9%, var(--app-surface));
+    color: var(--app-text-secondary);
 }
 
 .priceBadge {
     padding: 8px 10px;
-    background: #fff7df;
-    color: #926313;
+    background: color-mix(in srgb, var(--app-warning) 15%, var(--app-surface));
+    color: var(--app-warning);
 }
 
 .cardTitleRow {
+    position: relative;
+    z-index: 1;
     justify-content: space-between;
     gap: 12px;
     margin-top: 16px;
 }
 
-.cardTitleRow > div {
-    min-width: 0;
-}
+.cardTitleRow > div { min-width: 0; }
 
 .cardTitleRow h2 {
     margin: 0;
-    font-size: 1.3rem;
+    color: var(--app-text);
+    font-size: 1.22rem;
     line-height: 1.2;
+    overflow-wrap: anywhere;
 }
 
 .cardTitleRow p {
     margin: 5px 0 0;
-    color: #73808c;
+    color: var(--app-text-secondary);
     font-size: 0.82rem;
 }
 
 .attemptPill {
     flex: 0 0 auto;
     padding: 9px 11px;
-    color: #536473;
-    background: #f2f5f7;
+    background: color-mix(in srgb, var(--app-text-secondary) 8%, var(--app-surface));
+    color: var(--app-text-secondary);
 }
 
 .scoreGrid {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1px;
     margin-top: 16px;
     overflow: hidden;
-    border: 1px solid #e0e7eb;
+    border: 1px solid var(--app-border);
     border-radius: 16px;
-    background: #e0e7eb;
+    background: var(--app-border);
 }
 
 .scoreGrid > div {
     min-width: 0;
-    background: #fafcfd;
     padding: 14px 12px;
+    background: color-mix(in srgb, var(--app-surface-raised) 90%, var(--app-background));
 }
 
 .scoreGrid span {
     display: block;
-    color: #7b8792;
-    font-size: 0.72rem;
     margin-bottom: 6px;
+    color: var(--app-text-secondary);
+    font-size: 0.72rem;
 }
 
 .scoreGrid strong {
     display: block;
-    color: #213347;
+    color: var(--app-text);
     font-size: 0.9rem;
     line-height: 1.25;
     overflow-wrap: anywhere;
 }
 
 .notStarted {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     gap: 12px;
     margin-top: 16px;
     padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--app-primary) 18%, var(--app-border));
     border-radius: 16px;
-    background: #f5f9fd;
-    border: 1px solid #d9e8f6;
+    background: color-mix(in srgb, var(--app-primary-soft) 58%, var(--app-surface));
 }
 
 .notStartedIcon,
 .historySummaryIcon {
     display: grid;
-    place-items: center;
     flex: 0 0 auto;
+    place-items: center;
 }
 
 .notStartedIcon {
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    color: #2f78c7;
-    background: #e5f0fc;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
 }
 
 .notStartedIcon svg,
@@ -304,21 +336,25 @@
 
 .notStarted strong {
     display: block;
+    color: var(--app-text);
     font-size: 0.92rem;
 }
 
 .notStarted p {
     margin: 3px 0 0;
-    color: #71808d;
+    color: var(--app-text-secondary);
     font-size: 0.8rem;
 }
 
 .cardActions {
+    position: relative;
+    z-index: 1;
     gap: 9px;
     margin-top: 16px;
 }
 
-.cardActions a {
+.cardActions a,
+.disabledAction {
     min-height: 46px;
     border-radius: 14px;
     display: inline-flex;
@@ -327,180 +363,188 @@
     gap: 7px;
     text-decoration: none;
     font-size: 0.88rem;
-    font-weight: 800;
+    font-weight: 820;
+    transition: transform 160ms ease, opacity 160ms ease, background-color 160ms ease;
 }
+
+.cardActions a[aria-busy="true"] {
+    cursor: wait;
+    pointer-events: none;
+    opacity: 0.82;
+}
+
+.cardActions a:active { transform: scale(0.985); }
 
 .primaryAction {
     flex: 1 1 auto;
-    background: #3778be;
+    background: linear-gradient(135deg, var(--app-primary-button), var(--app-primary));
     color: #fff;
-    box-shadow: 0 8px 18px rgba(55, 120, 190, 0.18);
+    box-shadow: 0 8px 18px color-mix(in srgb, var(--app-primary) 22%, transparent);
 }
 
 .disabledAction {
     flex: 1 1 auto;
-    min-height: 46px;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #eef2f4;
-    color: #8a959e;
-    font-size: 0.88rem;
-    font-weight: 800;
+    background: color-mix(in srgb, var(--app-text-secondary) 9%, var(--app-surface));
+    color: color-mix(in srgb, var(--app-text-secondary) 80%, transparent);
 }
 
 .secondaryAction {
     flex: 0 1 180px;
     padding: 0 14px;
-    border: 1px solid #c9d8e6;
-    color: #326fac;
-    background: #fff;
+    border: 1px solid color-mix(in srgb, var(--app-primary) 26%, var(--app-border));
+    background: var(--app-surface);
+    color: var(--app-primary);
 }
 
 .historyDetails {
+    position: relative;
+    z-index: 1;
     margin-top: 14px;
-    border-top: 1px solid #e7ecef;
+    border-top: 1px solid var(--app-border);
 }
 
 .historyDetails summary {
     gap: 10px;
     min-height: 58px;
+    color: var(--app-text-secondary);
     cursor: pointer;
     list-style: none;
-    color: #425464;
 }
 
-.historyDetails summary::-webkit-details-marker {
-    display: none;
-}
+.historyDetails summary::-webkit-details-marker { display: none; }
 
-.historySummaryIcon {
-    color: #3979bd;
-}
+.historySummaryIcon { color: var(--app-primary); }
 
 .historyDetails summary > span:nth-child(2) {
     display: grid;
-    gap: 2px;
     flex: 1;
+    gap: 2px;
 }
 
 .historyDetails summary strong {
+    color: var(--app-text);
     font-size: 0.88rem;
 }
 
 .historyDetails summary small {
-    color: #89939c;
+    color: var(--app-text-secondary);
     font-size: 0.72rem;
 }
 
 .historyChevron {
+    color: var(--app-text-secondary);
     transition: transform 180ms ease;
 }
 
-.historyDetails[open] .historyChevron {
-    transform: rotate(90deg);
-}
+.historyDetails[open] .historyChevron { transform: rotate(90deg); }
 
 .historyList {
     display: grid;
     gap: 8px;
-    padding: 2px 0 6px;
+    padding: 2px 0 8px;
 }
 
 .historyItem {
     gap: 10px;
     padding: 11px;
-    border: 1px solid #e1e8ec;
+    border: 1px solid var(--app-border);
     border-radius: 14px;
-    background: #fbfcfd;
+    background: color-mix(in srgb, var(--app-surface-raised) 88%, var(--app-background));
 }
 
 .historyIndex {
+    display: grid;
     width: 34px;
     height: 34px;
     flex: 0 0 34px;
-    display: grid;
     place-items: center;
     border-radius: 10px;
-    color: #3475b8;
-    background: #eaf3fc;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
     font-size: 0.8rem;
     font-weight: 850;
 }
 
 .historyCopy {
+    display: grid;
     min-width: 0;
     flex: 1;
-    display: grid;
     gap: 2px;
 }
 
 .historyCopy strong {
+    color: var(--app-text);
     font-size: 0.88rem;
 }
 
 .historyCopy span {
-    color: #5e7080;
+    color: var(--app-text-secondary);
     font-size: 0.76rem;
 }
 
 .historyCopy small {
-    color: #8a949d;
+    color: color-mix(in srgb, var(--app-text-secondary) 86%, transparent);
     font-size: 0.7rem;
 }
 
 .historyItem > a {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    gap: 5px;
+    padding: 0 9px;
+    border-radius: 10px;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
     text-decoration: none;
-    color: #3474b7;
-    font-size: 0.78rem;
-    font-weight: 800;
+    font-size: 0.76rem;
+    font-weight: 820;
+}
+
+.historyItem > a[aria-busy="true"] {
+    pointer-events: none;
+    opacity: 0.8;
 }
 
 .emptyState {
     display: grid;
-    justify-items: center;
-    text-align: center;
     padding: 36px 20px;
-    border: 1px solid #dce5ea;
+    justify-items: center;
+    border: 1px solid var(--app-border);
     border-radius: 22px;
-    background: #fff;
+    background: var(--app-surface);
+    color: var(--app-text);
+    text-align: center;
 }
 
 .emptyState > span {
+    display: grid;
     width: 52px;
     height: 52px;
-    display: grid;
     place-items: center;
     border-radius: 16px;
-    background: #eaf3fc;
-    color: #3375ba;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
 }
 
-.emptyState svg {
-    width: 25px;
-    height: 25px;
-}
-
-.emptyState strong {
-    margin-top: 14px;
-}
+.emptyState svg { width: 25px; height: 25px; }
+.emptyState strong { margin-top: 14px; }
 
 .emptyState p {
     max-width: 430px;
     margin: 7px 0 16px;
-    color: #75818b;
+    color: var(--app-text-secondary);
     font-size: 0.86rem;
     line-height: 1.5;
 }
 
 .emptyState a {
-    min-height: 44px;
-    padding: 0 18px;
     display: inline-flex;
+    min-height: 44px;
     align-items: center;
+    padding: 0 18px;
     border-radius: 13px;
-    background: #3778be;
+    background: var(--app-primary);
     color: #fff;
     font-weight: 800;
     text-decoration: none;
@@ -512,74 +556,63 @@
         padding-top: 14px;
     }
 
-    .summaryGrid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .summaryGrid article {
-        padding: 14px;
-    }
+    .summaryGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
     .testCard {
         padding: 15px;
         border-radius: 20px;
     }
 
+    .cardTitleRow { align-items: flex-start; }
+
     .scoreGrid {
         grid-template-columns: 1fr;
+        gap: 0;
+        background: transparent;
     }
 
     .scoreGrid > div {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
+        gap: 10px;
+        border-bottom: 1px solid var(--app-border);
     }
 
-    .scoreGrid span {
-        margin-bottom: 0;
-    }
-
-    .scoreGrid strong {
-        text-align: right;
-    }
+    .scoreGrid > div:last-child { border-bottom: 0; }
+    .scoreGrid span { margin: 0; }
+    .scoreGrid strong { text-align: right; }
 
     .cardActions {
         display: grid;
         grid-template-columns: 1fr;
     }
 
-    .secondaryAction {
-        flex-basis: auto;
-    }
+    .primaryAction,
+    .secondaryAction { width: 100%; flex-basis: auto; }
+
+    .historyItem { align-items: flex-start; }
 }
 
-@media (max-width: 430px) {
-    .header p {
-        font-size: 0.84rem;
-    }
+@media (max-width: 390px) {
+    .categoryLabel,
+    .purchasedBadge,
+    .freeBadge,
+    .priceBadge,
+    .attemptPill { font-size: 0.66rem; }
 
-    .filters button {
-        font-size: 0.78rem;
-    }
+    .cardTitleRow h2 { font-size: 1.08rem; }
+}
 
-    .cardTopline {
-        align-items: flex-start;
-    }
+:global(html[data-theme="dark"]) .testCard,
+:global(html[data-theme="dark"]) .summaryGrid article,
+:global(html[data-theme="dark"]) .filters,
+:global(html[data-theme="dark"]) .emptyState {
+    box-shadow: 0 14px 34px color-mix(in srgb, #000 18%, transparent);
+}
 
-    .priceBadge {
-        margin-top: 1px;
-    }
-
-    .cardTitleRow {
-        align-items: flex-start;
-    }
-
-    .cardTitleRow h2 {
-        font-size: 1.16rem;
-    }
-
-    .historyItem {
-        align-items: flex-start;
-    }
+:global(html[data-theme="dark"]) .testCard {
+    box-shadow:
+        0 14px 34px color-mix(in srgb, #000 20%, transparent),
+        inset 0 1px 0 rgb(255 255 255 / 4%);
 }

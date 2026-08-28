@@ -1,0 +1,26 @@
+.spinner {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+    border-top-color: currentColor;
+    border-radius: 999px;
+    animation: talimot-button-spin 650ms linear infinite;
+}
+
+.medium {
+    width: 18px;
+    height: 18px;
+    flex-basis: 18px;
+}
+
+@keyframes talimot-button-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinner {
+        animation-duration: 1.4s;
+    }
+}

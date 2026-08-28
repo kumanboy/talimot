@@ -755,3 +755,12 @@
     cursor: wait;
     opacity: .72;
 }
+
+.telegramButton[aria-busy="true"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: wait;
+    opacity: 0.84;
+}

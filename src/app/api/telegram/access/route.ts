@@ -72,8 +72,8 @@ export async function GET(request: NextRequest) {
         request.nextUrl.searchParams.get("next"),
     );
     const destination = registeredUser?.status === "active"
-        ? "/"
-        : requestedDestination;
+        ? requestedDestination
+        : "/onboarding";
 
     const response = NextResponse.redirect(
         new URL(destination, request.url),

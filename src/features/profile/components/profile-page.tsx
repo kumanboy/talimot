@@ -13,6 +13,7 @@ import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
 import { TalimotLoadingScreen } from "@/components/loading/talimot-loading-screen";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 import {
     DiagnosticCertificatePreview,
 } from "@/features/national-certificate/components/diagnostic-certificate-preview";
@@ -279,13 +280,13 @@ export function ProfilePage() {
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        href="/"
                         aria-label="Bosh sahifaga qaytish"
-                        onClick={() => router.push("/")}
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>TA’LIMOT HISOBI</span>
@@ -349,14 +350,12 @@ export function ProfilePage() {
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            router.push("/packages")
-                        }
+                    <PendingNavigationButton
+                        href="/packages"
+                        pendingText="Ochilmoqda..."
                     >
                         To‘ldirish
-                    </button>
+                    </PendingNavigationButton>
                 </section>
 
                 <section className={styles.myTestsCard}>
@@ -365,12 +364,12 @@ export function ProfilePage() {
                         <strong>Barcha testlar va urinishlar tarixi</strong>
                         <p>Sotib olingan testlar, birinchi, oxirgi va eng yaxshi natijalaringizni ko‘ring.</p>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => router.push("/natijalar")}
+                    <PendingNavigationButton
+                        href="/natijalar"
+                        pendingText="Ochilmoqda..."
                     >
                         Ochish
-                    </button>
+                    </PendingNavigationButton>
                 </section>
 
                 <form

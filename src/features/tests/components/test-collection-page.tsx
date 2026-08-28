@@ -24,6 +24,8 @@ import {
     TEST_ROUTES,
 } from "@/features/tests/model/test-navigation";
 
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
+
 import styles from "./test-collection-page.module.css";
 
 type TestCollectionPageProps = {
@@ -373,20 +375,15 @@ export function TestCollectionPage({
                         styles.topBar
                     }
                 >
-                    <button
-                        className={
-                            styles.backButton
-                        }
-                        type="button"
+                    <PendingNavigationButton
+                        mode="replace"
+                        href={TEST_ROUTES.testsHome}
+                        className={styles.backButton}
                         aria-label="Orqaga qaytish"
-                        onClick={() =>
-                            router.replace(
-                                TEST_ROUTES.testsHome,
-                            )
-                        }
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>

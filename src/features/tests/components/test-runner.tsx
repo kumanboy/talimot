@@ -37,6 +37,8 @@ import { QuestionNavigator } from "./question-navigator";
 import {
     QuestionAudioExplanation,
 } from "@/features/tests/components/question-audio-explanation";
+import { ButtonLoader } from "@/components/ui/button-loader";
+import { usePendingNavigation } from "@/hooks/use-pending-navigation";
 import styles from "./test-runner.module.css";
 
 type TestRunnerData = {
@@ -687,6 +689,7 @@ export function TestRunner({
             test.slug,
         )}`;
     const router = useRouter();
+    const navigation = usePendingNavigation();
     const searchParams =
         useSearchParams();
 
@@ -1555,18 +1558,14 @@ export function TestRunner({
                     }
                 >
                     <button
-                        className={
-                            styles.confirmBack
-                        }
+                        className={styles.confirmBack}
                         type="button"
-                        onClick={() =>
-                            router.replace(
-                                collectionsHref,
-                            )
-                        }
+                        disabled={navigation.pending}
+                        aria-busy={navigation.pending || undefined}
+                        onClick={() => navigation.replace(collectionsHref)}
                     >
-                        <BackIcon />
-                        Testlarga qaytish
+                        {navigation.pending ? <ButtonLoader /> : <BackIcon />}
+                        {navigation.pending ? "Qaytilmoqda..." : "Testlarga qaytish"}
                     </button>
 
                     <section
@@ -1606,17 +1605,14 @@ export function TestRunner({
 
                         <button
                             type="button"
-                            className={
-                                styles.submitButton
-                            }
-                            onClick={() =>
-                                router.replace(
-                                    collectionsHref,
-                                )
-                            }
+                            className={styles.submitButton}
+                            disabled={navigation.pending}
+                            aria-busy={navigation.pending || undefined}
+                            onClick={() => navigation.replace(collectionsHref)}
                         >
-                            Testlar sahifasiga
-                            qaytish
+                            {navigation.pending ? (
+                                <><ButtonLoader /> Qaytilmoqda...</>
+                            ) : "Testlar sahifasiga qaytish"}
                         </button>
 
                         <button
@@ -1972,16 +1968,14 @@ export function TestRunner({
                     >
                         <button
                             type="button"
-                            className={
-                                styles.secondaryAction
-                            }
-                            onClick={() =>
-                                router.replace(
-                                    collectionsHref,
-                                )
-                            }
+                            className={styles.secondaryAction}
+                            disabled={navigation.pending}
+                            aria-busy={navigation.pending || undefined}
+                            onClick={() => navigation.replace(collectionsHref)}
                         >
-                            Testlar ro‘yxati
+                            {navigation.pending ? (
+                                <><ButtonLoader /> Qaytilmoqda...</>
+                            ) : "Testlar ro‘yxati"}
                         </button>
 
                         <button

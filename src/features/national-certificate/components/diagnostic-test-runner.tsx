@@ -27,6 +27,8 @@ import type {
 import {
     DiagnosticCertificatePreview,
 } from "@/features/national-certificate/components/diagnostic-certificate-preview";
+import { ButtonLoader } from "@/components/ui/button-loader";
+import { usePendingNavigation } from "@/hooks/use-pending-navigation";
 
 import type {
     DiagnosticAnswers,
@@ -1691,6 +1693,8 @@ export function DiagnosticResultView({
 }) {
     const router =
         useRouter();
+    const navigation = usePendingNavigation();
+    const [isRestarting, setIsRestarting] = useState(false);
 
     const [
         isCertificateOpen,
@@ -1896,16 +1900,20 @@ export function DiagnosticResultView({
 
                     <button
                         type="button"
+                        disabled={!certificateRecord && navigation.pending}
+                        aria-busy={!certificateRecord && navigation.pending ? true : undefined}
                         onClick={() => {
                             if (certificateRecord) {
                                 setIsCertificateOpen(true);
                                 return;
                             }
 
-                            router.push("/profil");
+                            navigation.push("/profil");
                         }}
                     >
-                        {certificateRecord
+                        {!certificateRecord && navigation.pending ? (
+                            <><ButtonLoader /> Profil ochilmoqda...</>
+                        ) : certificateRecord
                             ? "Sertifikatni ko‘rish"
                             : "Profilni to‘ldirish"}
                     </button>
@@ -1934,23 +1942,28 @@ export function DiagnosticResultView({
                 >
                     <button
                         type="button"
-                        onClick={
-                            onRestart
-                        }
+                        disabled={isRestarting || navigation.pending}
+                        aria-busy={isRestarting || undefined}
+                        onClick={() => {
+                            if (isRestarting || navigation.pending) return;
+                            setIsRestarting(true);
+                            onRestart();
+                        }}
                     >
-                        Qayta ishlash
+                        {isRestarting ? (
+                            <><ButtonLoader /> Qayta ochilmoqda...</>
+                        ) : "Qayta ishlash"}
                     </button>
 
                     <button
                         type="button"
-                        onClick={() =>
-                            router.replace(
-                                collectionsHref,
-                            )
-                        }
+                        disabled={navigation.pending || isRestarting}
+                        aria-busy={navigation.pending || undefined}
+                        onClick={() => navigation.replace(collectionsHref)}
                     >
-                        Diagnostika
-                        testlariga qaytish
+                        {navigation.pending ? (
+                            <><ButtonLoader /> Qaytilmoqda...</>
+                        ) : "Diagnostika testlariga qaytish"}
                     </button>
                 </div>
             </div>
@@ -2333,6 +2346,9 @@ export function DiagnosticTestRunner({
             }
 
             setFinishError("");
+            // Ref guard closes the same-frame double-tap window before the
+            // disabled state can render. It is reset in catch on failure.
+            completedRef.current = true;
             setIsSubmitting(true);
 
             try {
@@ -3098,8 +3114,11 @@ export function DiagnosticTestRunner({
                                 type="button"
                                 onClick={finish}
                                 disabled={isSubmitting}
+                                aria-busy={isSubmitting || undefined}
                             >
-                                {isSubmitting ? "Saqlanmoqda..." : "Yakunlash"}
+                                {isSubmitting ? (
+                                    <><ButtonLoader /> Natija saqlanmoqda...</>
+                                ) : "Yakunlash"}
                             </button>
                         </div>
                     </section>

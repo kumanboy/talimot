@@ -10,6 +10,7 @@ import {
 import {
     TestPurchaseButton,
 } from "@/features/tests/components/test-purchase-button";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import type {
     NationalTestDifficulty,
@@ -408,20 +409,15 @@ export function NationalTestCollectionPage({
                         styles.topBar
                     }
                 >
-                    <button
-                        className={
-                            styles.backButton
-                        }
-                        type="button"
+                    <PendingNavigationButton
+                        mode="replace"
+                        href={TEST_ROUTES.testsHome}
+                        className={styles.backButton}
                         aria-label="Orqaga qaytish"
-                        onClick={() =>
-                            router.replace(
-                                TEST_ROUTES.testsHome,
-                            )
-                        }
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>

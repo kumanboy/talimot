@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 import type {
     BookDefinition,
 } from "@/features/books/model/book-types";
@@ -30,13 +31,9 @@ export function BooksPage({ books }: BooksPageProps) {
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
-                        aria-label="Bosh sahifaga qaytish"
-                        onClick={() => router.replace("/")}
-                    >
+                    <PendingNavigationButton mode="replace" href="/" aria-label="Bosh sahifaga qaytish" pendingText="">
                         ←
-                    </button>
+                    </PendingNavigationButton>
                     <div>
                         <span>TA’LIMOT KITOBLARI</span>
                         <strong>Kitoblar</strong>
@@ -104,16 +101,15 @@ export function BooksPage({ books }: BooksPageProps) {
                                     <strong>{formatPrice(book.sale.salePrice)}</strong>
                                 </div>
 
-                                <button
-                                    type="button"
+                                <PendingNavigationButton
+                                    mode="push"
+                                    href={`/kitoblar/${book.slug}`}
                                     className={styles.primaryButton}
-                                    onClick={() =>
-                                        router.push(`/kitoblar/${book.slug}`)
-                                    }
+                                    pendingText="Ochilmoqda..."
                                 >
                                     <span>Kitobni ko‘rish</span>
                                     <span aria-hidden="true">→</span>
-                                </button>
+                                </PendingNavigationButton>
                             </div>
                         </article>
                     ))}

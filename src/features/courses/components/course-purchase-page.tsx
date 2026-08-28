@@ -5,12 +5,9 @@ import {
     FormEvent,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
-import {
-    useRouter,
-} from "next/navigation";
-
 import type {
     CourseDefinition,
 } from "@/features/courses/model/course-types";
@@ -29,6 +26,9 @@ import {
 import {
     createManualPaymentRequest,
 } from "@/features/payments/client/create-manual-payment-request";
+
+import { ButtonLoader } from "@/components/ui/button-loader";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import styles from "./course-purchase-page.module.css";
 
@@ -218,7 +218,6 @@ function createTelegramPurchaseUrl({
 export function CoursePurchasePage({
     course,
 }: CoursePurchasePageProps) {
-    const router = useRouter();
 
     const [values, setValues] =
         useState<PurchaseFormValues>(
@@ -235,6 +234,7 @@ export function CoursePurchasePage({
         "idle" | "copied" | "failed"
     >("idle");
     const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+    const paymentRequestLockRef = useRef(false);
 
     const savings = useMemo(
         () =>
@@ -326,8 +326,10 @@ export function CoursePurchasePage({
     }, [isPaymentModalOpen]);
 
     const continueInTelegram = async () => {
-        if (isCreatingPayment) return;
+        if (paymentRequestLockRef.current || isCreatingPayment) return;
+        paymentRequestLockRef.current = true;
         setIsCreatingPayment(true);
+        let leavingPage = false;
 
         try {
             const payment = await createManualPaymentRequest({
@@ -347,11 +349,15 @@ export function CoursePurchasePage({
                 paymentCode: payment.paymentCode,
             });
 
+            leavingPage = true;
             window.location.href = telegramUrl;
         } catch (error) {
             window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
         } finally {
-            setIsCreatingPayment(false);
+            if (!leavingPage) {
+                paymentRequestLockRef.current = false;
+                setIsCreatingPayment(false);
+            }
         }
     };
 
@@ -359,17 +365,14 @@ export function CoursePurchasePage({
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        mode="replace"
+                        href={`/kurslar/${course.slug}`}
                         aria-label="Kurs sahifasiga qaytish"
-                        onClick={() =>
-                            router.replace(
-                                `/kurslar/${course.slug}`,
-                            )
-                        }
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>KURSNI SOTIB OLISH</span>
@@ -713,8 +716,11 @@ export function CoursePurchasePage({
                             className={styles.telegramButton}
                             onClick={continueInTelegram}
                             disabled={isCreatingPayment}
+                            aria-busy={isCreatingPayment || undefined}
                         >
-                            {isCreatingPayment ? "So‘rov yaratilmoqda…" : "Telegram orqali tasdiqlash"}
+                            {isCreatingPayment ? (
+                                <><ButtonLoader /> So‘rov yaratilmoqda…</>
+                            ) : "Telegram orqali tasdiqlash"}
                         </button>
 
                         <p className={styles.modalHelper}>

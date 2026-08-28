@@ -3,6 +3,7 @@
 import {
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from "react";
 import {
@@ -15,6 +16,7 @@ import styles from "./mobile-navigation.module.css";
 type NavigationIconType =
     | "home"
     | "courses"
+    | "tests"
     | "results"
     | "profile";
 
@@ -37,6 +39,12 @@ const navigationItems = [
         label: "Kurslar",
         href: "/kurslar",
         icon: "courses",
+    },
+    {
+        id: "tests",
+        label: "Testlar",
+        href: "/tests",
+        icon: "tests",
     },
     {
         id: "results",
@@ -92,6 +100,16 @@ function NavigationIcon({
                     strokeWidth="1.5"
                     strokeLinecap="round"
                 />
+            </svg>
+        );
+    }
+
+    if (type === "tests") {
+        return (
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="5" y="3.5" width="14" height="17" rx="2.4" stroke="currentColor" strokeWidth="1.7" />
+                <path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <path d="m6.9 8 .7.7 1.3-1.5M6.9 12l.7.7 1.3-1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         );
     }
@@ -174,6 +192,9 @@ export function MobileNavigation() {
     const [pendingHref, setPendingHref] =
         useState<string | null>(null);
 
+    const navigationLockRef = useRef(false);
+    const navigationResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     useEffect(() => {
         const prefetch = () => {
             navigationItems.forEach((item) => {
@@ -193,14 +214,30 @@ export function MobileNavigation() {
     }, [pathname, router]);
 
     useEffect(() => {
+        navigationLockRef.current = false;
+        if (navigationResetTimerRef.current) {
+            clearTimeout(navigationResetTimerRef.current);
+            navigationResetTimerRef.current = null;
+        }
         setVisualIndex(pathnameIndex);
         setPendingHref(null);
-    }, [pathnameIndex]);
+    }, [pathname, pathnameIndex]);
+
+    useEffect(() => () => {
+        if (navigationResetTimerRef.current) {
+            clearTimeout(navigationResetTimerRef.current);
+        }
+    }, []);
 
     const handleNavigate = (
         item: NavigationItem,
         index: number,
     ) => {
+        // Lock synchronously before React has time to re-render. This prevents
+        // fast double taps in Telegram/iOS from issuing duplicate router.push()
+        // calls while the destination is still loading.
+        if (navigationLockRef.current) return;
+
         if (
             visualIndex === index &&
             matchesPath(item, pathname)
@@ -208,8 +245,17 @@ export function MobileNavigation() {
             return;
         }
 
+        navigationLockRef.current = true;
         setVisualIndex(index);
         setPendingHref(item.href);
+
+        navigationResetTimerRef.current = setTimeout(() => {
+            navigationLockRef.current = false;
+            navigationResetTimerRef.current = null;
+            setPendingHref(null);
+            setVisualIndex(pathnameIndex);
+        }, 9000);
+
         router.push(item.href);
     };
 
@@ -254,7 +300,8 @@ export function MobileNavigation() {
                                     : undefined
                             }
                             aria-label={item.label}
-                            aria-busy={pending}
+                            aria-busy={pending || undefined}
+                            disabled={pendingHref !== null}
                             onPointerEnter={() => router.prefetch(item.href)}
                             onFocus={() => router.prefetch(item.href)}
                             onClick={() =>

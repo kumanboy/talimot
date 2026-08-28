@@ -1,12 +1,9 @@
 "use client";
 
 import {
-    useRouter,
-} from "next/navigation";
-
-import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import styles from "./legal-page.module.css";
 
@@ -49,19 +46,17 @@ export function LegalPage({
     updatedAt,
     sections,
 }: LegalPageProps) {
-    const router = useRouter();
-
     return (
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        mode="back"
                         aria-label="Oldingi sahifaga qaytish"
-                        onClick={() => router.back()}
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>TA’LIMOT</span>

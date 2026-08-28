@@ -1,12 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-
 import {
     calculateDiagnosticFinalResult,
 } from "@/features/national-certificate/model/diagnostic-test-scoring";
 import { MobileNavigation } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import styles from "./diagnostic-result-calculator.module.css";
 
@@ -17,7 +16,6 @@ function parseScore(value: string): number | null {
 }
 
 export function DiagnosticResultCalculator() {
-    const router = useRouter();
     const [testValue, setTestValue] = useState("");
     const [essayValue, setEssayValue] = useState("");
 
@@ -35,9 +33,9 @@ export function DiagnosticResultCalculator() {
         <main className={styles.page}>
             <div className={styles.shell}>
                 <header className={styles.header}>
-                    <button type="button" onClick={() => router.back()} aria-label="Orqaga">
+                    <PendingNavigationButton mode="back" aria-label="Orqaga" pendingText="">
                         ←
-                    </button>
+                    </PendingNavigationButton>
                     <div>
                         <span>TA’LIMOT</span>
                         <h1>Natija hisoblagich</h1>

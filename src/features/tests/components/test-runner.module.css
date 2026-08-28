@@ -1498,3 +1498,17 @@
         transition: none;
     }
 }
+.confirmBack:disabled,
+.submitButton:disabled,
+.resultActions button:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+.submitButton[aria-busy="true"],
+.resultActions button[aria-busy="true"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}

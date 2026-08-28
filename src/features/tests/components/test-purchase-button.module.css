@@ -196,3 +196,14 @@
         transform: translateY(0) scale(1);
     }
 }
+
+.trigger[aria-busy="true"],
+.primaryButton[aria-busy="true"],
+.actions button:disabled {
+    cursor: wait;
+}
+
+.trigger,
+.primaryButton {
+    gap: 8px;
+}

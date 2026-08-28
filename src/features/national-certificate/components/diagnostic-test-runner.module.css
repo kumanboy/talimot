@@ -1343,3 +1343,19 @@
     background: #321f23;
     color: #ffb8b8;
 }
+
+.resultActions button:disabled,
+.dialog button:disabled,
+.certificateCallout button:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+.resultActions button[aria-busy="true"],
+.dialog button[aria-busy="true"],
+.certificateCallout button[aria-busy="true"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}

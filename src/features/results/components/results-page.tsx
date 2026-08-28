@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { MobileNavigation } from "@/features/home/components/mobile-navigation";
+import { PendingLink } from "@/components/ui/pending-link";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 import { RoadmapLegacyAttemptSync } from "@/features/roadmap/components/roadmap-legacy-attempt-sync";
 import { useResultsStorage } from "@/features/results/hooks/use-results-storage";
 import type {
@@ -208,13 +208,13 @@ function AttemptHistory({
                             {attempt.certificateCode ? <small>Sertifikat ID: {attempt.certificateCode}</small> : null}
                         </div>
                         {isDiagnostic(item) ? (
-                            <Link href={`${item.href}/natija?attempt=${encodeURIComponent(attempt.id)}`}>
+                            <PendingLink href={`${item.href}/natija?attempt=${encodeURIComponent(attempt.id)}`} pendingText="Ochilmoqda...">
                                 Ko‘rish
-                            </Link>
+                            </PendingLink>
                         ) : localAttemptIds.has(attempt.id) ? (
-                            <Link href={`${item.href}?attempt=${encodeURIComponent(attempt.id)}`}>
+                            <PendingLink href={`${item.href}?attempt=${encodeURIComponent(attempt.id)}`} pendingText="Ochilmoqda...">
                                 Ko‘rish
-                            </Link>
+                            </PendingLink>
                         ) : null}
                     </article>
                 ))}
@@ -291,28 +291,30 @@ function TestResultCard({
 
             <div className={libraryStyles.cardActions}>
                 {item.available ? (
-                    <Link className={libraryStyles.primaryAction} href={item.href}>
+                    <PendingLink className={libraryStyles.primaryAction} href={item.href} pendingText="Ochilmoqda...">
                         <PlayIcon />
                         {item.attemptCount > 0 ? "Yana ishlash" : "Testni boshlash"}
-                    </Link>
+                    </PendingLink>
                 ) : (
                     <span className={libraryStyles.disabledAction}>Vaqtincha yopiq</span>
                 )}
 
                 {latest && isDiagnostic(item) ? (
-                    <Link
+                    <PendingLink
                         className={libraryStyles.secondaryAction}
                         href={`${item.href}/natija?attempt=${encodeURIComponent(latest.id)}`}
+                        pendingText="Ochilmoqda..."
                     >
                         So‘nggi natija
-                    </Link>
+                    </PendingLink>
                 ) : latest && localAttemptIds.has(latest.id) ? (
-                    <Link
+                    <PendingLink
                         className={libraryStyles.secondaryAction}
                         href={`${item.href}?attempt=${encodeURIComponent(latest.id)}`}
+                        pendingText="Ochilmoqda..."
                     >
                         So‘nggi natija
-                    </Link>
+                    </PendingLink>
                 ) : null}
             </div>
 
@@ -331,13 +333,12 @@ function EmptyState({ hasSearch }: { readonly hasSearch: boolean }) {
                     ? "Boshqa test yoki mavzu nomini qidirib ko‘ring."
                     : "Test ishlaganingiz yoki premium test sotib olganingizdan keyin u shu yerda ko‘rinadi."}
             </p>
-            {!hasSearch ? <Link className={styles.emptyLink} href="/tests">Testlarni ko‘rish</Link> : null}
+            {!hasSearch ? <PendingLink className={styles.emptyLink} href="/tests" pendingText="Ochilmoqda...">Testlarni ko‘rish</PendingLink> : null}
         </section>
     );
 }
 
 export function ResultsPage({ data }: { readonly data: MyTestsLibraryData }) {
-    const router = useRouter();
     const { attempts: localAttempts } = useResultsStorage();
     const [activeFilter, setActiveFilter] = useState<ResultFilter>("all");
     const [searchQuery, setSearchQuery] = useState("");
@@ -398,9 +399,9 @@ export function ResultsPage({ data }: { readonly data: MyTestsLibraryData }) {
 
             <div className={styles.content}>
                 <header className={styles.topBar}>
-                    <button type="button" aria-label="Orqaga qaytish" onClick={() => router.back()}>
+                    <PendingNavigationButton mode="back" aria-label="Orqaga qaytish" pendingText="">
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
                     <div>
                         <span>TA’LIMOT</span>
                         <strong>Natijalar</strong>

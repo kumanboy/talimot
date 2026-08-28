@@ -2,11 +2,14 @@
 
 import {
     useEffect,
+    useRef,
     useState,
     type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+
+import { ButtonLoader } from "@/components/ui/button-loader";
 
 import styles from "./test-purchase-button.module.css";
 
@@ -48,9 +51,14 @@ export function TestPurchaseButton({
     const router = useRouter();
     const [isLoadingWallet, setIsLoadingWallet] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
+    const [isGoingToPackages, setIsGoingToPackages] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [balance, setBalance] = useState<number | null>(null);
     const [error, setError] = useState("");
+
+    const walletRequestLockRef = useRef(false);
+    const purchaseLockRef = useRef(false);
+    const packagesNavigationLockRef = useRef(false);
 
     const loginHref = `/auth/login?next=${encodeURIComponent(href)}`;
     const safePrice = Math.max(1, Math.trunc(price));
@@ -79,6 +87,8 @@ export function TestPurchaseButton({
     }, [isOpen, isPurchasing]);
 
     const openPurchase = async () => {
+        if (walletRequestLockRef.current || purchaseLockRef.current) return;
+        walletRequestLockRef.current = true;
         setError("");
         setIsLoadingWallet(true);
 
@@ -110,11 +120,14 @@ export function TestPurchaseButton({
             );
             setIsOpen(true);
         } finally {
+            walletRequestLockRef.current = false;
             setIsLoadingWallet(false);
         }
     };
 
     const purchase = async () => {
+        if (purchaseLockRef.current || walletRequestLockRef.current) return;
+        purchaseLockRef.current = true;
         setError("");
         setIsPurchasing(true);
 
@@ -160,6 +173,7 @@ export function TestPurchaseButton({
                     : "Testni sotib olishda xatolik yuz berdi.",
             );
         } finally {
+            purchaseLockRef.current = false;
             setIsPurchasing(false);
         }
     };
@@ -169,10 +183,13 @@ export function TestPurchaseButton({
             <button
                 type="button"
                 className={[styles.trigger, className].filter(Boolean).join(" ")}
-                disabled={isLoadingWallet || isPurchasing}
+                disabled={isLoadingWallet || isPurchasing || isGoingToPackages}
+                aria-busy={isLoadingWallet || undefined}
                 onClick={openPurchase}
             >
-                {isLoadingWallet ? "Balans tekshirilmoqda..." : children}
+                {isLoadingWallet ? (<>
+                    <ButtonLoader /> Balans tekshirilmoqda...
+                </>) : children}
             </button>
 
             {isOpen && typeof document !== "undefined"
@@ -246,9 +263,18 @@ export function TestPurchaseButton({
                                     <button
                                         type="button"
                                         className={styles.primaryButton}
-                                        onClick={() => router.push("/packages")}
+                                        disabled={isGoingToPackages}
+                                        aria-busy={isGoingToPackages || undefined}
+                                        onClick={() => {
+                                            if (packagesNavigationLockRef.current || isGoingToPackages) return;
+                                            packagesNavigationLockRef.current = true;
+                                            setIsGoingToPackages(true);
+                                            router.push("/packages");
+                                        }}
                                     >
-                                        Tanga sotib olish
+                                        {isGoingToPackages ? (
+                                            <><ButtonLoader /> Tanga bo‘limi ochilmoqda...</>
+                                        ) : "Tanga sotib olish"}
                                     </button>
                                 ) : (
                                     <button
@@ -258,7 +284,7 @@ export function TestPurchaseButton({
                                         onClick={purchase}
                                     >
                                         {isPurchasing
-                                            ? "Sotib olinmoqda..."
+                                            ? <><ButtonLoader /> Sotib olinmoqda...</>
                                             : `${safePrice} Tanga bilan ochish`}
                                     </button>
                                 )}

@@ -1,9 +1,5 @@
 "use client";
 
-import {
-    useRouter,
-} from "next/navigation";
-
 import type {
     DiagnosticTestDefinition,
 } from "@/features/national-certificate/model/diagnostic-test-types";
@@ -11,6 +7,8 @@ import type {
 import {
     getNationalCollectionHref,
 } from "@/features/tests/model/test-navigation";
+
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import styles from "./diagnostic-test-start.module.css";
 
@@ -168,9 +166,6 @@ function ArrowIcon() {
 export function DiagnosticTestStart({
                                         test,
                                     }: DiagnosticTestStartProps) {
-    const router =
-        useRouter();
-
     const collectionsHref =
         getNationalCollectionHref(
             "diagnostika",
@@ -202,17 +197,14 @@ export function DiagnosticTestStart({
                         styles.topBar
                     }
                 >
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        mode="replace"
+                        href={collectionsHref}
                         aria-label="Diagnostika testlariga qaytish"
-                        onClick={() =>
-                            router.replace(
-                                collectionsHref,
-                            )
-                        }
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>
@@ -356,20 +348,15 @@ export function DiagnosticTestStart({
                     Imtihonni boshlaganingizdan keyin {test.estimatedMinutes} daqiqalik vaqt hisoblanadi. Barqaror internet va tinch muhitni oldindan tayyorlang.
                 </section>
 
-                <button
-                    type="button"
-                    className={
-                        styles.startButton
-                    }
-                    onClick={() =>
-                        router.push(
-                            testHref,
-                        )
-                    }
+                <PendingNavigationButton
+                    mode="push"
+                    href={testHref}
+                    className={styles.startButton}
+                    pendingText="Imtihon ochilmoqda..."
                 >
                     Imtihonni boshlash
                     <ArrowIcon />
-                </button>
+                </PendingNavigationButton>
             </div>
         </main>
     );

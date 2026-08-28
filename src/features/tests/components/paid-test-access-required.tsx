@@ -1,8 +1,7 @@
-import Link from "next/link";
-
 import {
     TestPurchaseButton,
 } from "@/features/tests/components/test-purchase-button";
+import { PendingLink } from "@/components/ui/pending-link";
 
 import styles from "./paid-test-access-required.module.css";
 
@@ -48,9 +47,9 @@ export function PaidTestAccessRequired({
                     Sotib olish · {tangaPrice} Tanga
                 </TestPurchaseButton>
 
-                <Link className={styles.backLink} href={backHref}>
+                <PendingLink className={styles.backLink} href={backHref} pendingText="Qaytilmoqda...">
                     Testlar ro‘yxatiga qaytish
-                </Link>
+                </PendingLink>
             </section>
         </main>
     );

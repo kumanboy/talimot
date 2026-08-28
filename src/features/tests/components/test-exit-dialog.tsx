@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+import { ButtonLoader } from "@/components/ui/button-loader";
+
 import styles from "./test-exit-dialog.module.css";
 
 type TestExitDialogProps = {
@@ -30,6 +34,12 @@ export function TestExitDialog({
     onContinue,
     onSaveAndExit,
 }: TestExitDialogProps) {
+    const [isExiting, setIsExiting] = useState(false);
+
+    useEffect(() => {
+        if (!open) setIsExiting(false);
+    }, [open]);
+
     if (!open) {
         return null;
     }
@@ -75,14 +85,23 @@ export function TestExitDialog({
                     <button
                         type="button"
                         className={styles.saveButton}
-                        onClick={onSaveAndExit}
+                        disabled={isExiting}
+                        aria-busy={isExiting || undefined}
+                        onClick={() => {
+                            if (isExiting) return;
+                            setIsExiting(true);
+                            onSaveAndExit();
+                        }}
                     >
-                        Saqlash va chiqish
+                        {isExiting ? (
+                            <><ButtonLoader /> Chiqilmoqda...</>
+                        ) : "Saqlash va chiqish"}
                     </button>
 
                     <button
                         type="button"
                         className={styles.continueButton}
+                        disabled={isExiting}
                         onClick={onContinue}
                     >
                         Testni davom ettirish

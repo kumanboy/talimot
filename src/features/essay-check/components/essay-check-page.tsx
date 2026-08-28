@@ -9,11 +9,11 @@ import {
     useState,
 } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 
 import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import styles from "./essay-check-page.module.css";
 
@@ -134,7 +134,6 @@ function CloseIcon() {
 }
 
 export function EssayCheckPage() {
-    const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [reviewType, setReviewType] = useState<ReviewType>("ai");
@@ -276,13 +275,13 @@ export function EssayCheckPage() {
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        href="/"
                         aria-label="Bosh sahifaga qaytish"
-                        onClick={() => router.push("/")}
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>TA’LIMOT XIZMATI</span>

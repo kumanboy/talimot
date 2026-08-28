@@ -130,6 +130,7 @@ export async function POST(
                 userNumber: users.userNumber,
                 firstName: users.firstName,
                 telegramChatId: users.telegramChatId,
+                telegramUserId: users.telegramUserId,
             })
             .from(users)
             .where(eq(users.id, userId))
@@ -152,6 +153,7 @@ export async function POST(
         const notification = user
             ? await sendTangaNotification({
                 chatId: user.telegramChatId ?? null,
+                telegramUserId: user.telegramUserId ?? null,
                 firstName: user.firstName,
                 userNumber: user.userNumber,
                 direction,

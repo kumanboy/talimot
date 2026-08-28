@@ -149,6 +149,7 @@ export async function POST(
                     firstName: users.firstName,
                     userNumber: users.userNumber,
                     telegramChatId: users.telegramChatId,
+                    telegramUserId: users.telegramUserId,
                 })
                 .from(users)
                 .where(eq(users.id, payment.user_id))
@@ -179,6 +180,7 @@ export async function POST(
             ) {
                 await sendTangaNotification({
                     chatId: user.telegramChatId ?? null,
+                    telegramUserId: user.telegramUserId ?? null,
                     firstName: user.firstName,
                     userNumber: user.userNumber,
                     direction: "credit",
@@ -189,6 +191,8 @@ export async function POST(
             } else {
                 await sendPaymentStatusNotification({
                     chatId: user.telegramChatId ?? null,
+                    telegramUserId: user.telegramUserId ?? null,
+                    destination: payment.kind === "tanga" ? "/packages" : payment.kind === "book" ? "/kitoblar" : "/kurslar",
                     firstName: user.firstName,
                     paymentCode: code(payment.id),
                     title: payment.title,

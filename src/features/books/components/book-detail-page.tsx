@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-
 import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 import type {
     BookDefinition,
 } from "@/features/books/model/book-types";
@@ -27,19 +26,13 @@ function formatPrice(value: number): string {
 }
 
 export function BookDetailPage({ book }: BookDetailPageProps) {
-    const router = useRouter();
-
     return (
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
-                        aria-label="Kitoblarga qaytish"
-                        onClick={() => router.replace("/kitoblar")}
-                    >
+                    <PendingNavigationButton mode="replace" href="/kitoblar" aria-label="Kitoblarga qaytish" pendingText="">
                         ←
-                    </button>
+                    </PendingNavigationButton>
                     <div>
                         <span>TA’LIMOT KITOBI</span>
                         <strong>{book.title}</strong>
@@ -85,18 +78,15 @@ export function BookDetailPage({ book }: BookDetailPageProps) {
 
                         <BookSaleCountdown endsAt={book.sale.endsAt} />
 
-                        <button
-                            type="button"
+                        <PendingNavigationButton
+                            mode="push"
+                            href={`/kitoblar/${book.slug}/sotib-olish`}
                             className={styles.purchaseButton}
-                            onClick={() =>
-                                router.push(
-                                    `/kitoblar/${book.slug}/sotib-olish`,
-                                )
-                            }
+                            pendingText="Ochilmoqda..."
                         >
                             Sotib olish
                             <span aria-hidden="true">→</span>
-                        </button>
+                        </PendingNavigationButton>
                     </div>
                 </section>
 
@@ -144,14 +134,13 @@ export function BookDetailPage({ book }: BookDetailPageProps) {
                     <del>{formatPrice(book.sale.originalPrice)}</del>
                     <strong>{formatPrice(book.sale.salePrice)}</strong>
                 </div>
-                <button
-                    type="button"
-                    onClick={() =>
-                        router.push(`/kitoblar/${book.slug}/sotib-olish`)
-                    }
+                <PendingNavigationButton
+                    mode="push"
+                    href={`/kitoblar/${book.slug}/sotib-olish`}
+                    pendingText="Ochilmoqda..."
                 >
                     Sotib olish
-                </button>
+                </PendingNavigationButton>
             </div>
 
             <MobileNavigation />

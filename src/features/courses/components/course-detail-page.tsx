@@ -2,12 +2,9 @@
 
 import Image from "next/image";
 import {
-    useRouter,
-} from "next/navigation";
-
-import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import type {
     CourseDefinition,
@@ -40,19 +37,13 @@ function formatPrice(value: number): string {
 export function CourseDetailPage({
     course,
 }: CourseDetailPageProps) {
-    const router = useRouter();
-
     return (
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
-                        aria-label="Kurslarga qaytish"
-                        onClick={() => router.replace("/kurslar")}
-                    >
+                    <PendingNavigationButton mode="replace" href="/kurslar" aria-label="Kurslarga qaytish" pendingText="">
                         ←
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>TA’LIMOT KURSI</span>
@@ -96,18 +87,15 @@ export function CourseDetailPage({
                             endsAt={course.sale.endsAt}
                         />
 
-                        <button
-                            type="button"
+                        <PendingNavigationButton
+                            mode="push"
+                            href={`/kurslar/${course.slug}/sotib-olish`}
                             className={styles.purchaseButton}
-                            onClick={() =>
-                                router.push(
-                                    `/kurslar/${course.slug}/sotib-olish`,
-                                )
-                            }
+                            pendingText="Ochilmoqda..."
                         >
                             Sotib olish
                             <span aria-hidden="true">→</span>
-                        </button>
+                        </PendingNavigationButton>
                     </div>
                 </section>
 
@@ -211,16 +199,13 @@ export function CourseDetailPage({
                         {formatPrice(course.sale.salePrice)}
                     </strong>
                 </div>
-                <button
-                    type="button"
-                    onClick={() =>
-                        router.push(
-                            `/kurslar/${course.slug}/sotib-olish`,
-                        )
-                    }
+                <PendingNavigationButton
+                    mode="push"
+                    href={`/kurslar/${course.slug}/sotib-olish`}
+                    pendingText="Ochilmoqda..."
                 >
                     Sotib olish
-                </button>
+                </PendingNavigationButton>
             </div>
 
             <MobileNavigation />

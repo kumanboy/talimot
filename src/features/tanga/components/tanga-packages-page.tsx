@@ -2,15 +2,14 @@
 
 import {
     useMemo,
+    useRef,
     useState,
 } from "react";
 import {
-    useRouter,
-} from "next/navigation";
-
-import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { ButtonLoader } from "@/components/ui/button-loader";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 import {
     tangaPackages,
 } from "@/features/tanga/model/tanga-packages";
@@ -153,7 +152,6 @@ async function copyText(value: string): Promise<boolean> {
 }
 
 export function TangaPackagesPage() {
-    const router = useRouter();
     const {
         balance: tangaBalance,
         user: walletUser,
@@ -167,6 +165,7 @@ export function TangaPackagesPage() {
         "idle" | "copied" | "failed"
     >("idle");
     const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+    const paymentRequestLockRef = useRef(false);
 
     const selectedPackage = useMemo(
         () =>
@@ -197,8 +196,10 @@ export function TangaPackagesPage() {
         .join("\n");
 
     const handleTelegramPayment = async () => {
-        if (isCreatingPayment || !walletUser) return;
+        if (paymentRequestLockRef.current || isCreatingPayment || !walletUser) return;
+        paymentRequestLockRef.current = true;
         setIsCreatingPayment(true);
+        let leavingPage = false;
 
         try {
             const payment = await createManualPaymentRequest({
@@ -209,11 +210,15 @@ export function TangaPackagesPage() {
                 telegramMessage,
                 `To‘lov ID: ${payment.paymentCode}`,
             ].join("\n");
+            leavingPage = true;
             window.location.href = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
         } catch (error) {
             window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
         } finally {
-            setIsCreatingPayment(false);
+            if (!leavingPage) {
+                paymentRequestLockRef.current = false;
+                setIsCreatingPayment(false);
+            }
         }
     };
 
@@ -233,13 +238,13 @@ export function TangaPackagesPage() {
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        mode="back"
                         aria-label="Oldingi sahifaga qaytish"
-                        onClick={() => router.back()}
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>TA’LIMOT HAMYONI</span>
@@ -509,8 +514,11 @@ export function TangaPackagesPage() {
                             className={styles.telegramButton}
                             onClick={handleTelegramPayment}
                             disabled={isCreatingPayment || !walletUser}
+                            aria-busy={isCreatingPayment || undefined}
                         >
-                            {isCreatingPayment ? "So‘rov yaratilmoqda…" : "Telegram orqali tasdiqlash"}
+                            {isCreatingPayment ? (
+                                <><ButtonLoader /> So‘rov yaratilmoqda…</>
+                            ) : "Telegram orqali tasdiqlash"}
                         </button>
 
                         <p className={styles.modalHelper}>

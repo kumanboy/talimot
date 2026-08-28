@@ -1,7 +1,10 @@
 import "server-only";
 
+import { createVerifiedTelegramEntryUrl } from "@/features/telegram/server/create-verified-entry-url";
+
 type TangaNotificationInput = {
     readonly chatId: number | null;
+    readonly telegramUserId?: number | null;
     readonly firstName: string;
     readonly userNumber: number;
     readonly direction: "credit" | "debit";
@@ -47,6 +50,11 @@ export async function sendTangaNotification(
 
     lines.push("", "TA’LIMOT");
 
+    const entryUrl = createVerifiedTelegramEntryUrl(
+        input.telegramUserId ?? input.chatId,
+        input.direction === "credit" ? "/packages" : "/natijalar",
+    );
+
     try {
         const response = await fetch(
             `https://api.telegram.org/bot${token}/sendMessage`,
@@ -58,6 +66,16 @@ export async function sendTangaNotification(
                 body: JSON.stringify({
                     chat_id: input.chatId,
                     text: lines.join("\n"),
+                    ...(entryUrl
+                        ? {
+                            reply_markup: {
+                                inline_keyboard: [[{
+                                    text: "🌐 TA’LIMOTni ochish",
+                                    web_app: { url: entryUrl },
+                                }]],
+                            },
+                        }
+                        : {}),
                 }),
                 cache: "no-store",
             },

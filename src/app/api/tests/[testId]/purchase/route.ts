@@ -69,6 +69,7 @@ async function getActiveUser(request: NextRequest) {
             userNumber: users.userNumber,
             firstName: users.firstName,
             telegramChatId: users.telegramChatId,
+            telegramUserId: users.telegramUserId,
         })
         .from(users)
         .where(eq(users.id, session.userId))
@@ -293,6 +294,7 @@ export async function POST(
             try {
                 await sendTangaNotification({
                     chatId: user.telegramChatId ?? null,
+                    telegramUserId: user.telegramUserId ?? null,
                     firstName: user.firstName,
                     userNumber: user.userNumber,
                     direction: "debit",

@@ -7,8 +7,6 @@ import {
     useRef,
     useState,
 } from "react";
-import { useRouter } from "next/navigation";
-
 import type {
     BookDefinition,
 } from "@/features/books/model/book-types";
@@ -26,6 +24,9 @@ import {
 import {
     createManualPaymentRequest,
 } from "@/features/payments/client/create-manual-payment-request";
+import { ButtonLoader } from "@/components/ui/button-loader";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
+
 import styles from "./book-purchase-page.module.css";
 
 type BookPurchasePageProps = {
@@ -145,7 +146,6 @@ function validateForm(values: FormValues): FormErrors {
 }
 
 export function BookPurchasePage({ book }: BookPurchasePageProps) {
-    const router = useRouter();
     const closeButtonRef = useRef<HTMLButtonElement>(null);
 
     const [values, setValues] = useState<FormValues>(initialValues);
@@ -155,6 +155,7 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
         "idle" | "copied" | "failed"
     >("idle");
     const [isCreatingPayment, setIsCreatingPayment] = useState(false);
+    const paymentRequestLockRef = useRef(false);
 
     const subtotal = useMemo(
         () => book.sale.salePrice * values.quantity,
@@ -219,8 +220,10 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
     }, [isModalOpen]);
 
     const openTelegram = async () => {
-        if (isCreatingPayment) return;
+        if (paymentRequestLockRef.current || isCreatingPayment) return;
+        paymentRequestLockRef.current = true;
         setIsCreatingPayment(true);
+        let leavingPage = false;
 
         try {
             const payment = await createManualPaymentRequest({
@@ -268,11 +271,15 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
                 .filter(Boolean)
                 .join("\n");
 
+            leavingPage = true;
             window.location.href = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
         } catch (error) {
             window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
         } finally {
-            setIsCreatingPayment(false);
+            if (!leavingPage) {
+                paymentRequestLockRef.current = false;
+                setIsCreatingPayment(false);
+            }
         }
     };
 
@@ -280,15 +287,14 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
         <main className={styles.page}>
             <div className={styles.content}>
                 <header className={styles.header}>
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        mode="replace"
+                        href={`/kitoblar/${book.slug}`}
                         aria-label="Kitob sahifasiga qaytish"
-                        onClick={() =>
-                            router.replace(`/kitoblar/${book.slug}`)
-                        }
+                        pendingText=""
                     >
                         ←
-                    </button>
+                    </PendingNavigationButton>
                     <div>
                         <span>KITOBNI SOTIB OLISH</span>
                         <strong>{book.title}</strong>
@@ -563,8 +569,11 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
                             className={styles.telegramButton}
                             onClick={openTelegram}
                             disabled={isCreatingPayment}
+                            aria-busy={isCreatingPayment || undefined}
                         >
-                            {isCreatingPayment ? "So‘rov yaratilmoqda…" : "Telegram orqali tasdiqlash"}
+                            {isCreatingPayment ? (
+                                <><ButtonLoader /> So‘rov yaratilmoqda…</>
+                            ) : "Telegram orqali tasdiqlash"}
                         </button>
 
                         <p className={styles.modalHelper}>
