@@ -448,7 +448,7 @@ export function AdminAudioZipBulkImporter({
                     <span className={styles.eyebrow}>AUDIO ZIP BULK IMPORT</span>
                     <h2 id="audio-zip-import-title">Savol izohlarini bitta ZIP bilan yuklash</h2>
                     <p>
-                        Audio nomlari <strong>q01.mp3, q02.mp3 ...</strong> bo‘lsin. ZIP brauzerda ochiladi; audio baytlari Vercel orqali o‘tmaydi, bevosita Supabase Storage’ga yuklanadi.
+                        Audio nomlari <strong>q01.mp3, q02.mp3 ...</strong> bo‘lsin. Diagnostikada q01–q44 aynan 1–44-savollarga moslanadi; 45-esse uchun audio kutilmaydi. ZIP brauzerda ochiladi va fayllar bevosita Supabase Storage’ga yuklanadi.
                     </p>
                 </div>
                 <div className={styles.badge}>{targets.length || 0} AUDIO</div>
@@ -540,7 +540,7 @@ export function AdminAudioZipBulkImporter({
             )}
 
             <p className={styles.note}>
-                Foundation: standard MCQ va 5-savollik passage testlar. MP3, M4A, WAV · har audio 25 MB gacha · ZIP 250 MB gacha. Audio yuklangach draftni saqlash majburiy.
+                MP3, M4A yoki WAV · har audio 25 MB gacha · ZIP 250 MB gacha. Diagnostika uchun 44 ta audio to‘liq bo‘lishi kerak. Audio yuklangach “Draftni saqlash” majburiy.
             </p>
         </section>
     );

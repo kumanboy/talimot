@@ -200,6 +200,131 @@ function toUppercaseAnswer(
     );
 }
 
+function stripDuplicatedInlineOptions(value: string): string {
+    const normalized = value.trim();
+    const match = /(?:^|\s)A\)\s/u.exec(normalized);
+
+    if (!match || match.index < 0) {
+        return normalized;
+    }
+
+    const suffix = normalized.slice(match.index);
+    const hasAllOptions = ["B", "C", "D"].every((letter) =>
+        new RegExp(`(?:^|\\s)${letter}\\)\\s`, "u").test(suffix),
+    );
+
+    return hasAllOptions
+        ? normalized.slice(0, match.index).trim()
+        : normalized;
+}
+
+function formatMatchingPrompt(value: string): string {
+    return stripDuplicatedInlineOptions(value)
+        .replace(/\s*\/\s*/gu, "\n")
+        .trim();
+}
+
+function splitWrittenContext(value: string): {
+    readonly body: string;
+    readonly instruction: string;
+} {
+    const normalized = stripDuplicatedInlineOptions(value);
+    const instructionPattern = /(?:^|\n|\s)(Xato qo[ʻ'’]llangan tinish belgisi|Qo[ʻ'’]shimcha qo[ʻ'’]yib|Ajratib yozilishi lozim bo[ʻ'’]lgan|Diqqat!|Javobingizni javoblar varaqasiga)/iu;
+    const match = instructionPattern.exec(normalized);
+
+    if (!match || match.index <= 0) {
+        return { body: normalized, instruction: "" };
+    }
+
+    return {
+        body: normalized.slice(0, match.index).trim(),
+        instruction: normalized.slice(match.index).trim(),
+    };
+}
+
+function parsePairOption(value: string): readonly [string, string] | null {
+    const parts = value
+        .split(/\s*(?:→|⇒|->)\s*/u)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    return parts.length === 2
+        ? [parts[0]!, parts[1]!]
+        : null;
+}
+
+function parseTriangleOption(value: string): readonly [string, string, string] | null {
+    const parts = value
+        .split(/\s+[—–−-]\s+/u)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    return parts.length === 3
+        ? [parts[0]!, parts[1]!, parts[2]!]
+        : null;
+}
+
+function DiagnosticOptionContent({
+    order,
+    text,
+}: {
+    readonly order: number;
+    readonly text: string;
+}) {
+    if (order === 3) {
+        const pair = parsePairOption(text);
+
+        if (pair) {
+            return (
+                <span className={styles.definitionDiagram}>
+                    <span>{pair[0]}</span>
+                    <b aria-hidden="true">→</b>
+                    <span>{pair[1]}</span>
+                </span>
+            );
+        }
+    }
+
+    if (order === 4) {
+        const triangle = parseTriangleOption(text);
+
+        if (triangle) {
+            return (
+                <span className={styles.synonymTriangle} aria-label={text}>
+                    <span className={styles.synonymTriangleTop}>{triangle[0]}</span>
+                    <b className={styles.synonymArrowLeft} aria-hidden="true">↙</b>
+                    <b className={styles.synonymArrowRight} aria-hidden="true">↘</b>
+                    <span className={styles.synonymTriangleLeft}>{triangle[1]}</span>
+                    <b className={styles.synonymArrowBottom} aria-hidden="true">↔</b>
+                    <span className={styles.synonymTriangleRight}>{triangle[2]}</span>
+                </span>
+            );
+        }
+    }
+
+    return <span>{text}</span>;
+}
+
+function ShakldoshDiagram({ context }: { readonly context?: string }) {
+    const cleaned = context ? stripDuplicatedInlineOptions(context) : "";
+    const pieces = cleaned
+        .split(/\s*(?:→|⇒|->)\s*/u)
+        .map((part) => part.trim())
+        .filter(Boolean);
+    const left = pieces[0] ?? "Nom-nishon, iz";
+    const right = pieces.length >= 3 ? pieces[2]! : pieces[1] ?? "Ijod mahsuli";
+
+    return (
+        <div className={styles.shakldoshDiagram} aria-label={`${left}; noma’lum shakldosh so‘z; ${right}`}>
+            <span>{left}</span>
+            <b aria-hidden="true">←</b>
+            <strong>?</strong>
+            <b aria-hidden="true">→</b>
+            <span>{right}</span>
+        </div>
+    );
+}
+
 function getOptionalEssayScore(
     test: DiagnosticTestDefinition,
     answers: DiagnosticAnswers,
@@ -608,467 +733,224 @@ function QuestionImage({
 }
 
 function ChoiceQuestion({
-                            page,
-                            value,
-                            onChange,
-                        }: {
-    readonly page:
-        Extract<
-            DiagnosticPage,
-            {
-                readonly type:
-                    "choice";
-            }
-        >;
-    readonly value?:
-        string;
-    readonly onChange:
-        (
-            value: string,
-        ) => void;
+    page,
+    value,
+    onChange,
+}: {
+    readonly page: Extract<DiagnosticPage, { readonly type: "choice" }>;
+    readonly value?: string;
+    readonly onChange: (value: string) => void;
 }) {
+    const cleanQuestion = stripDuplicatedInlineOptions(page.question.question);
+    const cleanContext = page.question.context
+        ? stripDuplicatedInlineOptions(page.question.context)
+        : "";
+
     return (
         <>
             {page.passage ? (
-                <Passage
-                    title={
-                        page.passageTitle
-                    }
-                    blocks={
-                        page.passage
-                    }
-                />
+                <Passage title={page.passageTitle} blocks={page.passage} />
             ) : null}
 
-            {page.question.context ? (
-                <div
-                    className={
-                        styles.context
-                    }
-                >
-                    {
-                        page.question
-                            .context
-                    }
-                </div>
+            <h2>{cleanQuestion}</h2>
+
+            {cleanContext ? (
+                <div className={styles.context}>{cleanContext}</div>
             ) : null}
 
-            <QuestionImage
-                image={
-                    page.question
-                        .image
-                }
-            />
+            <QuestionImage image={page.question.image} />
 
-            <h2>
-                {
-                    page.question
-                        .question
-                }
-            </h2>
+            <div className={styles.options}>
+                {page.question.options.map((option) => {
+                    const selected = value === option.id;
 
-            <div
-                className={
-                    styles.options
-                }
-            >
-                {page.question.options.map(
-                    (
-                        option,
-                    ) => {
-                        const selected =
-                            value ===
-                            option.id;
-
-                        return (
-                            <button
-                                key={
-                                    option.id
-                                }
-                                type="button"
-                                className={
-                                    selected
-                                        ? styles.selectedOption
-                                        : undefined
-                                }
-                                onClick={() =>
-                                    onChange(
-                                        option.id,
-                                    )
-                                }
-                            >
-                                <strong>
-                                    {
-                                        option.id
-                                    }
-                                </strong>
-
-                                <span>
-                                    {
-                                        option.text
-                                    }
-                                </span>
-
-                                <i
-                                    aria-hidden="true"
-                                />
-                            </button>
-                        );
-                    },
-                )}
+                    return (
+                        <button
+                            key={option.id}
+                            type="button"
+                            className={`${selected ? styles.selectedOption : ""} ${
+                                page.question.order === 3 || page.question.order === 4
+                                    ? styles.visualOption
+                                    : ""
+                            }`}
+                            onClick={() => onChange(option.id)}
+                        >
+                            <strong>{option.id}</strong>
+                            <DiagnosticOptionContent
+                                order={page.question.order}
+                                text={option.text}
+                            />
+                            <i aria-hidden="true" />
+                        </button>
+                    );
+                })}
             </div>
         </>
     );
 }
 
 function MatchingQuestion({
-                              page,
-                              value,
-                              onChange,
-                          }: {
-    readonly page:
-        Extract<
-            DiagnosticPage,
-            {
-                readonly type:
-                    "matching";
-            }
-        >;
-    readonly value:
-        DiagnosticMatchingAnswers;
-    readonly onChange:
-        (
-            itemId: string,
-            choiceId: string,
-        ) => void;
+    page,
+    value,
+    onChange,
+}: {
+    readonly page: Extract<DiagnosticPage, { readonly type: "matching" }>;
+    readonly value: DiagnosticMatchingAnswers;
+    readonly onChange: (itemId: string, choiceId: string) => void;
 }) {
     return (
         <>
-            <h2>
-                {
-                    page.question
-                        .title ??
-                    "Moslashtirish"
-                }
-            </h2>
+            <h2>{page.question.title ?? "33–35-savollar"}</h2>
 
-            <p
-                className={
-                    styles.instruction
-                }
-            >
-                {
-                    page.question
-                        .instruction
-                }
-            </p>
+            <p className={styles.instruction}>{page.question.instruction}</p>
 
-            <QuestionImage
-                image={
-                    page.question
-                        .image
-                }
-            />
+            <QuestionImage image={page.question.image} />
 
-            <div
-                className={
-                    styles.matchingChoices
-                }
-            >
-                {page.question.choices.map(
-                    (
-                        choice,
-                    ) => (
-                        <div
-                            key={
-                                choice.id
-                            }
-                        >
-                            <strong>
-                                {
-                                    choice.id
-                                }
-                            </strong>
-                            <span>
-                                {
-                                    choice.text
-                                }
-                            </span>
-                        </div>
-                    ),
-                )}
-            </div>
-
-            <div
-                className={
-                    styles.matchingItems
-                }
-            >
-                {page.question.items.map(
-                    (
-                        item,
-                    ) => (
-                        <article
-                            key={
-                                item.id
-                            }
-                        >
+            <div className={styles.matchingPaper}>
+                <section className={styles.matchingItemColumn}>
+                    {page.question.items.map((item) => (
+                        <article key={item.id} className={styles.matchingPaperItem}>
                             <header>
-                                <strong>
-                                    {
-                                        item.order
-                                    }
-                                </strong>
-                                <span>
-                                    {
-                                        item.prompt
-                                    }
-                                </span>
+                                <strong>{item.order}</strong>
+                                <span>{formatMatchingPrompt(item.prompt)}</span>
                             </header>
 
-                            <div>
-                                {page.question.choices.map(
-                                    (
-                                        choice,
-                                    ) => (
-                                        <button
-                                            key={
-                                                choice.id
-                                            }
-                                            type="button"
-                                            className={
-                                                value[
-                                                    item.id
-                                                    ] ===
-                                                choice.id
-                                                    ? styles.selectedChoice
-                                                    : undefined
-                                            }
-                                            onClick={() =>
-                                                onChange(
-                                                    item.id,
-                                                    choice.id,
-                                                )
-                                            }
-                                        >
-                                            {
-                                                choice.id
-                                            }
-                                        </button>
-                                    ),
-                                )}
+                            <div className={styles.matchingChoiceButtons}>
+                                {page.question.choices.map((choice) => (
+                                    <button
+                                        key={choice.id}
+                                        type="button"
+                                        aria-label={`${item.order}-savol uchun ${choice.id} javob`}
+                                        className={
+                                            value[item.id] === choice.id
+                                                ? styles.selectedChoice
+                                                : undefined
+                                        }
+                                        onClick={() => onChange(item.id, choice.id)}
+                                    >
+                                        {choice.id}
+                                    </button>
+                                ))}
                             </div>
                         </article>
-                    ),
-                )}
+                    ))}
+                </section>
+
+                <aside className={styles.matchingChoiceBank}>
+                    <span className={styles.matchingChoiceBankTitle}>A–F izohlar</span>
+                    {page.question.choices.map((choice) => (
+                        <div key={choice.id}>
+                            <strong>{choice.id}</strong>
+                            <span>{choice.text}</span>
+                        </div>
+                    ))}
+                </aside>
             </div>
         </>
     );
 }
 
 function ShortAnswerQuestion({
-                                 page,
-                                 value,
-                                 onChange,
-                             }: {
-    readonly page:
-        Extract<
-            DiagnosticPage,
-            {
-                readonly type:
-                    "short-answer";
-            }
-        >;
-    readonly value:
-        string;
-    readonly onChange:
-        (
-            value: string,
-        ) => void;
+    page,
+    value,
+    onChange,
+}: {
+    readonly page: Extract<DiagnosticPage, { readonly type: "short-answer" }>;
+    readonly value: string;
+    readonly onChange: (value: string) => void;
 }) {
+    const context = page.question.context
+        ? splitWrittenContext(page.question.context)
+        : { body: "", instruction: "" };
+    const isShakldosh = page.question.order === 36;
+
     return (
         <>
-            <h2>
-                {
-                    page.question
-                        .question
-                }
-            </h2>
+            <h2>{stripDuplicatedInlineOptions(page.question.question)}</h2>
 
-            {page.question.context ? (
-                <div
-                    className={
-                        styles.context
-                    }
-                >
-                    {
-                        page.question
-                            .context
-                    }
-                </div>
+            {isShakldosh ? (
+                <ShakldoshDiagram context={page.question.context} />
+            ) : context.body ? (
+                <div className={styles.context}>{context.body}</div>
             ) : null}
 
-            <QuestionImage
-                image={
-                    page.question
-                        .image
-                }
-            />
+            <QuestionImage image={page.question.image} />
+
+            {context.instruction ? (
+                <p className={styles.answerHint}>{context.instruction}</p>
+            ) : null}
 
             {page.question.examples ? (
-                <div
-                    className={
-                        styles.examples
-                    }
-                >
-                    {page.question.examples.map(
-                        (
-                            example,
-                        ) => (
-                            <span
-                                key={
-                                    example
-                                }
-                            >
-                                {
-                                    example
-                                }
-                            </span>
-                        ),
-                    )}
+                <div className={styles.examples}>
+                    {page.question.examples.map((example) => (
+                        <span key={example}>{example}</span>
+                    ))}
                 </div>
             ) : null}
 
-            <textarea
-                className={
-                    styles.answerArea
-                }
+            <input
+                className={styles.answerLine}
                 value={value}
-                rows={5}
-                placeholder="JAVOBNI SHU YERGA YOZING..."
-                onChange={(
-                    event,
-                ) =>
-                    onChange(
-                        toUppercaseAnswer(
-                            event.target
-                                .value,
-                        ),
-                    )
-                }
+                type="text"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder="JAVOBNI YOZING..."
+                onChange={(event) => onChange(toUppercaseAnswer(event.target.value))}
             />
         </>
     );
 }
 
 function MultipartQuestion({
-                               page,
-                               value,
-                               onChange,
-                           }: {
-    readonly page:
-        Extract<
-            DiagnosticPage,
-            {
-                readonly type:
-                    "multipart";
-            }
-        >;
-    readonly value:
-        DiagnosticMultipartAnswers;
-    readonly onChange:
-        (
-            partId: string,
-            value: string,
-        ) => void;
+    page,
+    value,
+    onChange,
+}: {
+    readonly page: Extract<DiagnosticPage, { readonly type: "multipart" }>;
+    readonly value: DiagnosticMultipartAnswers;
+    readonly onChange: (partId: string, value: string) => void;
 }) {
+    const context = page.question.context
+        ? splitWrittenContext(page.question.context)
+        : { body: "", instruction: "" };
+
     return (
         <>
-            <h2>
-                {
-                    page.question
-                        .question
-                }
-            </h2>
+            <h2>{stripDuplicatedInlineOptions(page.question.question)}</h2>
 
-            {page.question.context ? (
-                <div
-                    className={
-                        styles.context
-                    }
-                >
-                    {
-                        page.question
-                            .context
-                    }
-                </div>
+            {context.body ? (
+                <div className={styles.context}>{context.body}</div>
             ) : null}
 
-            <QuestionImage
-                image={
-                    page.question
-                        .image
-                }
-            />
+            <QuestionImage image={page.question.image} />
 
-            <div
-                className={
-                    styles.multipart
-                }
-            >
-                {page.question.parts.map(
-                    (
-                        part,
-                    ) => (
-                        <article
-                            key={
-                                part.id
+            {context.instruction ? (
+                <p className={styles.answerHint}>{context.instruction}</p>
+            ) : null}
+
+            <div className={styles.multipart}>
+                {page.question.parts.map((part) => (
+                    <article key={part.id}>
+                        <header>
+                            <strong>{part.label.toUpperCase()}</strong>
+                            <span>{part.score} ball</span>
+                        </header>
+
+                        <p>{part.question}</p>
+
+                        <input
+                            className={styles.multipartAnswerLine}
+                            value={value[part.id] ?? ""}
+                            type="text"
+                            autoComplete="off"
+                            spellCheck={false}
+                            placeholder={`${part.label.toUpperCase()}) JAVOBNI YOZING...`}
+                            onChange={(event) =>
+                                onChange(part.id, toUppercaseAnswer(event.target.value))
                             }
-                        >
-                            <header>
-                                <strong>
-                                    {
-                                        part.label
-                                            .toUpperCase()
-                                    }
-                                </strong>
-                                <span>
-                                    {
-                                        part.score
-                                    }{" "}
-                                    ball
-                                </span>
-                            </header>
-
-                            <p>
-                                {
-                                    part.question
-                                }
-                            </p>
-
-                            <textarea
-                                value={
-                                    value[
-                                        part.id
-                                        ] ?? ""
-                                }
-                                rows={4}
-                                placeholder={`${part.label.toUpperCase()}) JAVOBNI YOZING...`}
-                                onChange={(
-                                    event,
-                                ) =>
-                                    onChange(
-                                        part.id,
-                                        toUppercaseAnswer(
-                                            event.target
-                                                .value,
-                                        ),
-                                    )
-                                }
-                            />
-                        </article>
-                    ),
-                )}
+                        />
+                    </article>
+                ))}
             </div>
         </>
     );
@@ -1582,6 +1464,11 @@ function DiagnosticAnswerReview({
                                             },
                                         )}
                                     </div>
+
+                                    <QuestionAudioExplanation
+                                        explanation={page.question.explanation}
+                                        visible={questionResult.verdict !== "correct"}
+                                    />
                                 </article>
                             );
                         }
@@ -1595,7 +1482,7 @@ function DiagnosticAnswerReview({
                             page.type ===
                             "essay"
                                 ? page.question.title
-                                : page.question.question;
+                                : stripDuplicatedInlineOptions(page.question.question);
 
                         let userAnswer =
                             "Javob berilmagan";
@@ -2220,6 +2107,10 @@ export function DiagnosticTestRunner({
             false,
         );
 
+    // Absolute deadline keeps the exam timer accurate when Telegram/iOS throttles
+    // JavaScript in the background. The timer never pauses behind dialogs.
+    const deadlineRef = useRef<number | null>(null);
+
     // Keep one stable attempt id across finish retries so a network retry cannot
     // create a second DB attempt/certificate for the same exam submission.
     const submissionAttemptIdRef = useRef<string | null>(null);
@@ -2310,6 +2201,8 @@ export function DiagnosticTestRunner({
             );
 
         if (progress) {
+            const restoredSeconds = calculateRestoredTime(progress);
+
             setAnswers(
                 progress.answers as
                     DiagnosticAnswers,
@@ -2326,11 +2219,12 @@ export function DiagnosticTestRunner({
                 ),
             );
 
-            setRemainingSeconds(
-                calculateRestoredTime(
-                    progress,
-                ),
-            );
+            setRemainingSeconds(restoredSeconds);
+            deadlineRef.current = Date.now() + restoredSeconds * 1000;
+        } else {
+            const initialSeconds = test.estimatedMinutes * 60;
+            setRemainingSeconds(initialSeconds);
+            deadlineRef.current = Date.now() + initialSeconds * 1000;
         }
 
         setIsLoaded(
@@ -2356,6 +2250,11 @@ export function DiagnosticTestRunner({
         const timer =
             window.setTimeout(
                 () => {
+                    const deadline = deadlineRef.current;
+                    const remainingAtSave = deadline === null
+                        ? test.estimatedMinutes * 60
+                        : Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+
                     saveTestProgress({
                         testId:
                         test.id,
@@ -2366,7 +2265,7 @@ export function DiagnosticTestRunner({
                                 StoredTestAnswers,
                         markedQuestionIds:
                             [],
-                        remainingSeconds,
+                        remainingSeconds: remainingAtSave,
                     });
                 },
                 180,
@@ -2381,46 +2280,38 @@ export function DiagnosticTestRunner({
         currentIndex,
         isLoaded,
         metadata,
-        remainingSeconds,
         test.id,
         view,
     ]);
 
     useEffect(() => {
-        if (
-            !isLoaded ||
-            view !==
-            "test" ||
-            isFinishOpen
-        ) {
+        if (!isLoaded || view !== "test" || completedRef.current) {
             return;
         }
 
-        const interval =
-            window.setInterval(
-                () =>
-                    setRemainingSeconds(
-                        (
-                            value,
-                        ) =>
-                            Math.max(
-                                0,
-                                value -
-                                1,
-                            ),
-                    ),
-                1000,
-            );
+        if (deadlineRef.current === null) {
+            deadlineRef.current = Date.now() + test.estimatedMinutes * 60 * 1000;
+        }
 
-        return () =>
-            window.clearInterval(
-                interval,
+        const syncRemainingTime = () => {
+            const deadline = deadlineRef.current;
+            if (deadline === null) return;
+
+            setRemainingSeconds(
+                Math.max(0, Math.ceil((deadline - Date.now()) / 1000)),
             );
-    }, [
-        isFinishOpen,
-        isLoaded,
-        view,
-    ]);
+        };
+
+        syncRemainingTime();
+        const interval = window.setInterval(syncRemainingTime, 500);
+        const onVisibilityChange = () => syncRemainingTime();
+        document.addEventListener("visibilitychange", onVisibilityChange);
+
+        return () => {
+            window.clearInterval(interval);
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+        };
+    }, [isLoaded, test.estimatedMinutes, view]);
 
     const finish =
         useCallback(async () => {

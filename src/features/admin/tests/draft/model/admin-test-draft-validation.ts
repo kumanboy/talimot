@@ -1223,7 +1223,7 @@ export function validateAdminTestDraft(
 
                 if (
                     diagnostic.finalMaximumScore !==
-                    100
+                    75
                 ) {
                     issues.push(
                         issue({
@@ -1231,7 +1231,7 @@ export function validateAdminTestDraft(
                             code:
                                 "DIAGNOSTIC_FINAL_SCORE_INVALID",
                             message:
-                                "Diagnostika testining yakuniy maksimal balli 100 bo‘lishi kerak.",
+                                "Diagnostika testining yakuniy maksimal balli 75 bo‘lishi kerak.",
                             path:
                                 "metadata.diagnostic.finalMaximumScore",
                         }),

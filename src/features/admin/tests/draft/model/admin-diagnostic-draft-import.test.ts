@@ -228,7 +228,7 @@ describe(
     "diagnostic DOCX draft import",
     () => {
         it(
-            "keeps all 45 units separate and preserves the normalized 100-point scale",
+            "keeps all 45 units separate and uses TA’LIMOT’s normalized 75-point test scale",
             () => {
                 const parsed =
                     parseDiagnosticDocxDocument(
@@ -356,7 +356,7 @@ describe(
                     taskCount:
                         45,
                     finalMaximumScore:
-                        100,
+                        75,
                     rawMaximumScore:
                         parsed.rawMaximumScore,
                 });

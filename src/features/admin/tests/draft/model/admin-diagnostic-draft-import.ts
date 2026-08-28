@@ -511,7 +511,7 @@ export function createAdminDiagnosticDraftImport(
                 taskCount:
                     parsedDiagnostic.taskCount,
                 finalMaximumScore:
-                    parsedDiagnostic.maximumScore,
+                    75,
                 rawMaximumScore:
                     parsedDiagnostic.rawMaximumScore,
             },

@@ -1,0 +1,27 @@
+TA’LIMOT — DIAGNOSTIKA AUDIO ZIP GUIDE
+======================================
+
+Diagnostika uchun audio ZIP ichida aynan 44 ta audio bo‘lishi kerak.
+45-savol (ESSE) uchun audio kutilmaydi.
+
+Fayl nomlari:
+q01.mp3  -> 1-savol
+q02.mp3  -> 2-savol
+...
+q09.mp3  -> 9-savol
+q10.mp3  -> 10-savol
+...
+q44.mp3  -> 44-savol
+
+Qo‘llab-quvvatlanadi: MP3, M4A, WAV
+Har bir audio: 25 MB gacha
+ZIP: 250 MB gacha
+
+Muhim:
+1. Avval diagnostika bo‘limlarini import qiling va Draftni saqlang.
+2. Admin test editorida “AUDIO ZIP BULK IMPORT” qismiga ZIP faylni tanlang.
+3. Sistemada 44/44 moslanganini tekshiring.
+4. Audio yuklashni boshlang.
+5. Yuklangandan keyin yana “Draftni saqlash”ni bosing.
+
+ZIP ichida boshqa nomdagi fayl, yetishmayotgan audio yoki takrorlangan savol raqami bo‘lsa import to‘xtaydi.

@@ -230,11 +230,7 @@ const sectionOptions:
     ];
 
 const diagnosticManualImageSourceOrders =
-    new Set([
-        4,
-        8,
-        12,
-    ]);
+    new Set<number>();
 
 
 function isMultipleChoice(
@@ -888,17 +884,71 @@ export function AdminMultipleChoiceDraftEditor({
 
 
     const supportsAudioZipImport =
-        draft.metadata.format !== "diagnostic" &&
-        (draft.metadata.format === "standard" ||
-            draft.metadata.format === "morphology-standard" ||
-            draft.metadata.format === "standard-five" ||
-            draft.metadata.format === "passage-five");
+        draft.metadata.format === "diagnostic" ||
+        draft.metadata.format === "standard" ||
+        draft.metadata.format === "morphology-standard" ||
+        draft.metadata.format === "standard-five" ||
+        draft.metadata.format === "passage-five";
 
     const audioZipTargets =
         useMemo(
             () => {
                 if (!supportsAudioZipImport) {
                     return [];
+                }
+
+                if (draft.metadata.format === "diagnostic") {
+                    const targets: {
+                        questionId: string;
+                        label: string;
+                        audio: AdminDraftMultipleChoiceQuestion["explanation"]["audio"];
+                        sourceOrder: number;
+                    }[] = [];
+
+                    for (const question of draft.questions) {
+                        if (question.type === "essay") {
+                            continue;
+                        }
+
+                        if (question.type === "passage-group") {
+                            for (const nestedQuestion of question.questions) {
+                                const sourceOrder = nestedQuestion.sourceOrder ?? nestedQuestion.order;
+                                targets.push({
+                                    questionId: nestedQuestion.id,
+                                    label: `${sourceOrder}-savol`,
+                                    audio: nestedQuestion.explanation.audio,
+                                    sourceOrder,
+                                });
+                            }
+                            continue;
+                        }
+
+                        if (question.type === "matching") {
+                            for (const item of question.items) {
+                                const sourceOrder = item.sourceOrder ?? item.order;
+                                targets.push({
+                                    questionId: item.id,
+                                    label: `${sourceOrder}-savol`,
+                                    audio: item.explanation?.audio ?? null,
+                                    sourceOrder,
+                                });
+                            }
+                            continue;
+                        }
+
+                        const sourceOrder = question.sourceOrder ?? question.order;
+                        targets.push({
+                            questionId: question.id,
+                            label: `${sourceOrder}-savol`,
+                            audio: question.explanation.audio,
+                            sourceOrder,
+                        });
+                    }
+
+                    return targets
+                        .filter((target) => target.sourceOrder >= 1 && target.sourceOrder <= 44)
+                        .sort((left, right) => left.sourceOrder - right.sourceOrder)
+                        .map(({ sourceOrder: _sourceOrder, ...target }) => target);
                 }
 
                 if (
@@ -934,6 +984,8 @@ export function AdminMultipleChoiceDraftEditor({
                 return [];
             },
             [
+                draft.metadata.format,
+                draft.questions,
                 passageGroups,
                 questions,
                 supportsAudioZipImport,
@@ -946,48 +998,54 @@ export function AdminMultipleChoiceDraftEditor({
             readonly audio: AdminDraftMultipleChoiceQuestion["explanation"]["audio"];
         }[],
     ) {
-        const audioByQuestionId =
-            new Map(
-                updates.map((update) => [
-                    update.questionId,
-                    update.audio,
-                ]),
-            );
+        const audioByQuestionId = new Map(
+            updates.map((update) => [update.questionId, update.audio]),
+        );
 
         setDraft((currentDraft) => ({
             ...currentDraft,
             questions: currentDraft.questions.map((question) => {
-                if (isMultipleChoice(question)) {
-                    const audio = audioByQuestionId.get(question.id);
-
-                    return audio
-                        ? {
-                            ...question,
-                            explanation: {
-                                ...question.explanation,
-                                audio,
-                            },
-                        }
-                        : question;
-                }
-
-                if (isPassageGroup(question)) {
+                if (question.type === "passage-group") {
                     return {
                         ...question,
                         questions: question.questions.map((nestedQuestion) => {
                             const audio = audioByQuestionId.get(nestedQuestion.id);
-
                             return audio
                                 ? {
                                     ...nestedQuestion,
-                                    explanation: {
-                                        ...nestedQuestion.explanation,
-                                        audio,
-                                    },
+                                    explanation: { ...nestedQuestion.explanation, audio },
                                 }
                                 : nestedQuestion;
                         }),
                     };
+                }
+
+                if (question.type === "matching") {
+                    return {
+                        ...question,
+                        items: question.items.map((item) => {
+                            const audio = audioByQuestionId.get(item.id);
+                            return audio
+                                ? {
+                                    ...item,
+                                    explanation: {
+                                        text: item.explanation?.text ?? "",
+                                        audio,
+                                    },
+                                }
+                                : item;
+                        }),
+                    };
+                }
+
+                if (question.type !== "essay") {
+                    const audio = audioByQuestionId.get(question.id);
+                    if (audio) {
+                        return {
+                            ...question,
+                            explanation: { ...question.explanation, audio },
+                        };
+                    }
                 }
 
                 return question;
@@ -4267,7 +4325,7 @@ export function AdminMultipleChoiceDraftEditor({
                         taskCount:
                             displayedQuestionCount,
                         finalMaximumScore:
-                            100,
+                            75,
                         rawMaximumScore:
                             diagnosticRawMaximumScore,
                     },
@@ -4288,7 +4346,7 @@ export function AdminMultipleChoiceDraftEditor({
                                 lastPersistedDraftRef.current,
                             ),
                         finalMaximumScore:
-                            100,
+                            75,
                         rawMaximumScore:
                             calculateAdminDraftMaximumScore(
                                 lastPersistedDraftRef.current,

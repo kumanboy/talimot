@@ -64,7 +64,7 @@ function targetDescription(
         target ===
         "multiple-choice"
     ) {
-        return "1–17-savollar: A–D variantli testlar. 4, 8 va 12-savol rasmlari importdan keyin alohida yuklanadi.";
+        return "1–17-savollar: A–D variantli testlar. 3 va 4-savoldagi diagrammalar student oynasida hujjat uslubida avtomatik chiziladi.";
     }
 
     if (
@@ -92,7 +92,7 @@ function targetDescription(
         return "45-savol: esse vaziyati, yozish talablari va 24 ballik topshiriq";
     }
 
-    return "33–44-savollar: matching, qisqa javob va multipart. 36-savol rasmi importdan keyin alohida yuklanadi.";
+    return "33–44-savollar: matching, qisqa javob va multipart. 36-savoldagi shakldosh diagrammasi student oynasida avtomatik chiziladi.";
 }
 
 function exactOrders(
