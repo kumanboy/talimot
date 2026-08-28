@@ -14,7 +14,7 @@ import styles from "./mobile-navigation.module.css";
 
 type NavigationIconType =
     | "home"
-    | "tests"
+    | "courses"
     | "mytests"
     | "results"
     | "profile";
@@ -34,10 +34,10 @@ const navigationItems = [
         icon: "home",
     },
     {
-        id: "tests",
-        label: "Testlar",
-        href: "/tests",
-        icon: "tests",
+        id: "courses",
+        label: "Kurslar",
+        href: "/kurslar",
+        icon: "courses",
     },
     {
         id: "mytests",
@@ -78,30 +78,26 @@ function NavigationIcon({
         );
     }
 
-    if (type === "tests") {
+    if (type === "courses") {
         return (
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect
-                    x="5"
-                    y="4"
-                    width="14"
-                    height="16"
-                    rx="2"
+                <path
+                    d="M4.5 6.2A2.2 2.2 0 0 1 6.7 4h4.1c.7 0 1.2.2 1.7.7L13 5.2l.5-.5c.5-.5 1-.7 1.7-.7h2.1a2.2 2.2 0 0 1 2.2 2.2v12.1c0 .7-.6 1.2-1.3 1.1l-3.1-.5a4.3 4.3 0 0 0-3.1.7 4.3 4.3 0 0 0-3.1-.7l-3.1.5c-.7.1-1.3-.4-1.3-1.1V6.2Z"
                     stroke="currentColor"
-                    strokeWidth="1.8"
+                    strokeWidth="1.7"
+                    strokeLinejoin="round"
                 />
                 <path
-                    d="M9 8.5h6M9 12.5h6M9 16.5h4"
+                    d="M12 5.3v14.1"
                     stroke="currentColor"
-                    strokeWidth="1.8"
+                    strokeWidth="1.7"
                     strokeLinecap="round"
                 />
                 <path
-                    d="m6.8 8.5.7.7 1.4-1.5M6.8 12.5l.7.7 1.4-1.5"
+                    d="M7.4 8h2.4M14.2 8h2.4M7.4 11h2.4M14.2 11h2.4"
                     stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
-                    strokeLinejoin="round"
                 />
             </svg>
         );
@@ -227,13 +223,13 @@ export function MobileNavigation() {
             });
         };
 
-        if ("requestIdleCallback" in window) {
+        if (typeof window.requestIdleCallback === "function") {
             const idleId = window.requestIdleCallback(prefetch, { timeout: 1200 });
             return () => window.cancelIdleCallback(idleId);
         }
 
-        const timerId = window.setTimeout(prefetch, 450);
-        return () => window.clearTimeout(timerId);
+        const timerId = setTimeout(prefetch, 450);
+        return () => clearTimeout(timerId);
     }, [pathname, router]);
 
     useEffect(() => {

@@ -37,12 +37,12 @@ export function loadHomeCatalog(): Promise<HomeCatalogPayload | null> {
                 return;
             }
 
-            if ("requestIdleCallback" in window) {
+            if (typeof window.requestIdleCallback === "function") {
                 window.requestIdleCallback(run, { timeout: 1000 });
                 return;
             }
 
-            window.setTimeout(run, 350);
+            setTimeout(run, 350);
         });
     }
 
