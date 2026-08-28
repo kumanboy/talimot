@@ -1007,3 +1007,32 @@
         animation: none;
     }
 }
+/* Integrated Testlarim summary */
+.compactMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: -4px 0 16px;
+    color: var(--app-text-secondary);
+    font-size: 9px;
+}
+
+.compactMeta strong {
+    color: var(--app-text);
+    font-weight: 850;
+}
+
+.emptyLink {
+    display: inline-flex;
+    min-height: 43px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 16px;
+    padding: 0 17px;
+    border-radius: 13px;
+    background: var(--app-primary);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    text-decoration: none;
+}

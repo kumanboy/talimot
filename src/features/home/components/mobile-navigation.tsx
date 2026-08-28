@@ -15,7 +15,6 @@ import styles from "./mobile-navigation.module.css";
 type NavigationIconType =
     | "home"
     | "courses"
-    | "mytests"
     | "results"
     | "profile";
 
@@ -38,12 +37,6 @@ const navigationItems = [
         label: "Kurslar",
         href: "/kurslar",
         icon: "courses",
-    },
-    {
-        id: "mytests",
-        label: "Testlarim",
-        href: "/mening-testlarim",
-        icon: "mytests",
     },
     {
         id: "results",
@@ -103,35 +96,6 @@ function NavigationIcon({
         );
     }
 
-    if (type === "mytests") {
-        return (
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect
-                    x="4.5"
-                    y="4"
-                    width="15"
-                    height="16"
-                    rx="2.5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                />
-                <path
-                    d="M8 8h8M8 12h4"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                />
-                <path
-                    d="m13.5 16 1.6 1.6 3.1-3.4"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </svg>
-        );
-    }
-
     if (type === "results") {
         return (
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -183,10 +147,6 @@ function matchesPath(
 ): boolean {
     if (item.id === "home") {
         return pathname === "/";
-    }
-
-    if (item.id === "mytests") {
-        return pathname.startsWith("/mening-testlarim");
     }
 
     if (item.id === "results") {

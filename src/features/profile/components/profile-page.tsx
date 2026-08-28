@@ -361,13 +361,13 @@ export function ProfilePage() {
 
                 <section className={styles.myTestsCard}>
                     <div>
-                        <span>MENING TESTLARIM</span>
-                        <strong>Test kutubxonasi va urinishlar tarixi</strong>
+                        <span>NATIJALAR VA TESTLARIM</span>
+                        <strong>Barcha testlar va urinishlar tarixi</strong>
                         <p>Sotib olingan testlar, birinchi, oxirgi va eng yaxshi natijalaringizni ko‘ring.</p>
                     </div>
                     <button
                         type="button"
-                        onClick={() => router.push("/mening-testlarim")}
+                        onClick={() => router.push("/natijalar")}
                     >
                         Ochish
                     </button>

@@ -151,7 +151,7 @@ function AttemptHistory({ item }: { readonly item: MyTestLibraryItem }) {
                             </span>
                             <small>{formatDate(attempt.completedAt)} · {formatDuration(attempt.durationSeconds)}</small>
                         </div>
-                        <Link href={`/mening-testlarim/urinish/${encodeURIComponent(attempt.id)}`}>
+                        <Link href={"/natijalar"}>
                             Ko‘rish
                         </Link>
                     </article>
@@ -232,7 +232,7 @@ function TestCard({ item }: { readonly item: MyTestLibraryItem }) {
                 )}
 
                 {latest ? (
-                    <Link className={styles.secondaryAction} href={`/mening-testlarim/urinish/${encodeURIComponent(latest.id)}`}>
+                    <Link className={styles.secondaryAction} href={"/natijalar"}>
                         So‘nggi natija
                     </Link>
                 ) : null}

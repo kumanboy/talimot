@@ -15,7 +15,7 @@
     box-sizing: border-box;
     display: grid;
     min-height: 68px;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: 6px;
     overflow: hidden;
     border: 1px solid rgb(255 255 255 / 72%);
@@ -54,7 +54,7 @@
     top: 6px;
     bottom: 6px;
     left: 6px;
-    width: calc((100% - 12px) / 5);
+    width: calc((100% - 12px) / 4);
     border-radius: 16px;
     background:
         linear-gradient(

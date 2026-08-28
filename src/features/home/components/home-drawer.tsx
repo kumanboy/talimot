@@ -51,8 +51,8 @@ const drawerItems = [
         icon: "tests",
     },
     {
-        label: "Mening testlarim",
-        href: "/mening-testlarim",
+        label: "Natijalar",
+        href: "/natijalar",
         icon: "tests",
     },
     {
