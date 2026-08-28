@@ -1,6 +1,4 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import styles from "./diagnostic-banner.module.css";
 
@@ -105,8 +103,6 @@ function StatIcon({
 }
 
 export function DiagnosticBanner() {
-    const router = useRouter();
-
     return (
         <section
             className={styles.banner}
@@ -202,12 +198,9 @@ export function DiagnosticBanner() {
                 </p>
             </div>
 
-            <button
+            <Link
                 className={styles.actionButton}
-                type="button"
-                onClick={() =>
-                    router.push("/tests/milliy-sertifikat/diagnostika")
-                }
+                href="/tests/milliy-sertifikat/diagnostika"
             >
         <span>
           Bepul diagnostika testini boshlash
@@ -219,7 +212,7 @@ export function DiagnosticBanner() {
                 >
           →
         </span>
-            </button>
+            </Link>
         </section>
     );
 }

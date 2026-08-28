@@ -1,6 +1,4 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import styles from "./topic-grid.module.css";
 
@@ -230,8 +228,6 @@ function TopicIcon({ type }: { type: Topic["icon"] }) {
 }
 
 export function TopicGrid() {
-    const router = useRouter();
-
     return (
         <section className={styles.section}>
             <div className={styles.heading}>
@@ -241,22 +237,19 @@ export function TopicGrid() {
                     <p>Bilimingizni kerakli yo‘nalish bo‘yicha mustahkamlang.</p>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={() => router.push("/tests")}
-                >
+                <Link href="/tests">
                     Barchasi
                     <span aria-hidden="true">→</span>
-                </button>
+                </Link>
             </div>
 
             <div className={styles.grid}>
                 {topics.map((topic) => (
-                    <button
+                    <Link
                         key={topic.id}
                         className={styles.card}
-                        type="button"
-                        onClick={() => router.push(topic.href)}
+                        href={topic.href}
+                        prefetch={false}
                     >
             <span className={`${styles.icon} ${styles[topic.icon]}`}>
               <TopicIcon type={topic.icon} />
@@ -270,7 +263,7 @@ export function TopicGrid() {
                         <span className={styles.arrow} aria-hidden="true">
               ›
             </span>
-                    </button>
+                    </Link>
                 ))}
             </div>
         </section>

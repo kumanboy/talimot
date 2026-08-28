@@ -51,6 +51,11 @@ const drawerItems = [
         icon: "tests",
     },
     {
+        label: "Mening testlarim",
+        href: "/mening-testlarim",
+        icon: "tests",
+    },
+    {
         label: "Yo‘l xaritasi",
         href:
             "/yol-xaritasi",
@@ -437,6 +442,12 @@ export function HomeDrawer({
         setVisualHref(null);
         document.body.style.overflow = "hidden";
 
+        drawerItems.forEach((item) => {
+            if (!pathname.startsWith(item.href) || item.href === "/") {
+                router.prefetch(item.href);
+            }
+        });
+
         return () => {
             clearCloseTimer();
             document.body.style.overflow = "";
@@ -444,6 +455,8 @@ export function HomeDrawer({
     }, [
         clearCloseTimer,
         isOpen,
+        pathname,
+        router,
     ]);
 
     useEffect(() => {

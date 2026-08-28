@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { getPublishedBooks } from "@/features/books/model/book-catalog";
 import type { BookDefinition } from "@/features/books/model/book-types";
 import { loadHomeCatalog } from "@/features/home/api/home-catalog-client";
+import { preferOptimizedHomeImage } from "@/features/home/lib/optimized-home-image";
 
 import styles from "./book-showcase.module.css";
 
@@ -176,7 +177,7 @@ export function BookShowcase() {
                             {book.coverImage ? (
                                 <Image
                                     className={styles.coverImage}
-                                    src={book.coverImage}
+                                    src={preferOptimizedHomeImage(book.coverImage)}
                                     alt={book.coverImageAlt}
                                     fill
                                     sizes="(max-width: 599px) 76vw, 350px"

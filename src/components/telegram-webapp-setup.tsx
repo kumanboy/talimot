@@ -5,25 +5,45 @@ import { useEffect } from "react";
 /**
  * Telegram Mini App presentation only.
  *
- * Access control is intentionally NOT performed here. The bot creates a
- * per-user signed entry URL only after getChatMember succeeds, and protected
- * server routes re-check membership. Keeping auth out of this client component
- * avoids initData compatibility problems across Telegram client versions.
+ * The Telegram SDK is intentionally loaded after the first render so an
+ * external script cannot block TA’LIMOT's initial paint. This setup retries
+ * briefly until the SDK is ready, then applies the Mini App presentation.
  */
 export function TelegramWebAppSetup() {
     useEffect(() => {
-        const telegramWebApp = window.Telegram?.WebApp;
+        let cancelled = false;
+        let retryTimer: number | undefined;
+        let attempts = 0;
 
-        if (!telegramWebApp) {
-            return;
-        }
+        const setup = () => {
+            if (cancelled) return;
 
-        telegramWebApp.ready();
-        telegramWebApp.expand();
+            const telegramWebApp = window.Telegram?.WebApp;
 
-        if (typeof telegramWebApp.disableVerticalSwipes === "function") {
-            telegramWebApp.disableVerticalSwipes();
-        }
+            if (!telegramWebApp) {
+                attempts += 1;
+                if (attempts <= 40) {
+                    retryTimer = window.setTimeout(setup, 50);
+                }
+                return;
+            }
+
+            telegramWebApp.ready();
+            telegramWebApp.expand();
+
+            if (typeof telegramWebApp.disableVerticalSwipes === "function") {
+                telegramWebApp.disableVerticalSwipes();
+            }
+        };
+
+        setup();
+
+        return () => {
+            cancelled = true;
+            if (retryTimer !== undefined) {
+                window.clearTimeout(retryTimer);
+            }
+        };
     }, []);
 
     return null;

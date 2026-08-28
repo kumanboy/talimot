@@ -15,7 +15,7 @@ import styles from "./mobile-navigation.module.css";
 type NavigationIconType =
     | "home"
     | "tests"
-    | "roadmap"
+    | "mytests"
     | "results"
     | "profile";
 
@@ -40,10 +40,10 @@ const navigationItems = [
         icon: "tests",
     },
     {
-        id: "roadmap",
-        label: "Yo‘l xaritasi",
-        href: "/yol-xaritasi",
-        icon: "roadmap",
+        id: "mytests",
+        label: "Testlarim",
+        href: "/mening-testlarim",
+        icon: "mytests",
     },
     {
         id: "results",
@@ -107,35 +107,30 @@ function NavigationIcon({
         );
     }
 
-    if (type === "roadmap") {
+    if (type === "mytests") {
         return (
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle
-                    cx="6"
-                    cy="18"
-                    r="2"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                />
-                <circle
-                    cx="12"
-                    cy="6"
-                    r="2"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                />
-                <circle
-                    cx="18"
-                    cy="15"
-                    r="2"
+                <rect
+                    x="4.5"
+                    y="4"
+                    width="15"
+                    height="16"
+                    rx="2.5"
                     stroke="currentColor"
                     strokeWidth="1.8"
                 />
                 <path
-                    d="M7.2 16.4 10.8 7.7M13.5 7.4l3.1 5.9"
+                    d="M8 8h8M8 12h4"
                     stroke="currentColor"
                     strokeWidth="1.8"
                     strokeLinecap="round"
+                />
+                <path
+                    d="m13.5 16 1.6 1.6 3.1-3.4"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                 />
             </svg>
         );
@@ -194,8 +189,12 @@ function matchesPath(
         return pathname === "/";
     }
 
-    if (item.id === "roadmap") {
-        return pathname.startsWith("/yol-xaritasi");
+    if (item.id === "mytests") {
+        return pathname.startsWith("/mening-testlarim");
+    }
+
+    if (item.id === "results") {
+        return pathname.startsWith("/natijalar");
     }
 
     return pathname.startsWith(item.href);
@@ -210,7 +209,7 @@ export function MobileNavigation() {
             matchesPath(item, pathname),
         );
 
-        return index >= 0 ? index : 0;
+        return index;
     }, [pathname]);
 
     const [visualIndex, setVisualIndex] =
@@ -218,6 +217,24 @@ export function MobileNavigation() {
 
     const [pendingHref, setPendingHref] =
         useState<string | null>(null);
+
+    useEffect(() => {
+        const prefetch = () => {
+            navigationItems.forEach((item) => {
+                if (!matchesPath(item, pathname)) {
+                    router.prefetch(item.href);
+                }
+            });
+        };
+
+        if ("requestIdleCallback" in window) {
+            const idleId = window.requestIdleCallback(prefetch, { timeout: 1200 });
+            return () => window.cancelIdleCallback(idleId);
+        }
+
+        const timerId = window.setTimeout(prefetch, 450);
+        return () => window.clearTimeout(timerId);
+    }, [pathname, router]);
 
     useEffect(() => {
         setVisualIndex(pathnameIndex);
@@ -249,7 +266,8 @@ export function MobileNavigation() {
                 <span
                     className={styles.slidingIndicator}
                     style={{
-                        transform: `translateX(${visualIndex * 100}%)`,
+                        transform: `translateX(${Math.max(0, visualIndex) * 100}%)`,
+                        opacity: visualIndex >= 0 ? 1 : 0,
                     }}
                     aria-hidden="true"
                 />
@@ -281,6 +299,8 @@ export function MobileNavigation() {
                             }
                             aria-label={item.label}
                             aria-busy={pending}
+                            onPointerEnter={() => router.prefetch(item.href)}
+                            onFocus={() => router.prefetch(item.href)}
                             onClick={() =>
                                 handleNavigate(item, index)
                             }

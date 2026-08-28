@@ -133,7 +133,7 @@ export async function POST(request: Request) {
             shortDescription,
             fullDescription: fullDescription.length ? fullDescription : old?.fullDescription ?? [],
             badge,
-            coverImage: coverImage || old?.coverImage || "/images/home/course-promotion.png",
+            coverImage: coverImage || old?.coverImage || "/images/home/course-promotion.webp",
             coverImageAlt: text(form, "coverImageAlt", 220) || `${title} kursi`,
             accent,
             instructor: {

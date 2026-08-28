@@ -447,3 +447,8 @@
 :global(html[data-theme="dark"]) .bottom {
     border-top-color: var(--app-border);
 }
+
+.footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
+}

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { asc, eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 
 import { books as codeBooks } from "@/features/books/model/book-catalog";
 import type { BookDefinition } from "@/features/books/model/book-types";
@@ -53,7 +54,7 @@ async function readRows(kind: CatalogKind) {
         .orderBy(asc(catalogItems.sortOrder), asc(catalogItems.title));
 }
 
-export async function getPublishedBooksFromDatabase(): Promise<readonly BookDefinition[]> {
+async function readPublishedBooksFromDatabase(): Promise<readonly BookDefinition[]> {
     const rows = await readRows("book");
     const overrides = new Map(rows.map((row) => [row.slug, row]));
     const result: BookDefinition[] = [];
@@ -79,7 +80,7 @@ export async function getPublishedBooksFromDatabase(): Promise<readonly BookDefi
     return result;
 }
 
-export async function getPublishedCoursesFromDatabase(): Promise<readonly CourseDefinition[]> {
+async function readPublishedCoursesFromDatabase(): Promise<readonly CourseDefinition[]> {
     const rows = await readRows("course");
     const overrides = new Map(rows.map((row) => [row.slug, row]));
     const result: CourseDefinition[] = [];
@@ -103,6 +104,26 @@ export async function getPublishedCoursesFromDatabase(): Promise<readonly Course
     }
 
     return result;
+}
+
+const getPublishedBooksCached = unstable_cache(
+    readPublishedBooksFromDatabase,
+    ["published-books-v1"],
+    { revalidate: 60 },
+);
+
+const getPublishedCoursesCached = unstable_cache(
+    readPublishedCoursesFromDatabase,
+    ["published-courses-v1"],
+    { revalidate: 60 },
+);
+
+export async function getPublishedBooksFromDatabase(): Promise<readonly BookDefinition[]> {
+    return getPublishedBooksCached();
+}
+
+export async function getPublishedCoursesFromDatabase(): Promise<readonly CourseDefinition[]> {
+    return getPublishedCoursesCached();
 }
 
 export async function getBookBySlugFromDatabase(slug: string): Promise<BookDefinition | null> {

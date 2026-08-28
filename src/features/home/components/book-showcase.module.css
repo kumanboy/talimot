@@ -454,3 +454,8 @@
 :global(html[data-theme="dark"]) .heading > button {
     color: var(--app-primary);
 }
+
+.section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 560px;
+}

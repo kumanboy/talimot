@@ -384,3 +384,9 @@
     --accent-soft: #4b3c28;
     --accent-glow: rgb(225 177 95 / 18%);
 }
+
+/* Defer expensive below-the-fold painting on supported mobile browsers. */
+.section {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 720px;
+}

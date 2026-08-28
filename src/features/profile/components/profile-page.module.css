@@ -497,3 +497,68 @@
         width: 100%;
     }
 }
+
+
+.myTestsCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+    padding: 18px;
+    border: 1px solid #d5e2eb;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f7fbff 0%, #ffffff 72%);
+}
+
+.myTestsCard > div {
+    min-width: 0;
+}
+
+.myTestsCard span {
+    display: block;
+    color: #2f76bd;
+    font-size: 0.7rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    margin-bottom: 5px;
+}
+
+.myTestsCard strong {
+    display: block;
+    color: #1b2c3e;
+    font-size: 1rem;
+}
+
+.myTestsCard p {
+    margin: 5px 0 0;
+    color: #74818d;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.myTestsCard button {
+    min-height: 44px;
+    flex: 0 0 auto;
+    padding: 0 17px;
+    border: 0;
+    border-radius: 13px;
+    background: #3778be;
+    color: #fff;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+@media (max-width: 560px) {
+    .myTestsCard {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 13px;
+    }
+
+    .myTestsCard button {
+        width: 100%;
+    }
+}

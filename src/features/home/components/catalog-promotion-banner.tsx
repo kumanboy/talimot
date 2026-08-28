@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getPublishedCourses } from "@/features/courses/model/course-catalog";
 import type { CourseDefinition } from "@/features/courses/model/course-types";
 import { loadHomeCatalog } from "@/features/home/api/home-catalog-client";
+import { preferOptimizedHomeImage } from "@/features/home/lib/optimized-home-image";
 
 import { PromotionBanner } from "./promotion-banner";
 
@@ -49,7 +50,7 @@ export function CatalogPromotionBanner() {
             description={course.shortDescription}
             actionLabel="Kursni ko‘rish"
             href={`/kurslar/${course.slug}`}
-            imageSrc={course.coverImage}
+            imageSrc={preferOptimizedHomeImage(course.coverImage)}
             imageAlt={course.coverImageAlt}
             note=""
         />

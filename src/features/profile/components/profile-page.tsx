@@ -359,6 +359,20 @@ export function ProfilePage() {
                     </button>
                 </section>
 
+                <section className={styles.myTestsCard}>
+                    <div>
+                        <span>MENING TESTLARIM</span>
+                        <strong>Test kutubxonasi va urinishlar tarixi</strong>
+                        <p>Sotib olingan testlar, birinchi, oxirgi va eng yaxshi natijalaringizni ko‘ring.</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => router.push("/mening-testlarim")}
+                    >
+                        Ochish
+                    </button>
+                </section>
+
                 <form
                     className={styles.section}
                     onSubmit={handleSubmit}

@@ -333,6 +333,7 @@
 }
 
 .actionButton {
+    text-decoration: none;
     display: flex;
     width: 100%;
     min-height: 51px;
@@ -506,4 +507,9 @@
 
 :global(html[data-theme="dark"]) .actionButton {
     box-shadow: 0 12px 26px rgb(0 0 0 / 24%);
+}
+
+.banner {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 520px;
 }

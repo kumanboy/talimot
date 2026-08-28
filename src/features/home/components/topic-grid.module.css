@@ -45,7 +45,7 @@
     line-height: 1.45;
 }
 
-.heading > button {
+.heading > a {
     display: inline-flex;
     flex: none;
     align-items: center;
@@ -59,7 +59,7 @@
     font-weight: 700;
 }
 
-.heading > button span {
+.heading > a span {
     font-size: 15px;
 }
 
@@ -92,6 +92,7 @@
     color: #1e2229;
     cursor: pointer;
     text-align: left;
+    text-decoration: none;
     box-shadow: 0 7px 20px rgb(30 34 41 / 5%);
     transition:
             transform 160ms ease-out,
@@ -242,7 +243,7 @@
 
 /* Dark mode */
 :global(html[data-theme="dark"]) .heading > div > span,
-:global(html[data-theme="dark"]) .heading > button {
+:global(html[data-theme="dark"]) .heading > a {
     color: var(--app-primary);
 }
 

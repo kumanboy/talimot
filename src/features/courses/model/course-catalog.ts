@@ -28,7 +28,7 @@ export const courses: readonly CourseDefinition[] = [
             "Kurs davomida grammatika, esse, g‘azal, badiiy matn va ilmiy matn mavzulari tizimli ravishda o‘rgatiladi. Har bir darsdan so‘ng yozib olingan video va audio materiallar yopiq Telegram kanalida taqdim etiladi.",
         ],
         badge: "ENG TO‘LIQ KURS",
-        coverImage: "/images/home/course-promotion.png",
+        coverImage: "/images/home/course-promotion.webp",
         coverImageAlt:
             "Sardor Toshmuhammadovning Milliy sertifikat kursi",
         accent: "primary",

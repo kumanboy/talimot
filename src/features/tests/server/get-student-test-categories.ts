@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { unstable_cache } from "next/cache";
 
 import "server-only";
 
@@ -142,6 +143,16 @@ function formatTestCount(
     return `${count} ta test`;
 }
 
+const getPublishedCategoryDrafts = unstable_cache(
+    async () => Promise.all([
+        adminTestDraftService.listPublished("grammar"),
+        adminTestDraftService.listPublished("morphology"),
+        adminTestDraftService.listPublished("national-certificate"),
+    ]),
+    ["student-test-categories-v1"],
+    { revalidate: 60 },
+);
+
 /**
  * Root student counts are based only on real published DB tests.
  * Static registries/planned placeholders are not included in the numbers.
@@ -155,17 +166,7 @@ export async function getStudentTestCategories(): Promise<
         publishedGrammar,
         publishedMorphology,
         publishedNational,
-    ] = await Promise.all([
-        adminTestDraftService.listPublished(
-            "grammar",
-        ),
-        adminTestDraftService.listPublished(
-            "morphology",
-        ),
-        adminTestDraftService.listPublished(
-            "national-certificate",
-        ),
-    ]);
+    ] = await getPublishedCategoryDrafts();
 
     const grammarRoutes =
         new Map<string, Set<string>>();

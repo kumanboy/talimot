@@ -40,7 +40,7 @@ export default function RootLayout({
                 <Script
                     id="telegram-web-app-sdk"
                     src="https://telegram.org/js/telegram-web-app.js"
-                    strategy="beforeInteractive"
+                    strategy="afterInteractive"
                 />
             </head>
 
