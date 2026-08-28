@@ -1,0 +1,585 @@
+.page {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top right, rgba(77, 143, 218, 0.11), transparent 30rem),
+        #f5f8f8;
+    color: #142131;
+    padding-bottom: 112px;
+}
+
+.content {
+    width: min(100% - 28px, 920px);
+    margin: 0 auto;
+    padding: 22px 0 36px;
+}
+
+.header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.header > button {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border: 1px solid #d8e1e7;
+    border-radius: 14px;
+    background: #fff;
+    color: #26384a;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.header > button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.header div {
+    min-width: 0;
+}
+
+.header span,
+.sectionHeading > span {
+    display: block;
+    color: #2f78c7;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+}
+
+.header h1 {
+    margin: 4px 0 4px;
+    font-size: clamp(1.7rem, 5vw, 2.25rem);
+    line-height: 1.06;
+}
+
+.header p {
+    margin: 0;
+    color: #6b7886;
+    font-size: 0.94rem;
+}
+
+.summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.summaryGrid article {
+    border: 1px solid #dce5ea;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    padding: 16px;
+    box-shadow: 0 8px 28px rgba(30, 54, 77, 0.045);
+}
+
+.summaryGrid span {
+    display: block;
+    color: #72808d;
+    font-size: 0.78rem;
+    margin-bottom: 8px;
+}
+
+.summaryGrid strong {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.librarySection {
+    display: grid;
+    gap: 14px;
+}
+
+.sectionHeading h2 {
+    margin: 4px 0 0;
+    font-size: 1.35rem;
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding: 4px;
+    border: 1px solid #dce5ea;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.filters button {
+    min-height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #6b7783;
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.filters button.activeFilter {
+    background: #eaf3fe;
+    color: #2f73bf;
+    box-shadow: inset 0 0 0 1px #b9d4f2;
+}
+
+.testList {
+    display: grid;
+    gap: 14px;
+}
+
+.testCard {
+    border: 1px solid #d9e3e9;
+    border-radius: 22px;
+    background: #fff;
+    padding: 18px;
+    box-shadow: 0 12px 32px rgba(31, 58, 83, 0.055);
+}
+
+.cardTopline,
+.cardTitleRow,
+.cardLabels,
+.cardActions,
+.historyItem,
+.historyDetails summary {
+    display: flex;
+    align-items: center;
+}
+
+.cardTopline {
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.cardLabels {
+    flex-wrap: wrap;
+    gap: 7px;
+    min-width: 0;
+}
+
+.categoryLabel,
+.purchasedBadge,
+.freeBadge,
+.priceBadge,
+.attemptPill {
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.categoryLabel {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 8px 10px;
+    background: #edf5fd;
+    color: #2d70b9;
+}
+
+.purchasedBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 10px;
+    color: #16714d;
+    background: #e9f7ef;
+}
+
+.purchasedBadge svg {
+    width: 14px;
+    height: 14px;
+}
+
+.freeBadge {
+    padding: 8px 10px;
+    color: #5c6873;
+    background: #f1f4f6;
+}
+
+.priceBadge {
+    padding: 8px 10px;
+    background: #fff7df;
+    color: #926313;
+}
+
+.cardTitleRow {
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.cardTitleRow > div {
+    min-width: 0;
+}
+
+.cardTitleRow h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    line-height: 1.2;
+}
+
+.cardTitleRow p {
+    margin: 5px 0 0;
+    color: #73808c;
+    font-size: 0.82rem;
+}
+
+.attemptPill {
+    flex: 0 0 auto;
+    padding: 9px 11px;
+    color: #536473;
+    background: #f2f5f7;
+}
+
+.scoreGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    margin-top: 16px;
+    overflow: hidden;
+    border: 1px solid #e0e7eb;
+    border-radius: 16px;
+    background: #e0e7eb;
+}
+
+.scoreGrid > div {
+    min-width: 0;
+    background: #fafcfd;
+    padding: 14px 12px;
+}
+
+.scoreGrid span {
+    display: block;
+    color: #7b8792;
+    font-size: 0.72rem;
+    margin-bottom: 6px;
+}
+
+.scoreGrid strong {
+    display: block;
+    color: #213347;
+    font-size: 0.9rem;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.notStarted {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 14px;
+    border-radius: 16px;
+    background: #f5f9fd;
+    border: 1px solid #d9e8f6;
+}
+
+.notStartedIcon,
+.historySummaryIcon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+
+.notStartedIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    color: #2f78c7;
+    background: #e5f0fc;
+}
+
+.notStartedIcon svg,
+.historySummaryIcon svg,
+.primaryAction svg,
+.historyChevron svg {
+    width: 19px;
+    height: 19px;
+}
+
+.notStarted strong {
+    display: block;
+    font-size: 0.92rem;
+}
+
+.notStarted p {
+    margin: 3px 0 0;
+    color: #71808d;
+    font-size: 0.8rem;
+}
+
+.cardActions {
+    gap: 9px;
+    margin-top: 16px;
+}
+
+.cardActions a {
+    min-height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.primaryAction {
+    flex: 1 1 auto;
+    background: #3778be;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(55, 120, 190, 0.18);
+}
+
+.disabledAction {
+    flex: 1 1 auto;
+    min-height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef2f4;
+    color: #8a959e;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.secondaryAction {
+    flex: 0 1 180px;
+    padding: 0 14px;
+    border: 1px solid #c9d8e6;
+    color: #326fac;
+    background: #fff;
+}
+
+.historyDetails {
+    margin-top: 14px;
+    border-top: 1px solid #e7ecef;
+}
+
+.historyDetails summary {
+    gap: 10px;
+    min-height: 58px;
+    cursor: pointer;
+    list-style: none;
+    color: #425464;
+}
+
+.historyDetails summary::-webkit-details-marker {
+    display: none;
+}
+
+.historySummaryIcon {
+    color: #3979bd;
+}
+
+.historyDetails summary > span:nth-child(2) {
+    display: grid;
+    gap: 2px;
+    flex: 1;
+}
+
+.historyDetails summary strong {
+    font-size: 0.88rem;
+}
+
+.historyDetails summary small {
+    color: #89939c;
+    font-size: 0.72rem;
+}
+
+.historyChevron {
+    transition: transform 180ms ease;
+}
+
+.historyDetails[open] .historyChevron {
+    transform: rotate(90deg);
+}
+
+.historyList {
+    display: grid;
+    gap: 8px;
+    padding: 2px 0 6px;
+}
+
+.historyItem {
+    gap: 10px;
+    padding: 11px;
+    border: 1px solid #e1e8ec;
+    border-radius: 14px;
+    background: #fbfcfd;
+}
+
+.historyIndex {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    color: #3475b8;
+    background: #eaf3fc;
+    font-size: 0.8rem;
+    font-weight: 850;
+}
+
+.historyCopy {
+    min-width: 0;
+    flex: 1;
+    display: grid;
+    gap: 2px;
+}
+
+.historyCopy strong {
+    font-size: 0.88rem;
+}
+
+.historyCopy span {
+    color: #5e7080;
+    font-size: 0.76rem;
+}
+
+.historyCopy small {
+    color: #8a949d;
+    font-size: 0.7rem;
+}
+
+.historyItem > a {
+    text-decoration: none;
+    color: #3474b7;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.emptyState {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    padding: 36px 20px;
+    border: 1px solid #dce5ea;
+    border-radius: 22px;
+    background: #fff;
+}
+
+.emptyState > span {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 16px;
+    background: #eaf3fc;
+    color: #3375ba;
+}
+
+.emptyState svg {
+    width: 25px;
+    height: 25px;
+}
+
+.emptyState strong {
+    margin-top: 14px;
+}
+
+.emptyState p {
+    max-width: 430px;
+    margin: 7px 0 16px;
+    color: #75818b;
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.emptyState a {
+    min-height: 44px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 13px;
+    background: #3778be;
+    color: #fff;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+@media (max-width: 680px) {
+    .content {
+        width: min(100% - 20px, 920px);
+        padding-top: 14px;
+    }
+
+    .summaryGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .summaryGrid article {
+        padding: 14px;
+    }
+
+    .testCard {
+        padding: 15px;
+        border-radius: 20px;
+    }
+
+    .scoreGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .scoreGrid > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .scoreGrid span {
+        margin-bottom: 0;
+    }
+
+    .scoreGrid strong {
+        text-align: right;
+    }
+
+    .cardActions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .secondaryAction {
+        flex-basis: auto;
+    }
+}
+
+@media (max-width: 430px) {
+    .header p {
+        font-size: 0.84rem;
+    }
+
+    .filters button {
+        font-size: 0.78rem;
+    }
+
+    .cardTopline {
+        align-items: flex-start;
+    }
+
+    .priceBadge {
+        margin-top: 1px;
+    }
+
+    .cardTitleRow {
+        align-items: flex-start;
+    }
+
+    .cardTitleRow h2 {
+        font-size: 1.16rem;
+    }
+
+    .historyItem {
+        align-items: flex-start;
+    }
+}
