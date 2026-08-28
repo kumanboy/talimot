@@ -726,3 +726,15 @@
         transition: none;
     }
 }
+.categoryCard[aria-busy="true"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    color: var(--app-primary);
+    text-align: center;
+}
+
+.categoryCard[aria-busy="true"] > span {
+    padding: 0;
+}

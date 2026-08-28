@@ -4,9 +4,9 @@ import {
     useMemo,
     useState,
 } from "react";
-import { useRouter } from "next/navigation";
 
 import { MobileNavigation } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import { useTestDashboardStorage } from "@/features/tests/hooks/use-test-dashboard-storage";
 
@@ -358,13 +358,14 @@ function formatCompletedDate(
 
 function CategoryCard({
                           category,
-                          onOpen,
                       }: {
     category: TestCategory;
-    onOpen: (href: string) => void;
 }) {
     return (
-        <button
+        <PendingNavigationButton
+            mode="push"
+            href={category.href}
+            pendingText="Ochilmoqda..."
             className={[
                 styles.categoryCard,
                 category.featured
@@ -373,10 +374,6 @@ function CategoryCard({
             ]
                 .filter(Boolean)
                 .join(" ")}
-            type="button"
-            onClick={() =>
-                onOpen(category.href)
-            }
         >
       <span
           className={
@@ -438,16 +435,14 @@ function CategoryCard({
             >
         <ArrowIcon />
       </span>
-        </button>
+        </PendingNavigationButton>
     );
 }
 
 function OngoingTestCard({
                              test,
-                             onOpen,
                          }: {
     test: StoredTestProgress;
-    onOpen: (href: string) => void;
 }) {
     const answeredCount =
         Object.keys(
@@ -556,27 +551,22 @@ function OngoingTestCard({
                 )} vaqt sarflandi
             </small>
 
-            <button
-                type="button"
-                onClick={() =>
-                    onOpen(
-                        test.metadata.href,
-                    )
-                }
+            <PendingNavigationButton
+                mode="push"
+                href={test.metadata.href}
+                pendingText="Test ochilmoqda..."
             >
                 Davom ettirish
                 <ArrowIcon />
-            </button>
+            </PendingNavigationButton>
         </article>
     );
 }
 
 function CompletedTestCard({
                                test,
-                               onOpen,
                            }: {
     test: StoredCompletedTest;
-    onOpen: (href: string) => void;
 }) {
     return (
         <article
@@ -661,29 +651,21 @@ function CompletedTestCard({
                     styles.completedActions
                 }
             >
-                <button
-                    type="button"
-                    onClick={() =>
-                        onOpen(
-                            `${test.metadata.href}?attempt=${encodeURIComponent(
-                                test.attemptId,
-                            )}`,
-                        )
-                    }
+                <PendingNavigationButton
+                    mode="push"
+                    href={`${test.metadata.href}?attempt=${encodeURIComponent(test.attemptId)}`}
+                    pendingText="Natija ochilmoqda..."
                 >
                     Natijani ko‘rish
-                </button>
+                </PendingNavigationButton>
 
-                <button
-                    type="button"
-                    onClick={() =>
-                        onOpen(
-                            test.metadata.href,
-                        )
-                    }
+                <PendingNavigationButton
+                    mode="push"
+                    href={test.metadata.href}
+                    pendingText="Test ochilmoqda..."
                 >
                     Qayta ishlash
-                </button>
+                </PendingNavigationButton>
             </div>
         </article>
     );
@@ -738,8 +720,6 @@ export function TestsPage({
     grammarCategories,
     nationalCertificateCategories,
 }: TestsPageProps) {
-    const router = useRouter();
-
     const {
         ongoing,
         completed,
@@ -837,12 +817,6 @@ export function TestsPage({
     const allCategoriesEmpty =
         filteredGrammar.length === 0 &&
         filteredNational.length === 0;
-
-    const openRoute = (
-        href: string,
-    ) => {
-        router.push(href);
-    };
 
     return (
         <main className={styles.page}>
@@ -1006,9 +980,6 @@ export function TestsPage({
                                                     test.testId
                                                 }
                                                 test={test}
-                                                onOpen={
-                                                    openRoute
-                                                }
                                             />
                                         ))}
                                 </div>
@@ -1056,9 +1027,6 @@ export function TestsPage({
                                                 }
                                                 category={
                                                     category
-                                                }
-                                                onOpen={
-                                                    openRoute
                                                 }
                                             />
                                         ),
@@ -1108,9 +1076,6 @@ export function TestsPage({
                                                 }
                                                 category={
                                                     category
-                                                }
-                                                onOpen={
-                                                    openRoute
                                                 }
                                             />
                                         ),
@@ -1173,9 +1138,6 @@ export function TestsPage({
                                                 test.testId
                                             }
                                             test={test}
-                                            onOpen={
-                                                openRoute
-                                            }
                                         />
                                     ),
                                 )}
@@ -1232,9 +1194,6 @@ export function TestsPage({
                                                 test.attemptId
                                             }
                                             test={test}
-                                            onOpen={
-                                                openRoute
-                                            }
                                         />
                                     ),
                                 )}

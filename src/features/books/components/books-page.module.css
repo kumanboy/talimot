@@ -78,3 +78,15 @@
     border-color: rgb(255 255 255 / 10%);
     background: rgb(36 51 60 / 84%);
 }
+
+.coverButton[aria-busy="true"] {
+    display: flex;
+    min-height: 210px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+    font-size: 12px;
+    font-weight: 850;
+}

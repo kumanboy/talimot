@@ -222,3 +222,24 @@
 .primary {
     --accent: var(--app-primary);
 }
+
+.coverButton[aria-busy="true"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.coverButton[aria-busy="true"]::after {
+    z-index: 0;
+    background: linear-gradient(180deg, rgb(28 64 104 / 62%), rgb(19 49 83 / 82%));
+}
+
+.coverButton[aria-busy="true"] > span,
+.coverButton[aria-busy="true"] > :first-child {
+    position: relative;
+    z-index: 2;
+}

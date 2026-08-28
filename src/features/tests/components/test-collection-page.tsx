@@ -1,10 +1,6 @@
 "use client";
 
 import {
-    useRouter,
-} from "next/navigation";
-
-import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
 
@@ -165,13 +161,9 @@ function ArrowIcon() {
 
 function TestCollectionCard({
                                 collection,
-                                onOpen,
                             }: {
     readonly collection:
         StandardTestSummary;
-
-    readonly onOpen:
-        (href: string) => void;
 }) {
     const isPremium =
         collection.access ===
@@ -317,13 +309,14 @@ function TestCollectionCard({
                     <LockIcon />
                 </TestPurchaseButton>
             ) : (
-                <button
-                    type="button"
-                    onClick={() => onOpen(collection.href)}
+                <PendingNavigationButton
+                    mode="push"
+                    href={collection.href}
+                    pendingText="Test ochilmoqda..."
                 >
                     Testni boshlash
                     <ArrowIcon />
-                </button>
+                </PendingNavigationButton>
             )}
         </article>
     );
@@ -335,8 +328,6 @@ export function TestCollectionPage({
                                        categoryLabel,
                                        collections,
                                    }: TestCollectionPageProps) {
-    const router = useRouter();
-
     const availableTestsCount =
         collections.filter(
             (collection) =>
@@ -489,13 +480,6 @@ export function TestCollectionPage({
                                     }
                                     collection={
                                         collection
-                                    }
-                                    onOpen={(
-                                        href,
-                                    ) =>
-                                        router.push(
-                                            href,
-                                        )
                                     }
                                 />
                             ),

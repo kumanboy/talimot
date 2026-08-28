@@ -1,8 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-
 import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
@@ -25,8 +23,6 @@ function formatPrice(value: number): string {
 }
 
 export function BooksPage({ books }: BooksPageProps) {
-    const router = useRouter();
-
     return (
         <main className={styles.page}>
             <div className={styles.content}>
@@ -55,12 +51,11 @@ export function BooksPage({ books }: BooksPageProps) {
                             key={book.id}
                             className={`${styles.card} ${styles[book.accent]}`}
                         >
-                            <button
-                                type="button"
+                            <PendingNavigationButton
+                                mode="push"
+                                href={`/kitoblar/${book.slug}`}
+                                pendingText="Kitob ochilmoqda..."
                                 className={styles.coverButton}
-                                onClick={() =>
-                                    router.push(`/kitoblar/${book.slug}`)
-                                }
                                 aria-label={`${book.title} kitobini ko‘rish`}
                             >
                                 {book.coverImage ? (
@@ -89,7 +84,7 @@ export function BooksPage({ books }: BooksPageProps) {
                                         badge={book.badge}
                                     />
                                 )}
-                            </button>
+                            </PendingNavigationButton>
 
                             <div className={styles.cardContent}>
                                 <span className={styles.author}>{book.author}</span>

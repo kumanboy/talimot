@@ -349,3 +349,11 @@
         padding-inline: 11px;
     }
 }
+.categoryCard[aria-busy="true"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    color: var(--app-primary);
+    text-align: center;
+}

@@ -1,9 +1,5 @@
 "use client";
 
-import {
-    useRouter,
-} from "next/navigation";
-
 import type {
     MorphologyCategory,
 } from "@/features/tests/model/morphology-categories";
@@ -201,9 +197,6 @@ export function MorphologyTestCollectionPage({
                                                  category,
                                                  collections,
                                              }: MorphologyTestCollectionPageProps) {
-    const router =
-        useRouter();
-
     return (
         <main
             className={
@@ -438,14 +431,15 @@ export function MorphologyTestCollectionPage({
                                                 <LockIcon />
                                             </TestPurchaseButton>
                                         ) : (
-                                            <button
-                                                type="button"
+                                            <PendingNavigationButton
+                                                mode="push"
+                                                href={collection.href}
                                                 className={styles.openButton}
-                                                onClick={() => router.push(collection.href)}
+                                                pendingText="Test ochilmoqda..."
                                             >
                                                 Testni boshlash
                                                 <ArrowIcon />
-                                            </button>
+                                            </PendingNavigationButton>
                                         )}
                                     </article>
                                 ),

@@ -2,10 +2,6 @@
 
 import Image from "next/image";
 import {
-    useRouter,
-} from "next/navigation";
-
-import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
 import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
@@ -32,8 +28,6 @@ function formatPrice(value: number): string {
 export function CoursesPage({
     courses,
 }: CoursesPageProps) {
-    const router = useRouter();
-
     return (
         <main className={styles.page}>
             <div className={styles.content}>
@@ -67,15 +61,12 @@ export function CoursesPage({
                             key={course.id}
                             className={`${styles.card} ${styles[course.accent]}`}
                         >
-                            <button
-                                type="button"
+                            <PendingNavigationButton
+                                mode="push"
+                                href={`/kurslar/${course.slug}`}
+                                pendingText="Kurs ochilmoqda..."
                                 className={styles.coverButton}
                                 aria-label={`${course.title} haqida batafsil ma’lumot`}
-                                onClick={() =>
-                                    router.push(
-                                        `/kurslar/${course.slug}`,
-                                    )
-                                }
                             >
                                 <Image
                                     src={course.coverImage}
@@ -88,7 +79,7 @@ export function CoursesPage({
                                 <span className={styles.badge}>
                                     {course.badge}
                                 </span>
-                            </button>
+                            </PendingNavigationButton>
 
                             <div className={styles.cardContent}>
                                 <h2>{course.title}</h2>

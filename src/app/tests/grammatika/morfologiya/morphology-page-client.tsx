@@ -1,12 +1,9 @@
 "use client";
 
 import {
-    useRouter,
-} from "next/navigation";
-
-import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import type {
     MorphologyCategory,
@@ -126,9 +123,6 @@ interface MorphologyPageClientProps {
 export function MorphologyPageClient({
     categories,
 }: MorphologyPageClientProps) {
-    const router =
-        useRouter();
-
     return (
         <main
             className={
@@ -152,17 +146,14 @@ export function MorphologyPageClient({
                         styles.topBar
                     }
                 >
-                    <button
-                        type="button"
+                    <PendingNavigationButton
+                        mode="replace"
+                        href="/tests"
                         aria-label="Grammatika testlariga qaytish"
-                        onClick={() =>
-                            router.replace(
-                                "/tests",
-                            )
-                        }
+                        pendingText=""
                     >
                         <BackIcon />
-                    </button>
+                    </PendingNavigationButton>
 
                     <div>
                         <span>
@@ -232,11 +223,11 @@ export function MorphologyPageClient({
                             (
                                 category,
                             ) => (
-                                <button
-                                    key={
-                                        category.id
-                                    }
-                                    type="button"
+                                <PendingNavigationButton
+                                    key={category.id}
+                                    mode="push"
+                                    href={category.href}
+                                    pendingText="Bo‘lim ochilmoqda..."
                                     className={[
                                         styles.categoryCard,
                                         category.featured
@@ -246,20 +237,9 @@ export function MorphologyPageClient({
                                             ? styles.unavailableCard
                                             : "",
                                     ]
-                                        .filter(
-                                            Boolean,
-                                        )
-                                        .join(
-                                            " ",
-                                        )}
-                                    disabled={
-                                        !category.isAvailable
-                                    }
-                                    onClick={() =>
-                                        router.push(
-                                            category.href,
-                                        )
-                                    }
+                                        .filter(Boolean)
+                                        .join(" ")}
+                                    disabled={!category.isAvailable}
                                 >
                                     <span
                                         className={
@@ -329,7 +309,7 @@ export function MorphologyPageClient({
                                             <LockIcon />
                                         )}
                                     </span>
-                                </button>
+                                </PendingNavigationButton>
                             ),
                         )}
                     </div>

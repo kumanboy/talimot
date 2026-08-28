@@ -51,6 +51,7 @@ export function TestPurchaseButton({
     const router = useRouter();
     const [isLoadingWallet, setIsLoadingWallet] = useState(false);
     const [isPurchasing, setIsPurchasing] = useState(false);
+    const [isOpeningTest, setIsOpeningTest] = useState(false);
     const [isGoingToPackages, setIsGoingToPackages] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [balance, setBalance] = useState<number | null>(null);
@@ -73,7 +74,7 @@ export function TestPurchaseButton({
         document.body.style.overflow = "hidden";
 
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && !isPurchasing) {
+            if (event.key === "Escape" && !isPurchasing && !isOpeningTest) {
                 setIsOpen(false);
             }
         };
@@ -84,7 +85,7 @@ export function TestPurchaseButton({
             document.body.style.overflow = previousOverflow;
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [isOpen, isPurchasing]);
+    }, [isOpen, isOpeningTest, isPurchasing]);
 
     const openPurchase = async () => {
         if (walletRequestLockRef.current || purchaseLockRef.current) return;
@@ -126,10 +127,11 @@ export function TestPurchaseButton({
     };
 
     const purchase = async () => {
-        if (purchaseLockRef.current || walletRequestLockRef.current) return;
+        if (purchaseLockRef.current || walletRequestLockRef.current || isOpeningTest) return;
         purchaseLockRef.current = true;
         setError("");
         setIsPurchasing(true);
+        let navigationStarted = false;
 
         try {
             const response = await fetch(
@@ -163,7 +165,8 @@ export function TestPurchaseButton({
                 setBalance(payload.balance);
             }
 
-            setIsOpen(false);
+            navigationStarted = true;
+            setIsOpeningTest(true);
             router.push(href);
             router.refresh();
         } catch (requestError) {
@@ -173,8 +176,10 @@ export function TestPurchaseButton({
                     : "Testni sotib olishda xatolik yuz berdi.",
             );
         } finally {
-            purchaseLockRef.current = false;
-            setIsPurchasing(false);
+            if (!navigationStarted) {
+                purchaseLockRef.current = false;
+                setIsPurchasing(false);
+            }
         }
     };
 
@@ -183,8 +188,8 @@ export function TestPurchaseButton({
             <button
                 type="button"
                 className={[styles.trigger, className].filter(Boolean).join(" ")}
-                disabled={isLoadingWallet || isPurchasing || isGoingToPackages}
-                aria-busy={isLoadingWallet || undefined}
+                disabled={isLoadingWallet || isPurchasing || isOpeningTest || isGoingToPackages}
+                aria-busy={isLoadingWallet || isOpeningTest || undefined}
                 onClick={openPurchase}
             >
                 {isLoadingWallet ? (<>
@@ -198,7 +203,7 @@ export function TestPurchaseButton({
                         className={styles.overlay}
                         role="presentation"
                         onMouseDown={(event) => {
-                            if (event.currentTarget === event.target && !isPurchasing) {
+                            if (event.currentTarget === event.target && !isPurchasing && !isOpeningTest) {
                                 setIsOpen(false);
                             }
                         }}
@@ -216,7 +221,7 @@ export function TestPurchaseButton({
                                     type="button"
                                     className={styles.closeButton}
                                     aria-label="Oynani yopish"
-                                    disabled={isPurchasing}
+                                    disabled={isPurchasing || isOpeningTest}
                                     onClick={() => setIsOpen(false)}
                                 >
                                     ×
@@ -253,7 +258,7 @@ export function TestPurchaseButton({
                                 <button
                                     type="button"
                                     className={styles.secondaryButton}
-                                    disabled={isPurchasing}
+                                    disabled={isPurchasing || isOpeningTest}
                                     onClick={() => setIsOpen(false)}
                                 >
                                     Bekor qilish
@@ -280,12 +285,15 @@ export function TestPurchaseButton({
                                     <button
                                         type="button"
                                         className={styles.primaryButton}
-                                        disabled={isPurchasing || !enoughBalance}
+                                        disabled={isPurchasing || isOpeningTest || !enoughBalance}
+                                        aria-busy={isPurchasing || isOpeningTest || undefined}
                                         onClick={purchase}
                                     >
-                                        {isPurchasing
-                                            ? <><ButtonLoader /> Sotib olinmoqda...</>
-                                            : `${safePrice} Tanga bilan ochish`}
+                                        {isOpeningTest
+                                            ? <><ButtonLoader /> Test ochilmoqda...</>
+                                            : isPurchasing
+                                                ? <><ButtonLoader /> Sotib olinmoqda...</>
+                                                : `${safePrice} Tanga bilan ochish`}
                                     </button>
                                 )}
                             </div>

@@ -150,44 +150,54 @@ export function CourseDetailPage({
                     </ul>
                 </section>
 
-                <section className={styles.section}>
-                    <span className={styles.sectionLabel}>
-                        KURS DASTURI
-                    </span>
-                    <h2>Modullar va darslar</h2>
-                    <div className={styles.modules}>
-                        {course.modules.map((module) => (
-                            <details key={module.id}>
-                                <summary>
-                                    <span>{module.title}</span>
-                                    <small>
-                                        {module.lessons.length} ta dars
-                                    </small>
-                                </summary>
+                {course.slug === "milliy-sertifikat" ? (
+                    <section className={`${styles.section} ${styles.bonusSection}`}>
+                        <span className={styles.bonusEyebrow}>KATTA BONUS</span>
+                        <h2 className={styles.bonusTitle}>BONUS</h2>
+                        <p className={styles.bonusText}>
+                            Yopiq Telegram guruhiga a’zo bo‘lgan talabgorlarning 20 dan ortiq esselari Sardor Toshmuhammadov tomonidan BMBA ekspertlari nizomi asosida bepul tekshirib beriladi hamda barcha mavzularga mos tushadigan esse shabloni beriladi!
+                        </p>
+                    </section>
+                ) : (
+                    <section className={styles.section}>
+                        <span className={styles.sectionLabel}>
+                            KURS DASTURI
+                        </span>
+                        <h2>Modullar va darslar</h2>
+                        <div className={styles.modules}>
+                            {course.modules.map((module) => (
+                                <details key={module.id}>
+                                    <summary>
+                                        <span>{module.title}</span>
+                                        <small>
+                                            {module.lessons.length} ta dars
+                                        </small>
+                                    </summary>
 
-                                {module.description ? (
-                                    <p>{module.description}</p>
-                                ) : null}
+                                    {module.description ? (
+                                        <p>{module.description}</p>
+                                    ) : null}
 
-                                <div>
-                                    {module.lessons.map((lesson) => (
-                                        <article key={lesson.id}>
-                                            <span>
-                                                {lessonTypeLabels[lesson.type]}
-                                            </span>
-                                            <strong>{lesson.title}</strong>
-                                            {lesson.durationLabel ? (
-                                                <small>
-                                                    {lesson.durationLabel}
-                                                </small>
-                                            ) : null}
-                                        </article>
-                                    ))}
-                                </div>
-                            </details>
-                        ))}
-                    </div>
-                </section>
+                                    <div>
+                                        {module.lessons.map((lesson) => (
+                                            <article key={lesson.id}>
+                                                <span>
+                                                    {lessonTypeLabels[lesson.type]}
+                                                </span>
+                                                <strong>{lesson.title}</strong>
+                                                {lesson.durationLabel ? (
+                                                    <small>
+                                                        {lesson.durationLabel}
+                                                    </small>
+                                                ) : null}
+                                            </article>
+                                        ))}
+                                    </div>
+                                </details>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
 
             <div className={styles.stickyPurchase}>

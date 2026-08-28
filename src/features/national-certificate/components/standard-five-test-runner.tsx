@@ -42,6 +42,7 @@ import type {
     StoredTestMetadata,
 } from "@/features/tests/model/test-progress-storage";
 
+import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 import {
     TestExitDialog,
 } from "@/features/tests/components/test-exit-dialog";
@@ -853,17 +854,14 @@ export function StandardFiveTestRunner({
                             styles.topBar
                         }
                     >
-                        <button
-                            type="button"
+                        <PendingNavigationButton
+                            mode="replace"
+                            href={collectionsHref}
+                            pendingText="Qaytilmoqda..."
                             aria-label="Badiiy asarlar testlariga qaytish"
-                            onClick={() =>
-                                router.replace(
-                                    collectionsHref,
-                                )
-                            }
                         >
                             <BackIcon />
-                        </button>
+                        </PendingNavigationButton>
 
                         <div>
                             <span>
@@ -1141,16 +1139,13 @@ export function StandardFiveTestRunner({
                             Qayta ishlash
                         </button>
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                router.replace(
-                                    collectionsHref,
-                                )
-                            }
+                        <PendingNavigationButton
+                            mode="replace"
+                            href={collectionsHref}
+                            pendingText="Qaytilmoqda..."
                         >
                             Testlarga qaytish
-                        </button>
+                        </PendingNavigationButton>
                     </div>
                 </div>
             </main>

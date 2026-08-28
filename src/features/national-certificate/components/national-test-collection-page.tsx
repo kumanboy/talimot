@@ -1,10 +1,6 @@
 "use client";
 
 import {
-    useRouter,
-} from "next/navigation";
-
-import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
 import {
@@ -185,13 +181,9 @@ function ArrowIcon() {
 
 function NationalTestCard({
                               collection,
-                              onOpen,
                           }: {
     readonly collection:
         NationalTestSummary;
-
-    readonly onOpen:
-        (href: string) => void;
 }) {
     const isPremium =
         collection.access ===
@@ -349,15 +341,16 @@ function NationalTestCard({
                     Sotib olish · {collection.tangaPrice} Tanga
                 </TestPurchaseButton>
             ) : (
-                <button
-                    type="button"
-                    onClick={() => onOpen(collection.href)}
+                <PendingNavigationButton
+                    mode="push"
+                    href={collection.href}
+                    pendingText={collection.topic === "diagnostika" ? "Diagnostika ochilmoqda..." : "Test ochilmoqda..."}
                 >
                     {collection.topic === "diagnostika"
                         ? "Diagnostikani boshlash"
                         : "Testni boshlash"}
                     <ArrowIcon />
-                </button>
+                </PendingNavigationButton>
             )}
         </article>
     );
@@ -369,8 +362,6 @@ export function NationalTestCollectionPage({
                                                description,
                                                collections,
                                            }: NationalTestCollectionPageProps) {
-    const router = useRouter();
-
     const availableCount =
         collections.filter(
             (collection) =>
@@ -522,13 +513,6 @@ export function NationalTestCollectionPage({
                                     }
                                     collection={
                                         collection
-                                    }
-                                    onOpen={(
-                                        href,
-                                    ) =>
-                                        router.push(
-                                            href,
-                                        )
                                     }
                                 />
                             ),
