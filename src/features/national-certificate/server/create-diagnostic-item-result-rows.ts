@@ -98,7 +98,7 @@ function baseRow(
  */
 export function createDiagnosticItemResultRows(
     input: CreateRowsInput,
-): readonly NewDiagnosticAttemptItemResultRow[] {
+): NewDiagnosticAttemptItemResultRow[] {
     const scoreByQuestionId = new Map(
         input.result.questionResults.map((score) => [score.questionId, score] as const),
     );
