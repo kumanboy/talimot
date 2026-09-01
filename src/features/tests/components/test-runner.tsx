@@ -417,7 +417,91 @@ function splitStructuredQuestionPrefix(
 type ContextualQuestionPresentation = Pick<
     StructuredQuestionPresentation,
     "instruction" | "context" | "contextLabel"
->;
+> & {
+    readonly followUpQuestion: string | null;
+    readonly isVerse: boolean;
+};
+
+function splitVerseLines(
+    context: string,
+): readonly string[] {
+    const normalized =
+        context
+            .replace(/\s+/gu, " ")
+            .trim();
+
+    if (!normalized) {
+        return [];
+    }
+
+    const firstPass =
+        normalized
+            .replace(
+                /([.!?:])\s+(?=[A-ZА-ЯЁOʻʼ“"«—])/gu,
+                "$1\n",
+            )
+            .replace(
+                /,\s+(?=[A-ZА-ЯЁOʻʼ“"«—])/gu,
+                ",\n",
+            );
+
+    const lines = firstPass
+        .split(/\n+/u)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+    return lines.flatMap((line) => {
+        if (line.length <= 54 || !line.includes(",")) {
+            return [line];
+        }
+
+        const commaIndexes =
+            Array.from(line.matchAll(/,/gu))
+                .map((match) => match.index ?? -1)
+                .filter((index) => index > 14 && index < line.length - 14);
+
+        if (commaIndexes.length === 0) {
+            return [line];
+        }
+
+        const middle = line.length / 2;
+        const splitAt = commaIndexes.reduce(
+            (best, current) =>
+                Math.abs(current - middle) < Math.abs(best - middle)
+                    ? current
+                    : best,
+        );
+
+        return [
+            line.slice(0, splitAt + 1).trim(),
+            line.slice(splitAt + 1).trim(),
+        ].filter(Boolean);
+    });
+}
+
+function splitPoetryContext(
+    context: string,
+): {
+    readonly verse: string;
+    readonly followUpQuestion: string | null;
+} {
+    const followUpPattern =
+        /\s+((?:Abdulla\s+Oripov\s+qalamiga\s+mansub\s+ushbu\s+she[’‘ʻʼ']riy\s+parcha\s+haqida|She[’‘ʻʼ']riy\s+parchada\s+ifodalangan|Ushbu\s+she[’‘ʻʼ']riy\s+parchada|Ushbu\s+she[’‘ʻʼ']riy\s+parcha\s+haqida|Shavkat\s+Rahmonning\s+ushbu\s+parchasida)[\s\S]+)$/iu;
+
+    const match = context.match(followUpPattern);
+
+    if (!match || !match.index || !match[1]?.trim()) {
+        return {
+            verse: context.trim(),
+            followUpQuestion: null,
+        };
+    }
+
+    return {
+        verse: context.slice(0, match.index).trim(),
+        followUpQuestion: match[1].trim(),
+    };
+}
 
 function parseContextualQuestionPresentation(
     question: string,
@@ -433,6 +517,26 @@ function parseContextualQuestionPresentation(
 
     const hasSlashPlaceholder =
         question.includes("/");
+    const isVerse =
+        /she[’‘ʻʼ']riy\s+parchani\s+o[‘’ʻʼ']qing/iu.test(
+            presentation.instruction,
+        );
+
+    if (isVerse) {
+        const poetry =
+            splitPoetryContext(
+                presentation.context,
+            );
+
+        return {
+            ...presentation,
+            context: poetry.verse,
+            contextLabel: "PARCHA",
+            followUpQuestion:
+                poetry.followUpQuestion,
+            isVerse: true,
+        };
+    }
 
     return {
         ...presentation,
@@ -442,6 +546,8 @@ function parseContextualQuestionPresentation(
                 : presentation.contextLabel === "MATN"
                   ? "PARCHA"
                   : presentation.contextLabel,
+        followUpQuestion: null,
+        isVerse: false,
     };
 }
 
@@ -593,11 +699,18 @@ function ContextualQuestionBody({
 
                     <div
                         className={
-                            styles.questionSourceContent
+                            presentation.isVerse
+                                ? styles.verseSourceContent
+                                : styles.questionSourceContent
                         }
                     >
-                        {splitStructuredContext(
-                            presentation.context,
+                        {(presentation.isVerse
+                            ? splitVerseLines(
+                                presentation.context,
+                            )
+                            : splitStructuredContext(
+                                presentation.context,
+                            )
                         ).map((paragraph, index) => (
                             <p key={index}>
                                 {paragraph}
@@ -605,6 +718,16 @@ function ContextualQuestionBody({
                         ))}
                     </div>
                 </section>
+            )}
+
+            {presentation.followUpQuestion && (
+                <h2
+                    className={
+                        styles.contextFollowUpQuestion
+                    }
+                >
+                    {presentation.followUpQuestion}
+                </h2>
             )}
         </div>
     );

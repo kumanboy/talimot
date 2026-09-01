@@ -403,6 +403,30 @@
     gap: 8px;
 }
 
+.verseSourceContent {
+    display: grid;
+    gap: 4px;
+    padding-block: 2px 3px;
+}
+
+.verseSourceContent p {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 14px;
+    font-weight: 560;
+    line-height: 1.62;
+    letter-spacing: 0;
+}
+
+.contextFollowUpQuestion {
+    margin: 1px 2px 0;
+    color: var(--app-text);
+    font-size: 15px;
+    font-weight: 780;
+    line-height: 1.45;
+    letter-spacing: -0.012em;
+}
+
 .questionSourceCard p {
     margin: 0;
     color: var(--app-text);
@@ -1500,6 +1524,21 @@
 
     .questionSourceContent {
         gap: 7px;
+    }
+
+    .verseSourceContent {
+        gap: 3px;
+    }
+
+    .verseSourceContent p {
+        font-size: 13px;
+        line-height: 1.58;
+    }
+
+    .contextFollowUpQuestion {
+        margin-inline: 1px;
+        font-size: 14px;
+        line-height: 1.42;
     }
 
     .questionSourceCard p {

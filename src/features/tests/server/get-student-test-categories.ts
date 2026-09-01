@@ -137,6 +137,23 @@ function expectedNationalFormat(
     return "diagnostic" as const;
 }
 
+function isExpectedNationalFormat(
+    topic: NationalTestTopic,
+    format: string,
+): boolean {
+    if (topic === "badiiy-asarlar") {
+        return (
+            format === "standard" ||
+            format === "standard-five"
+        );
+    }
+
+    return format ===
+        expectedNationalFormat(
+            topic,
+        );
+}
+
 function formatTestCount(
     count: number,
 ): string {
@@ -149,7 +166,7 @@ const getPublishedCategoryDrafts = unstable_cache(
         adminTestDraftService.listPublished("morphology"),
         adminTestDraftService.listPublished("national-certificate"),
     ]),
-    ["student-test-categories-v1"],
+    ["student-test-categories-v2"],
     { revalidate: 60 },
 );
 
@@ -235,10 +252,10 @@ export async function getStudentTestCategories(): Promise<
             ).includes(
                 topic,
             ) ||
-            draft.format !==
-                expectedNationalFormat(
-                    topic,
-                )
+            !isExpectedNationalFormat(
+                topic,
+                draft.format,
+            )
         ) {
             continue;
         }

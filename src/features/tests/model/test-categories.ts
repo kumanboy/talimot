@@ -134,7 +134,7 @@ export const nationalCertificateTestCategories = [
         id: "literature",
         title: "Badiiy asarlar",
         description:
-            "Adiblar, asarlar va qahramonlarga doir 5 ta savol",
+            "Adiblar, asarlar, qahramonlar va she’riy parchalar bo‘yicha testlar",
         href:
             "/tests/milliy-sertifikat/badiiy-asarlar",
         icon: "literature",
