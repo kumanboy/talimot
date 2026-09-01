@@ -406,7 +406,7 @@ function convertStandardDraft(
                     "multiple-choice"
                 ) {
                     return fail(
-                        "Standart grammatika testida faqat variantli savollar bo‘lishi mumkin.",
+                        "Standart testda faqat variantli savollar bo‘lishi mumkin.",
                     );
                 }
 
@@ -418,7 +418,7 @@ function convertStandardDraft(
 
     if (questions.length !== 20) {
         fail(
-            "Standart grammatika testi 20 ta savoldan iborat bo‘lishi kerak.",
+            "Standart test 20 ta savoldan iborat bo‘lishi kerak.",
         );
     }
 

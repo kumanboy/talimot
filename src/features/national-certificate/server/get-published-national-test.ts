@@ -10,6 +10,9 @@ import type {
     RegisteredNationalTest,
 } from "@/features/national-certificate/model/national-test-registry";
 import type {
+    StandardTestDefinition,
+} from "@/features/tests/model/questions/types";
+import type {
     NationalTestTopic,
 } from "@/features/national-certificate/model/national-test-types";
 
@@ -39,7 +42,7 @@ async function getPublishedDraft(
 export async function getStudentNationalTest(
     topic: NationalTestTopic,
     slug: string,
-): Promise<RegisteredNationalTest | null> {
+): Promise<RegisteredNationalTest | StandardTestDefinition | null> {
     try {
         const draft =
             await getPublishedDraft(
@@ -55,6 +58,16 @@ export async function getStudentNationalTest(
             convertAdminTestDraftToStudentTest(
                 draft,
             );
+
+        if (
+            converted.kind ===
+                "standard"
+        ) {
+            return converted.topicSlug ===
+                topic
+                ? converted
+                : null;
+        }
 
         if (
             "topic" in converted &&

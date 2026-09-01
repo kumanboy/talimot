@@ -386,16 +386,30 @@ export async function previewAdminDocxImportAction(
                 }),
             ]);
 
+        const ignoredMammothStyleWarnings =
+            new Set([
+                "Unrecognised paragraph style: 'List Paragraph' (Style ID: ListParagraph)",
+                "Unrecognised paragraph style: 'Body Text' (Style ID: BodyText)",
+                "Unrecognised paragraph style: 'Table Paragraph' (Style ID: TableParagraph)",
+            ]);
+
         const warnings = [
             ...htmlResult.messages,
             ...rawTextResult.messages,
-        ].map(
-            (
-                item,
-                index,
-            ) =>
-                `${index + 1}. ${item.message}`,
-        );
+        ]
+            .filter(
+                (item) =>
+                    !ignoredMammothStyleWarnings.has(
+                        item.message,
+                    ),
+            )
+            .map(
+                (
+                    item,
+                    index,
+                ) =>
+                    `${index + 1}. ${item.message}`,
+            );
 
         let blocks =
             extractPreviewBlocks(

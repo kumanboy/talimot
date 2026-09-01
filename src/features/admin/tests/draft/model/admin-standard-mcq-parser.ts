@@ -30,6 +30,9 @@ const answerLinePattern =
 const compactAnswerKeyPattern =
     /(\d{1,3})\s*(?:=|[-–—:]|\))\s*([A-D])\b/giu;
 
+const compactAnswerKeyLinePattern =
+    /^(\d{1,3})\s*(?:[\.\):=]|[-–—])\s*([A-D])\s*$/iu;
+
 const headingPatterns =
     [
         /^#\s*/u,
@@ -37,6 +40,7 @@ const headingPatterns =
         /^savollar\b/iu,
         /^javoblar\b/iu,
         /^javoblar\s+kaliti\b/iu,
+        /^to['ʻʼ‘’`´]g['ʻʼ‘’`´]ri\s+javoblar\s+kaliti\b/iu,
         /^imlo\s+tip\b/iu,
     ];
 
@@ -387,6 +391,17 @@ export function parseStandardMcqDocument(
         const line
         of lines
     ) {
+        // Important: answer-key rows such as "1. B" also resemble
+        // numbered questions. Consume them first so they cannot replace
+        // the real question with the same source number.
+        if (
+            compactAnswerKeyLinePattern.test(
+                line,
+            )
+        ) {
+            continue;
+        }
+
         const questionMatch =
             questionStartPattern.exec(
                 line,

@@ -7,6 +7,7 @@ export type NationalTestTopic =
     | "diagnostika";
 
 export type NationalTestFormat =
+    | "standard"
     | "passage-five"
     | "standard-five"
     | "mixed"

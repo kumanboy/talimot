@@ -4263,7 +4263,10 @@ export function AdminMultipleChoiceDraftEditor({
                     ? "ghazal"
                     : draft.metadata.topicSlug ===
                         "badiiy-asarlar"
-                      ? "literary-works"
+                      ? draft.metadata.format ===
+                            "standard"
+                          ? "standard"
+                          : "literary-works"
                       : draft.metadata.topicSlug ===
                           "aralash"
                         ? "mixed"

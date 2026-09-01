@@ -79,7 +79,7 @@ export function getAdminTestDraftPublishValidationMessages(
             )
         ) {
             messages.push(
-                "Standart grammatika testi nashr uchun aynan 20 ta variantli savoldan iborat bo‘lishi kerak.",
+                "Standart test nashr uchun aynan 20 ta variantli savoldan iborat bo‘lishi kerak.",
             );
         }
     }

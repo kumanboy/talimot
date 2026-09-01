@@ -6,6 +6,9 @@ import {
     StandardFiveTestRunner,
 } from "@/features/national-certificate/components/standard-five-test-runner";
 import {
+    TestRunnerClientOnly,
+} from "@/features/tests/components/test-runner-client-only";
+import {
     getStudentNationalTest,
 } from "@/features/national-certificate/server/get-published-national-test";
 
@@ -28,19 +31,35 @@ export default async function LiteraryWorksRoute({
             testSlug,
         );
 
-    if (
-        !test ||
-        test.kind !==
-            "standard-five" ||
-        test.topic !==
-            "badiiy-asarlar"
-    ) {
+    if (!test) {
         notFound();
     }
 
-    return (
-        <StandardFiveTestRunner
-            test={test}
-        />
-    );
+    if (
+        test.kind ===
+        "standard"
+    ) {
+        return (
+            <TestRunnerClientOnly
+                test={test}
+                collectionsHref="/tests/milliy-sertifikat/badiiy-asarlar"
+                testHref={`/tests/milliy-sertifikat/badiiy-asarlar/${testSlug}`}
+            />
+        );
+    }
+
+    if (
+        test.kind ===
+            "standard-five" &&
+        test.topic ===
+            "badiiy-asarlar"
+    ) {
+        return (
+            <StandardFiveTestRunner
+                test={test}
+            />
+        );
+    }
+
+    notFound();
 }

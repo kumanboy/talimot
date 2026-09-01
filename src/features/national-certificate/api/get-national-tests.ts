@@ -15,31 +15,36 @@ import type {
     NationalTestTopic,
 } from "@/features/national-certificate/model/national-test-types";
 
-function expectedFormat(
+function expectedFormats(
     topic:
         NationalTestTopic,
-): NationalTestFormat {
+): readonly NationalTestFormat[] {
     if (
         topic === "gazal" ||
         topic === "ilmiy-matn" ||
         topic === "badiiy-matn"
     ) {
-        return "passage-five";
+        return ["passage-five"];
     }
 
     if (
         topic === "badiiy-asarlar"
     ) {
-        return "standard-five";
+        // New literary-works tests are regular 20-question standard tests.
+        // Keep old 5-question published tests visible for backwards compatibility.
+        return [
+            "standard",
+            "standard-five",
+        ];
     }
 
     if (
         topic === "aralash"
     ) {
-        return "mixed";
+        return ["mixed"];
     }
 
-    return "diagnostic";
+    return ["diagnostic"];
 }
 
 function publishedNationalSummary(
@@ -58,9 +63,8 @@ function publishedNationalSummary(
             draft.description,
         topic,
         format:
-            expectedFormat(
-                topic,
-            ),
+            draft.format as
+                NationalTestFormat,
         questionCount:
             draft.questionCount,
         estimatedMinutes:
@@ -93,16 +97,17 @@ export async function getNationalTestsByTopic(
 > {
     await connection();
 
-    const requiredFormat =
-        expectedFormat(
-            topic,
+    const requiredFormats =
+        new Set(
+            expectedFormats(
+                topic,
+            ),
         );
     const publishedDrafts =
         await adminTestDraftService.listPublished(
             "national-certificate",
             {
                 topicSlug: topic,
-                format: requiredFormat,
             },
         );
 
@@ -117,8 +122,10 @@ export async function getNationalTestsByTopic(
             (draft) =>
                 draft.topicSlug ===
                     topic &&
-                draft.format ===
-                    requiredFormat,
+                requiredFormats.has(
+                    draft.format as
+                        NationalTestFormat,
+                ),
         )
         .map(
             (draft) =>

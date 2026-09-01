@@ -92,7 +92,7 @@ const categoryRecommendations:
                 value: "Badiiy asarlar",
                 label: "Badiiy asarlar",
                 topicSlug: "badiiy-asarlar",
-                format: "standard-five",
+                format: "standard",
             },
             {
                 value: "Ilmiy matn",

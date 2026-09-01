@@ -64,7 +64,7 @@ const allowedAccess =
 const nationalCertificateCategoryRoutes = {
     "Badiiy asarlar": {
         topicSlug: "badiiy-asarlar",
-        format: "standard-five",
+        format: "standard",
     },
     "Ilmiy matn": {
         topicSlug: "ilmiy-matn",
