@@ -315,6 +315,29 @@ type StructuredQuestionPresentation = {
         readonly StructuredQuestionStatement[];
 };
 
+function splitStructuredContext(
+    context: string,
+): readonly string[] {
+    const normalized =
+        context
+            .replace(/\s*\n\s*/gu, "\n")
+            .trim();
+
+    if (normalized.length === 0) {
+        return [];
+    }
+
+    const byLines = normalized
+        .split(/\n+/u)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    if (byLines.length > 1) {
+        return byLines;
+    }
+
+    return [normalized];
+}
 function splitStructuredQuestionPrefix(
     prefix: string,
 ): Pick<
@@ -326,7 +349,7 @@ function splitStructuredQuestionPrefix(
 
     const labelledContextMatch =
         normalized.match(
-            /^(.*?)(?:\s+)(Parcha|Matn|Gap)\s*:\s*(.+)$/iu,
+            /^(.*?)(?:\s+)(Parcha|Matn|Gap)\s*:\s*([\s\S]+)$/iu,
         );
 
     if (
@@ -395,7 +418,7 @@ function parseStructuredQuestionPresentation(
     question: string,
 ): StructuredQuestionPresentation | null {
     const statementPattern =
-        /\((\d{1,2})\)\s*/gu;
+        /(?:\((\d{1,2})\)|(\d{1,2})[.)])\s*/gu;
 
     const matches =
         Array.from(
@@ -415,7 +438,8 @@ function parseStructuredQuestionPresentation(
         matches.map(
             (match) =>
                 Number(
-                    match[1],
+                    match[1] ??
+                        match[2],
                 ),
         );
 
@@ -540,11 +564,21 @@ function StructuredQuestionBody({
                         }
                     </span>
 
-                    <p>
-                        {
-                            presentation.context
+                    <div
+                        className={
+                            styles.questionSourceContent
                         }
-                    </p>
+                    >
+                        {splitStructuredContext(
+                            presentation.context,
+                        ).map((paragraph, index) => (
+                            <p
+                                key={index}
+                            >
+                                {paragraph}
+                            </p>
+                        ))}
+                    </div>
                 </section>
             )}
 

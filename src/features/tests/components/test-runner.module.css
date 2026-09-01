@@ -350,26 +350,42 @@
 }
 
 .questionSourceCard {
-    padding: 14px 15px;
+    display: grid;
+    gap: 10px;
+    padding: 15px 16px;
     border:
             1px solid
             color-mix(
                     in srgb,
-                    var(--app-primary) 22%,
+                    var(--app-primary) 24%,
                     var(--app-border)
             );
-    border-radius: 16px;
+    border-radius: 18px;
     background:
-            color-mix(
-                    in srgb,
-                    var(--app-primary-soft) 38%,
-                    var(--app-surface)
+            linear-gradient(
+                    180deg,
+                    color-mix(
+                            in srgb,
+                            var(--app-primary-soft) 48%,
+                            var(--app-surface)
+                    ) 0%,
+                    color-mix(
+                            in srgb,
+                            var(--app-surface) 96%,
+                            transparent
+                    ) 100%
             );
     box-shadow:
             inset 3px 0 0
             color-mix(
                     in srgb,
                     var(--app-primary) 72%,
+                    transparent
+            ),
+            0 12px 24px
+            color-mix(
+                    in srgb,
+                    #000 4%,
                     transparent
             );
 }
@@ -382,18 +398,24 @@
     text-transform: uppercase;
 }
 
+.questionSourceContent {
+    display: grid;
+    gap: 8px;
+}
+
 .questionSourceCard p {
-    margin: 7px 0 0;
+    margin: 0;
     color: var(--app-text);
-    font-size: 13px;
-    font-weight: 570;
-    line-height: 1.62;
+    font-size: 13.5px;
+    font-weight: 590;
+    line-height: 1.68;
     letter-spacing: -0.005em;
+    white-space: pre-line;
 }
 
 .statementSection {
     display: grid;
-    gap: 9px;
+    gap: 10px;
 }
 
 .statementHeader {
@@ -412,7 +434,7 @@
 
 .statementList {
     display: grid;
-    gap: 8px;
+    gap: 10px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -421,11 +443,11 @@
 .statementList li {
     display: grid;
     grid-template-columns:
-    30px
+    34px
     minmax(0, 1fr);
     align-items: start;
-    gap: 10px;
-    padding: 11px 12px;
+    gap: 11px;
+    padding: 12px 13px;
     border:
             1px solid
             color-mix(
@@ -433,38 +455,60 @@
                     var(--app-border) 78%,
                     transparent
             );
-    border-radius: 14px;
+    border-radius: 16px;
     background:
+            linear-gradient(
+                    180deg,
+                    color-mix(
+                            in srgb,
+                            var(--app-surface) 95%,
+                            transparent
+                    ) 0%,
+                    color-mix(
+                            in srgb,
+                            var(--app-primary-soft) 18%,
+                            var(--app-surface)
+                    ) 100%
+            );
+    box-shadow:
+            0 10px 20px
             color-mix(
                     in srgb,
-                    var(--app-surface) 88%,
+                    #000 4%,
                     transparent
             );
 }
 
 .statementNumber {
     display: grid;
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     place-items: center;
-    border-radius: 9px;
+    border-radius: 10px;
     background:
             color-mix(
                     in srgb,
-                    var(--app-primary) 12%,
+                    var(--app-primary) 14%,
                     var(--app-surface)
             );
     color: var(--app-primary);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 900;
+    box-shadow:
+            inset 0 0 0 1px
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 20%,
+                    transparent
+            );
 }
 
 .statementList p {
     margin: 1px 0 0;
     color: var(--app-text);
-    font-size: 12.5px;
-    font-weight: 590;
-    line-height: 1.55;
+    font-size: 13px;
+    font-weight: 620;
+    line-height: 1.6;
 }
 
 .answerSectionHeader {
@@ -1449,37 +1493,43 @@
     }
 
     .questionSourceCard {
-        padding: 12px 13px;
-        border-radius: 14px;
+        padding: 13px 13px;
+        border-radius: 16px;
+        gap: 9px;
+    }
+
+    .questionSourceContent {
+        gap: 7px;
     }
 
     .questionSourceCard p {
         font-size: 12.5px;
-        line-height: 1.58;
+        line-height: 1.62;
     }
 
     .statementList {
-        gap: 7px;
+        gap: 8px;
     }
 
     .statementList li {
         grid-template-columns:
-      28px
+      30px
       minmax(0, 1fr);
         gap: 9px;
-        padding: 10px 11px;
-        border-radius: 13px;
+        padding: 11px 11px;
+        border-radius: 14px;
     }
 
     .statementNumber {
-        width: 27px;
-        height: 27px;
-        border-radius: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        font-size: 10px;
     }
 
     .statementList p {
-        font-size: 12px;
-        line-height: 1.52;
+        font-size: 12.4px;
+        line-height: 1.56;
     }
 
     .answerSectionHeader {
