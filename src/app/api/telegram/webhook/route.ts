@@ -7,7 +7,7 @@ import {
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 import { processManualPaymentStatus } from "@/features/payments/server/process-manual-payment-status";
-import { getTelegramAdminUserId } from "@/features/telegram/server/telegram-bot-api";
+import { isTelegramAdminIdentity } from "@/features/telegram/server/telegram-bot-api";
 import { syncTelegramBotCommands } from "@/features/telegram/server/telegram-bot-commands";
 import {
     createVerificationCode,
@@ -461,9 +461,7 @@ async function handlePaymentDecisionCallback(
     callback: TelegramCallbackQuery,
     decision: PaymentDecisionCallback,
 ) {
-    const adminUserId = getTelegramAdminUserId();
-
-    if (!adminUserId || callback.from.id !== adminUserId) {
+    if (!isTelegramAdminIdentity(callback.from)) {
         await answerCallbackQuery(
             callback.id,
             "Bu amal faqat TA’LIMOT adminiga ruxsat etilgan.",

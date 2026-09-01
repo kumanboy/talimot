@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 
 import {
     STUDENT_SESSION_COOKIE,
@@ -215,31 +215,36 @@ export async function POST(request: NextRequest) {
             updatedAt: now,
         });
 
-        try {
-            const adminNotification = await sendManualPaymentAdminNotification({
-                id,
-                kind,
-                title,
-                amountSom,
-                fullName,
-                phone,
-                telegramUsername,
-            });
+        // Respond to the buyer as soon as the DB request exists. Telegram
+        // delivery runs after the response so a slow Bot API cannot leave the
+        // Mini App stuck on “So‘rov yaratilmoqda…”.
+        after(async () => {
+            try {
+                const adminNotification = await sendManualPaymentAdminNotification({
+                    id,
+                    kind,
+                    title,
+                    amountSom,
+                    fullName,
+                    phone,
+                    telegramUsername,
+                });
 
-            if (!adminNotification.sent) {
-                console.warn("Telegram payment admin notification skipped", {
-                    reason: adminNotification.reason,
+                if (!adminNotification.sent) {
+                    console.warn("Telegram payment admin notification skipped", {
+                        reason: adminNotification.reason,
+                        paymentId: id,
+                    });
+                }
+            } catch (notificationError) {
+                // Payment creation must not fail just because Telegram is
+                // temporarily unavailable. The request remains in Admin > To‘lovlar.
+                console.error("Telegram payment admin notification failed", {
                     paymentId: id,
+                    notificationError,
                 });
             }
-        } catch (notificationError) {
-            // Payment creation must not fail just because Telegram is temporarily
-            // unavailable. The request remains visible in Admin > To‘lovlar.
-            console.error("Telegram payment admin notification failed", {
-                paymentId: id,
-                notificationError,
-            });
-        }
+        });
 
         return NextResponse.json({
             ok: true,

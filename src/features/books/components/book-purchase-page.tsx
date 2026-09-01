@@ -24,6 +24,9 @@ import {
 import {
     createManualPaymentRequest,
 } from "@/features/payments/client/create-manual-payment-request";
+import {
+    openTelegramPaymentLink,
+} from "@/features/payments/client/open-telegram-payment-link";
 import { ButtonLoader } from "@/components/ui/button-loader";
 import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
@@ -223,8 +226,6 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
         if (paymentRequestLockRef.current || isCreatingPayment) return;
         paymentRequestLockRef.current = true;
         setIsCreatingPayment(true);
-        let leavingPage = false;
-
         try {
             const payment = await createManualPaymentRequest({
                 kind: "book",
@@ -271,15 +272,15 @@ export function BookPurchasePage({ book }: BookPurchasePageProps) {
                 .filter(Boolean)
                 .join("\n");
 
-            leavingPage = true;
-            window.location.href = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
+            paymentRequestLockRef.current = false;
+            setIsCreatingPayment(false);
+            openTelegramPaymentLink(
+                `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`,
+            );
         } catch (error) {
             window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
-        } finally {
-            if (!leavingPage) {
-                paymentRequestLockRef.current = false;
-                setIsCreatingPayment(false);
-            }
+            paymentRequestLockRef.current = false;
+            setIsCreatingPayment(false);
         }
     };
 

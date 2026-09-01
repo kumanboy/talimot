@@ -1,7 +1,8 @@
 import "server-only";
 
 import {
-    getTelegramAdminUserId,
+    getTelegramAdminUsername,
+    resolveTelegramAdminUserId,
     telegramBotApi,
 } from "@/features/telegram/server/telegram-bot-api";
 
@@ -28,12 +29,13 @@ export async function sendManualPaymentAdminNotification(input: {
     readonly phone: string | null;
     readonly telegramUsername: string | null;
 }) {
-    const adminUserId = getTelegramAdminUserId();
+    const adminUserId = await resolveTelegramAdminUserId();
 
     if (!adminUserId) {
         return {
             sent: false as const,
-            reason: "admin_not_configured" as const,
+            reason: "admin_not_reachable" as const,
+            adminUsername: getTelegramAdminUsername(),
         };
     }
 

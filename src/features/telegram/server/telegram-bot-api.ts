@@ -1,5 +1,12 @@
 import "server-only";
 
+import { sql } from "drizzle-orm";
+
+import { db } from "@/lib/database/db";
+import { users } from "@/lib/database/schema/users";
+
+const DEFAULT_TELEGRAM_ADMIN_USERNAME = "husan_davronov";
+
 function requireEnvironment(key: string): string {
     const value = process.env[key]?.trim();
 
@@ -24,6 +31,65 @@ export function getTelegramAdminUserId(): number | null {
     return Number.isSafeInteger(parsed) && parsed > 0
         ? parsed
         : null;
+}
+
+export function getTelegramAdminUsername(): string {
+    return (
+        process.env.TELEGRAM_ADMIN_USERNAME?.trim() ||
+        DEFAULT_TELEGRAM_ADMIN_USERNAME
+    )
+        .replace(/^@/, "")
+        .toLowerCase();
+}
+
+/**
+ * Telegram Bot API cannot proactively address a private user by @username.
+ * Resolve @husan_davronov to the chat/user ID already stored by TA’LIMOT
+ * after that account has used the bot. A numeric env ID remains a fallback.
+ */
+export async function resolveTelegramAdminUserId(): Promise<number | null> {
+    const username = getTelegramAdminUsername();
+
+    try {
+        // Prefer the live chat ID belonging to @husan_davronov in TA’LIMOT.
+        // This avoids making payment alerts depend on remembering a numeric ID.
+        const [adminUser] = await db
+            .select({
+                telegramChatId: users.telegramChatId,
+                telegramUserId: users.telegramUserId,
+            })
+            .from(users)
+            .where(
+                sql`lower(ltrim(${users.telegramUsername}, '@')) = ${username}`,
+            )
+            .limit(1);
+
+        const resolved = adminUser?.telegramChatId ?? adminUser?.telegramUserId ?? null;
+
+        if (typeof resolved === "number" && Number.isSafeInteger(resolved) && resolved > 0) {
+            return resolved;
+        }
+    } catch (error) {
+        console.error("Telegram admin username lookup failed", {
+            username,
+            error,
+        });
+    }
+
+    // Numeric env remains a safe fallback for deployments where the admin
+    // account is not represented in the users table yet.
+    return getTelegramAdminUserId();
+}
+
+export function isTelegramAdminIdentity(input: {
+    readonly id: number;
+    readonly username?: string;
+}): boolean {
+    const configuredId = getTelegramAdminUserId();
+    const normalizedUsername = input.username?.replace(/^@/, "").toLowerCase();
+    const usernameMatches = normalizedUsername === getTelegramAdminUsername();
+
+    return (configuredId !== null && input.id === configuredId) || usernameMatches;
 }
 
 export async function telegramBotApi<T>(

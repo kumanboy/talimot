@@ -1,63 +1,70 @@
-# TA’LIMOT — Telegram bot admin + UX update
+# TA’LIMOT — Telegram bot admin + payment UX update (v10.6.2)
 
-## Added
+## Included
 
 ### 1. Bot commands
-Private-chat command list:
+Private-chat command list remains:
 
-- `/platforma` — opens TA’LIMOT only for an active registered TA’LIMOT user; required Telegram-channel membership is still checked before the platform link is sent.
-- `/start` — registered users get a compact command menu; unregistered/unsubscribed users keep the existing subscription/onboarding flow.
-- `/balans` — active registered users get their DB-backed Tanga balance and a secure signed button to `/packages`.
+- `/platforma` — opens TA’LIMOT only for an active registered TA’LIMOT user; required Telegram-channel membership is still checked.
+- `/start` — registered users get the compact bot menu; unregistered/unsubscribed users keep the existing onboarding flow.
+- `/balans` — active registered users get their DB-backed Tanga balance and the TA’LIMOT button.
 
-Admin > Telegram has a `Bot buyruqlarini o‘rnatish` action. Run it once after production deploy so Telegram stores the three commands globally for private chats.
+### 2. Admin Telegram target
+Payment alerts are intended for:
 
-### 2. Rasmli Telegram broadcast
-New Admin route: `/admin/telegram`
+`@husan_davronov`
 
-- Upload JPG / PNG / WEBP up to 8 MB.
-- Enter a caption up to 1000 characters.
-- The server selects active TA’LIMOT users with a linked `telegram_chat_id` from the existing `users` table.
-- The first successful send uploads the image once; later sends reuse Telegram's `file_id`.
-- Delivery failures (blocked bot, invalid chat, Telegram error) do not stop the remaining recipients.
-- The Admin UI reports total / sent / failed counts.
+The server now resolves this username to the existing `telegram_chat_id` / `telegram_user_id` in the TA’LIMOT `users` table. This means a separate numeric Telegram ID is no longer required when that Telegram account is already registered and linked to TA’LIMOT.
 
-### 3. Payment approve / reject in Telegram
-When a new `manual_payments` row is created for `tanga`, `book`, or `course`, the configured admin Telegram user receives a message with:
+Optional overrides:
+
+- `TELEGRAM_ADMIN_USERNAME=husan_davronov`
+- `TELEGRAM_ADMIN_USER_ID=<numeric Telegram ID>` as a fallback
+- legacy `ADMIN_ID` remains a fallback
+
+Important Telegram rule: a bot cannot start a private conversation with a user who has never opened the bot. `@husan_davronov` should send `/start` to the TA’LIMOT bot at least once.
+
+### 3. Payment request loading fix
+Tanga, Book and Course payment request buttons no longer remain stuck on:
+
+`So‘rov yaratilmoqda…`
+
+Changes:
+
+- the payment row is created in DB first;
+- the buyer receives the API response immediately;
+- admin Telegram notification runs with Next.js `after(...)`, so a slow Telegram Bot API does not block the buyer request;
+- inside Telegram Mini App the app uses `Telegram.WebApp.openTelegramLink(...)` when available instead of depending only on `window.location.href`;
+- local loading/lock state is released as soon as the DB payment request is successfully created.
+
+### 4. Approve / Reject from admin phone
+Every new `tanga`, `book`, or `course` manual payment sends the admin a Telegram message with:
 
 - payment code
-- user name / phone / Telegram username
+- buyer name
+- phone
+- Telegram username
 - payment kind
-- title
+- product/package title
 - amount
 - `✅ Tasdiqlash`
 - `❌ Rad etish`
 
-Both Telegram callbacks and Admin > To‘lovlar now use the same server-side payment processor.
+The callback accepts the configured numeric admin ID **or the exact Telegram username `@husan_davronov`**.
 
-Safety:
+Both Telegram and Admin > To‘lovlar still use the same DB-backed processor:
 
-- callback sender must match the configured Telegram admin user ID;
 - payment row is locked `FOR UPDATE`;
 - only `pending` can be processed;
-- duplicate callback clicks return `already_processed`;
-- confirmed Tanga credits still use the existing atomic `apply_tanga_transaction(...)` DB function;
-- Telegram notification delivery cannot roll back or falsely mark an already-committed payment as failed.
-
-## Required Vercel environment variable
-
-Add:
-
-`TELEGRAM_ADMIN_USER_ID=<your Telegram numeric user ID>`
-
-For backwards compatibility, existing `ADMIN_ID` is also accepted if present.
-
-Existing values still required by the bot remain unchanged, including the bot token, webhook secret, app URL, and auth/session secret.
+- duplicate callback presses cannot process the same payment twice;
+- confirmed Tanga still credits through the existing atomic `apply_tanga_transaction(...)` function;
+- user payment/Tanga notifications remain best-effort after commit.
 
 ## SQL
 
 **No new SQL migration is required.**
 
-The update reuses the existing:
+Existing structures are reused:
 
 - `users`
 - `manual_payments`
@@ -65,21 +72,20 @@ The update reuses the existing:
 - `tanga_transactions`
 - `apply_tanga_transaction(...)`
 
-## Deployment order
+## Exact deployment / test order
 
-1. Add `TELEGRAM_ADMIN_USER_ID` in Vercel Production environment variables.
-2. Deploy the updated project.
-3. Open `/admin/telegram` on desktop.
-4. Click `Bot buyruqlarini o‘rnatish` once.
-5. Test `/start`, `/platforma`, `/balans` in the bot.
-6. Create one small Tanga payment request and verify the admin bot receives Approve / Reject.
-7. Approve it once; click Approve again and verify Tanga is not credited twice.
-8. Create a course or book payment and test both Approve and Reject.
-9. From `/admin/telegram`, send one test image post and verify registered Telegram-linked users receive image + caption as one Telegram post.
+1. Make sure the Telegram account `@husan_davronov` is the account linked to your TA’LIMOT user and send `/start` to the bot once.
+2. Deploy this ZIP to Vercel.
+3. In Admin > Telegram, click `Bot buyruqlarini o‘rnatish` if the commands have not already been installed.
+4. Create a small Tanga request in Telegram Mini App. The loader must stop and Telegram chat should open.
+5. Verify `@husan_davronov` receives the payment notification with `✅ Tasdiqlash / ❌ Rad etish`.
+6. Approve the Tanga payment from the phone. Verify the wallet is credited once.
+7. Press the old Approve button again. It must report that the payment was already processed and must not credit again.
+8. Repeat with one Course request and one Book request; test both approve and reject.
 
-## Validation performed locally
+## Local validation
 
-- Changed TypeScript/TSX files parsed with the TypeScript parser: no syntax errors.
-- Local `@/` and relative import resolution check passed.
-- Targeted `git diff --check` for changed feature files passed.
-- `npm ci` could not complete within the local execution timeout, so a full Next.js production build was not claimed. Vercel production build remains the final verification.
+- 401 TypeScript/TSX files parsed with TypeScript parser: 0 syntax errors.
+- All local `@/` and relative imports resolve.
+- Only targeted Telegram/payment files changed from v10.6.1.
+- `npm ci` did not complete inside the local timeout, so a full Next.js production build is not claimed. Vercel production build remains the final verification.

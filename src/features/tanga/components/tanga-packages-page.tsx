@@ -28,6 +28,9 @@ import {
 import {
     createManualPaymentRequest,
 } from "@/features/payments/client/create-manual-payment-request";
+import {
+    openTelegramPaymentLink,
+} from "@/features/payments/client/open-telegram-payment-link";
 import styles from "./tanga-packages-page.module.css";
 
 
@@ -199,8 +202,6 @@ export function TangaPackagesPage() {
         if (paymentRequestLockRef.current || isCreatingPayment || !walletUser) return;
         paymentRequestLockRef.current = true;
         setIsCreatingPayment(true);
-        let leavingPage = false;
-
         try {
             const payment = await createManualPaymentRequest({
                 kind: "tanga",
@@ -210,15 +211,18 @@ export function TangaPackagesPage() {
                 telegramMessage,
                 `To‘lov ID: ${payment.paymentCode}`,
             ].join("\n");
-            leavingPage = true;
-            window.location.href = `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`;
+
+            // The payment request already exists in DB at this point. Do not keep
+            // the Mini App button spinning while Telegram opens another chat.
+            paymentRequestLockRef.current = false;
+            setIsCreatingPayment(false);
+            openTelegramPaymentLink(
+                `https://t.me/${MANUAL_PAYMENT_TELEGRAM_USERNAME}?text=${encodeURIComponent(message)}`,
+            );
         } catch (error) {
             window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
-        } finally {
-            if (!leavingPage) {
-                paymentRequestLockRef.current = false;
-                setIsCreatingPayment(false);
-            }
+            paymentRequestLockRef.current = false;
+            setIsCreatingPayment(false);
         }
     };
 

@@ -26,6 +26,9 @@ import {
 import {
     createManualPaymentRequest,
 } from "@/features/payments/client/create-manual-payment-request";
+import {
+    openTelegramPaymentLink,
+} from "@/features/payments/client/open-telegram-payment-link";
 
 import { ButtonLoader } from "@/components/ui/button-loader";
 import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
@@ -329,8 +332,6 @@ export function CoursePurchasePage({
         if (paymentRequestLockRef.current || isCreatingPayment) return;
         paymentRequestLockRef.current = true;
         setIsCreatingPayment(true);
-        let leavingPage = false;
-
         try {
             const payment = await createManualPaymentRequest({
                 kind: "course",
@@ -349,15 +350,13 @@ export function CoursePurchasePage({
                 paymentCode: payment.paymentCode,
             });
 
-            leavingPage = true;
-            window.location.href = telegramUrl;
+            paymentRequestLockRef.current = false;
+            setIsCreatingPayment(false);
+            openTelegramPaymentLink(telegramUrl);
         } catch (error) {
             window.alert(error instanceof Error ? error.message : "To‘lov so‘rovini yaratib bo‘lmadi.");
-        } finally {
-            if (!leavingPage) {
-                paymentRequestLockRef.current = false;
-                setIsCreatingPayment(false);
-            }
+            paymentRequestLockRef.current = false;
+            setIsCreatingPayment(false);
         }
     };
 
