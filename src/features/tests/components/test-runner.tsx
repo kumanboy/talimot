@@ -414,6 +414,33 @@ function splitStructuredQuestionPrefix(
     };
 }
 
+type ContextualQuestionPresentation = Pick<
+    StructuredQuestionPresentation,
+    "instruction" | "context" | "contextLabel"
+>;
+
+function parseContextualQuestionPresentation(
+    question: string,
+): ContextualQuestionPresentation | null {
+    if (!question.includes("/")) {
+        return null;
+    }
+
+    const presentation =
+        splitStructuredQuestionPrefix(
+            question,
+        );
+
+    if (!presentation.context) {
+        return null;
+    }
+
+    return {
+        ...presentation,
+        contextLabel: "GAP",
+    };
+}
+
 function parseStructuredQuestionPresentation(
     question: string,
 ): StructuredQuestionPresentation | null {
@@ -520,6 +547,63 @@ function parseStructuredQuestionPresentation(
         ...prefixParts,
         statements,
     };
+}
+
+function ContextualQuestionBody({
+    presentation,
+}: {
+    readonly presentation:
+        ContextualQuestionPresentation;
+}) {
+    return (
+        <div
+            className={
+                styles.structuredQuestion
+            }
+        >
+            <h1
+                id="current-question-title"
+                className={
+                    styles.structuredInstruction
+                }
+            >
+                {presentation.instruction}
+            </h1>
+
+            {presentation.context && (
+                <section
+                    className={
+                        styles.questionSourceCard
+                    }
+                    aria-label={
+                        presentation.contextLabel
+                    }
+                >
+                    <span
+                        className={
+                            styles.questionSectionEyebrow
+                        }
+                    >
+                        {presentation.contextLabel}
+                    </span>
+
+                    <div
+                        className={
+                            styles.questionSourceContent
+                        }
+                    >
+                        {splitStructuredContext(
+                            presentation.context,
+                        ).map((paragraph, index) => (
+                            <p key={index}>
+                                {paragraph}
+                            </p>
+                        ))}
+                    </div>
+                </section>
+            )}
+        </div>
+    );
 }
 
 function StructuredQuestionBody({
@@ -829,6 +913,20 @@ export function TestRunner({
                 ),
             [
                 currentQuestion.question,
+            ],
+        );
+
+    const contextualQuestion =
+        useMemo(
+            () =>
+                structuredQuestion
+                    ? null
+                    : parseContextualQuestionPresentation(
+                        currentQuestion.question,
+                    ),
+            [
+                currentQuestion.question,
+                structuredQuestion,
             ],
         );
 
@@ -2381,6 +2479,12 @@ export function TestRunner({
                                 structuredQuestion
                             }
                         />
+                    ) : contextualQuestion ? (
+                        <ContextualQuestionBody
+                            presentation={
+                                contextualQuestion
+                            }
+                        />
                     ) : (
                         <h1
                             id="current-question-title"
@@ -2391,7 +2495,7 @@ export function TestRunner({
                         </h1>
                     )}
 
-                    {structuredQuestion && (
+                    {(structuredQuestion || contextualQuestion) && (
                         <div
                             className={
                                 styles.answerSectionHeader
@@ -2410,7 +2514,7 @@ export function TestRunner({
                     <div
                         className={[
                             styles.options,
-                            structuredQuestion
+                            structuredQuestion || contextualQuestion
                                 ? styles.structuredOptions
                                 : "",
                         ].join(" ")}
