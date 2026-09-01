@@ -4249,6 +4249,20 @@ export function AdminMultipleChoiceDraftEditor({
         draft.metadata.format ===
         "diagnostic";
 
+    const isPassageFiveNationalTest =
+        draft.metadata.group ===
+            "national-certificate" &&
+        draft.metadata.format ===
+            "passage-five" &&
+        (
+            draft.metadata.topicSlug ===
+                "gazal" ||
+            draft.metadata.topicSlug ===
+                "ilmiy-matn" ||
+            draft.metadata.topicSlug ===
+                "badiiy-matn"
+        );
+
     const docxParserTarget =
         draft.metadata.group ===
             "national-certificate"
@@ -4831,7 +4845,48 @@ export function AdminMultipleChoiceDraftEditor({
                 />
             )}
 
-            {!isDiagnostic && (
+            {!isDiagnostic &&
+                isPassageFiveNationalTest && (
+                <AdminDiagnosticSectionDocxImporter
+                    target={
+                        draft.metadata.topicSlug ===
+                            "gazal"
+                            ? "ghazal"
+                            : draft.metadata.topicSlug ===
+                                "ilmiy-matn"
+                              ? "scientific-text"
+                              : "literary-text"
+                    }
+                    title={
+                        draft.metadata.topicSlug ===
+                            "gazal"
+                            ? "G‘azal + lug‘at + 5 savol DOCX import"
+                            : draft.metadata.topicSlug ===
+                                "ilmiy-matn"
+                              ? "Ilmiy matn + 5 savol DOCX import"
+                              : "Badiiy matn + 5 savol DOCX import"
+                    }
+                    rangeLabel="Matn + 5 savol"
+                    eyebrow="MILLIY SERTIFIKAT DOCX"
+                    scopeBadge="1 ta matn va 5 ta savol import qilinadi"
+                    importButtonLabel="DOCX ni draftga import qilish"
+                    onImportPassage={
+                        draft.metadata.topicSlug ===
+                            "gazal"
+                            ? undefined
+                            : importParsedPassage
+                    }
+                    onImportGhazal={
+                        draft.metadata.topicSlug ===
+                            "gazal"
+                            ? importParsedGhazal
+                            : undefined
+                    }
+                />
+            )}
+
+            {!isDiagnostic &&
+                !isPassageFiveNationalTest && (
                 <AdminDocxImportPreview
                     parserTarget={
                         docxParserTarget

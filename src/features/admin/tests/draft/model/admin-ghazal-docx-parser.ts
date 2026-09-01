@@ -218,6 +218,298 @@ function parseVocabulary(
     return vocabulary;
 }
 
+
+function splitRawParagraphs(
+    rawText: string,
+): readonly string[] {
+    return rawText
+        .replace(/\r\n?/gu, "\n")
+        .split(/\n{2,}/u)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+}
+
+function parseCompactFiveQuestionGhazal(
+    rawText: string,
+): AdminGhazalDocxParseResult | null {
+    const paragraphs =
+        splitRawParagraphs(rawText);
+
+    const questionIndexes =
+        paragraphs.flatMap(
+            (paragraph, index) =>
+                /^(?:28|29|30|31|32)\.\s*/u.test(
+                    paragraph,
+                )
+                    ? [index]
+                    : [],
+        );
+
+    if (questionIndexes.length !== 5) {
+        return null;
+    }
+
+    const firstQuestionIndex =
+        questionIndexes[0] ?? -1;
+    const firstBlockEnd =
+        questionIndexes[1] ?? paragraphs.length;
+    const firstBlock =
+        paragraphs.slice(
+            firstQuestionIndex,
+            firstBlockEnd,
+        );
+    const firstHeaderParagraph =
+        firstBlock[0] ?? "";
+    const firstHeaderLines =
+        splitAdminDocxRawText(
+            firstHeaderParagraph,
+        );
+    const firstContextParagraph =
+        firstHeaderLines.length > 2
+            ? firstHeaderParagraph
+            : firstBlock.find(
+                (paragraph, index) =>
+                    index > 0 &&
+                    !/^[A-D][\)\.:\-]\s*/u.test(paragraph) &&
+                    !/^(?:JAVOB|TOʻGʻRI JAVOB)\s*:/iu.test(paragraph),
+            );
+
+    if (!firstContextParagraph) {
+        return null;
+    }
+
+    const contextLines =
+        splitAdminDocxRawText(
+            firstContextParagraph,
+        ).slice(
+            firstHeaderLines.length > 2
+                ? 1
+                : 0,
+        );
+
+    if (contextLines.length < 3) {
+        return null;
+    }
+
+    const vocabularyHeadingIndex =
+        contextLines.findIndex((line) =>
+            /^(?:LUGʻAT|LUGAT)\s*:?$/iu.test(
+                line,
+            ),
+        );
+
+    const ghazalLines =
+        (
+            vocabularyHeadingIndex >= 0
+                ? contextLines.slice(
+                    0,
+                    vocabularyHeadingIndex,
+                )
+                : contextLines.slice(0, -1)
+        ).filter(Boolean);
+
+    const vocabularyLines =
+        vocabularyHeadingIndex >= 0
+            ? contextLines.slice(
+                vocabularyHeadingIndex + 1,
+                -1,
+            )
+            : [];
+
+    const couplets =
+        parseCouplets(ghazalLines);
+
+    let vocabulary =
+        parseVocabulary(vocabularyLines);
+
+    if (
+        vocabulary.length === 0 &&
+        vocabularyLines.length >= 2
+    ) {
+        const pairedVocabulary:
+            AdminParsedGhazalVocabularyItem[] = [];
+
+        for (
+            let index = 0;
+            index + 1 < vocabularyLines.length;
+            index += 2
+        ) {
+            const term =
+                vocabularyLines[index]?.trim() ?? "";
+            const meaning =
+                vocabularyLines[index + 1]?.trim() ?? "";
+
+            if (term && meaning) {
+                pairedVocabulary.push({
+                    marker: null,
+                    term,
+                    meaning,
+                });
+            }
+        }
+
+        vocabulary =
+            pairedVocabulary;
+    }
+
+    const mcqLines: string[] = [];
+
+    questionIndexes.forEach(
+        (questionIndex, blockIndex) => {
+            const blockEnd =
+                questionIndexes[blockIndex + 1] ??
+                paragraphs.length;
+            const block =
+                paragraphs.slice(
+                    questionIndex,
+                    blockEnd,
+                );
+            const headerLines =
+                splitAdminDocxRawText(
+                    block[0] ?? "",
+                );
+            const header =
+                headerLines[0] ?? "";
+            const numberMatch =
+                /^(28|29|30|31|32)\.\s*/u.exec(
+                    header,
+                );
+
+            if (!numberMatch) {
+                return;
+            }
+
+            const sourceNumber =
+                Number(numberMatch[1]);
+            const contextParagraph =
+                headerLines.length > 2
+                    ? block[0]
+                    : block.find(
+                        (paragraph, index) =>
+                            index > 0 &&
+                            !/^[A-D][\)\.:\-]\s*/u.test(paragraph) &&
+                            !/^(?:JAVOB|TOʻGʻRI JAVOB)\s*:/iu.test(paragraph),
+                    );
+            const contextParagraphLines =
+                contextParagraph
+                    ? splitAdminDocxRawText(
+                        contextParagraph,
+                    ).slice(
+                        headerLines.length > 2
+                            ? 1
+                            : 0,
+                    )
+                    : headerLines;
+            const questionText =
+                contextParagraphLines.at(-1) ??
+                header.replace(
+                    /^(28|29|30|31|32)\.\s*/u,
+                    "",
+                );
+
+            mcqLines.push(
+                `${sourceNumber}. ${questionText}`,
+            );
+
+            for (const paragraph of block) {
+                const firstLine =
+                    splitAdminDocxRawText(
+                        paragraph,
+                    )[0] ?? "";
+
+                if (
+                    /^[A-D][\)\.:\-]\s*\S/u.test(
+                        firstLine,
+                    ) ||
+                    /^(?:JAVOB|TOʻGʻRI JAVOB)\s*[:\-]\s*[A-D]\s*$/iu.test(
+                        firstLine,
+                    )
+                ) {
+                    mcqLines.push(firstLine);
+                }
+            }
+        },
+    );
+
+    const mcq =
+        parseStandardMcqDocument(
+            mcqLines.join("\n"),
+        );
+
+    if (
+        couplets.length === 0 ||
+        mcq.questions.length !== 5
+    ) {
+        return null;
+    }
+
+    const titleParagraph =
+        paragraphs
+            .slice(0, firstQuestionIndex)
+            .find(Boolean) ?? null;
+
+    const issues: string[] = [];
+
+    if (vocabulary.length === 0) {
+        issues.push(
+            "Lug‘at topilmadi yoki bu g‘azalda lug‘at berilmagan.",
+        );
+    }
+
+    if (
+        mcq.answerKeyCount !== 5
+    ) {
+        issues.push(
+            "Barcha 5 savol uchun javob kaliti topilmadi.",
+        );
+    }
+
+    if (mcq.invalidCount > 0) {
+        issues.push(
+            `${mcq.invalidCount} ta savolda A–D variantlari to‘liq emas.`,
+        );
+    }
+
+    const confidenceScore =
+        Math.max(
+            0,
+            100 -
+                (vocabulary.length === 0 ? 5 : 0) -
+                (5 - mcq.answerKeyCount) * 5 -
+                mcq.invalidCount * 10,
+        );
+
+    const confidence =
+        mcq.invalidCount > 0 ||
+        mcq.questions.length !== 5
+            ? "invalid"
+            : issues.length === 0
+              ? "high"
+              : "review";
+
+    return {
+        metadata: {
+            title:
+                titleParagraph,
+            author:
+                null,
+            instruction:
+                "G‘azalni o‘qing va quyidagi topshiriqlarni bajaring.",
+            source:
+                null,
+        },
+        couplets,
+        vocabulary,
+        questions:
+            mcq.questions,
+        answerKeyCount:
+            mcq.answerKeyCount,
+        confidence,
+        confidenceScore,
+        issues,
+    };
+}
+
 export function parseGhazalDocxDocument(
     rawText:
         string,
@@ -249,7 +541,9 @@ export function parseGhazalDocxDocument(
         typeIndex < 0 &&
         ghazalIndex < 0
     ) {
-        return null;
+        return parseCompactFiveQuestionGhazal(
+            rawText,
+        );
     }
 
     const vocabularyIndex =

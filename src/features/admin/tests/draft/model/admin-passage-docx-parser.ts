@@ -26,7 +26,7 @@ const metadataPatterns = {
 } as const;
 
 const passageHeadingPattern =
-    /^(?:matn|passage)\s*$/iu;
+    /^(?:matn|passage)\s*:?\s*$/iu;
 const questionsHeadingPattern =
     /^(?:savollar|questions)\s*$/iu;
 const answersHeadingPattern =
@@ -105,6 +105,19 @@ function readMetadata(
             .map(topicFromText)
             .find((value): value is AdminPassageDocxTopic => Boolean(value)) ??
             "scientific-text";
+    }
+
+    if (!title) {
+        title =
+            lines
+                .slice(0, passageIndex)
+                .find((line) =>
+                    !metadataPatterns.topic.test(line) &&
+                    !metadataPatterns.author.test(line) &&
+                    !metadataPatterns.source.test(line) &&
+                    !metadataPatterns.instruction.test(line) &&
+                    !/^(?:BADIIY|ILMIY)\s+MATN\b/iu.test(line),
+                ) ?? null;
     }
 
     return {
@@ -323,7 +336,19 @@ export function parsePassageDocxDocument(
 ): AdminPassageDocxParseResult | null {
     const lines = splitAdminDocxRawText(rawText);
     const passageIndex = lines.findIndex((line) => passageHeadingPattern.test(line));
-    const questionsIndex = lines.findIndex((line) => questionsHeadingPattern.test(line));
+    const explicitQuestionsIndex = lines.findIndex((line) => questionsHeadingPattern.test(line));
+    const inferredQuestionsIndex =
+        passageIndex >= 0
+            ? lines.findIndex(
+                (line, index) =>
+                    index > passageIndex &&
+                    /^(?:18|19|20|21|22|23|24|25|26|27)\.\s+\S/u.test(line),
+            )
+            : -1;
+    const questionsIndex =
+        explicitQuestionsIndex > passageIndex
+            ? explicitQuestionsIndex
+            : inferredQuestionsIndex;
 
     if (passageIndex < 0 || questionsIndex <= passageIndex) {
         return null;
@@ -335,7 +360,12 @@ export function parsePassageDocxDocument(
     const metadata = readMetadata(lines, passageIndex);
     const passageLines = lines.slice(passageIndex + 1, questionsIndex);
     const questionEnd = answersIndex >= 0 ? answersIndex : lines.length;
-    const questionLines = lines.slice(questionsIndex + 1, questionEnd);
+    const questionLines = lines.slice(
+        explicitQuestionsIndex === questionsIndex
+            ? questionsIndex + 1
+            : questionsIndex,
+        questionEnd,
+    );
     const answerLines = answersIndex >= 0 ? lines.slice(answersIndex) : [];
     const questionDocument = [
         ...questionLines,

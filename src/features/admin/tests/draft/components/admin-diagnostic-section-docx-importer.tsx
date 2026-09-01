@@ -38,6 +38,9 @@ interface AdminDiagnosticSectionDocxImporterProps {
         AdminDiagnosticSectionDocxTarget;
     readonly title: string;
     readonly rangeLabel: string;
+    readonly eyebrow?: string;
+    readonly scopeBadge?: string;
+    readonly importButtonLabel?: string;
     readonly onImportDiagnostic?: (
         diagnostic:
             AdminDiagnosticDocxParseResult,
@@ -226,6 +229,9 @@ export function AdminDiagnosticSectionDocxImporter({
     target,
     title,
     rangeLabel,
+    eyebrow = "DIAGNOSTIKA DOCX",
+    scopeBadge = "Faqat shu bo‘lim yangilanadi",
+    importButtonLabel,
     onImportDiagnostic,
     onImportPassage,
     onImportGhazal,
@@ -361,7 +367,7 @@ export function AdminDiagnosticSectionDocxImporter({
             >
                 <div>
                     <span>
-                        DIAGNOSTIKA DOCX · {rangeLabel}
+                        {eyebrow} · {rangeLabel}
                     </span>
                     <h3>{title}</h3>
                     <p>
@@ -372,7 +378,7 @@ export function AdminDiagnosticSectionDocxImporter({
                 </div>
 
                 <strong>
-                    Faqat shu bo‘lim yangilanadi
+                    {scopeBadge}
                 </strong>
             </div>
 
@@ -532,7 +538,8 @@ export function AdminDiagnosticSectionDocxImporter({
                             handleImport
                         }
                     >
-                        {rangeLabel} ga import qilish
+                        {importButtonLabel ??
+                            `${rangeLabel} ga import qilish`}
                     </button>
                 </div>
             )}
