@@ -371,7 +371,7 @@ function splitStructuredQuestionPrefix(
 
     const imperativeMatch =
         normalized.match(
-            /^(.*?\b(?:aniqlang|toping|belgilang|yozing|hisoblang|ko[‘’ʻʼ'`]rsating)\s*[.!?])\s+(.+)$/iu,
+            /^(.*?\b(?:aniqlang|toping|belgilang|yozing|hisoblang|ko[‘’ʻʼ'`]rsating)\s*[.!?])\s*(?=[A-ZА-ЯЁOʻʼ“"«—])(.+)$/iu,
         );
 
     if (
@@ -390,7 +390,7 @@ function splitStructuredQuestionPrefix(
 
     const sentenceMatch =
         normalized.match(
-            /^(.+?[.!?])\s+([A-ZА-ЯЁOʻʼ“"«].+)$/u,
+            /^(.+?[.!?])\s*(?=[A-ZА-ЯЁOʻʼ“"«—])([A-ZА-ЯЁOʻʼ“"«—].+)$/u,
         );
 
     if (
@@ -437,11 +437,11 @@ function splitVerseLines(
     const firstPass =
         normalized
             .replace(
-                /([.!?:])\s+(?=[A-ZА-ЯЁOʻʼ“"«—])/gu,
+                /([.!?:])\s*(?=[A-ZА-ЯЁOʻʼ“"«—])/gu,
                 "$1\n",
             )
             .replace(
-                /,\s+(?=[A-ZА-ЯЁOʻʼ“"«—])/gu,
+                /,\s*(?=[A-ZА-ЯЁOʻʼ“"«—])/gu,
                 ",\n",
             );
 
@@ -486,7 +486,7 @@ function splitPoetryContext(
     readonly followUpQuestion: string | null;
 } {
     const followUpPattern =
-        /\s+((?:Abdulla\s+Oripov\s+qalamiga\s+mansub\s+ushbu\s+she[’‘ʻʼ']riy\s+parcha\s+haqida|She[’‘ʻʼ']riy\s+parchada\s+ifodalangan|Ushbu\s+she[’‘ʻʼ']riy\s+parchada|Ushbu\s+she[’‘ʻʼ']riy\s+parcha\s+haqida|Shavkat\s+Rahmonning\s+ushbu\s+parchasida)[\s\S]+)$/iu;
+        /(?:\s+|(?<=[.!?]))((?:Abdulla\s+Oripov\s+qalamiga\s+mansub\s+ushbu\s+she[’‘ʻʼ']riy\s+parcha\s+haqida|She[’‘ʻʼ']riy\s+parchada\s+ifodalangan|Ushbu\s+she[’‘ʻʼ']riy\s+parchada|Ushbu\s+she[’‘ʻʼ']riy\s+parcha\s+haqida|Shavkat\s+Rahmonning\s+ushbu\s+parchasida)[\s\S]+)$/iu;
 
     const match = context.match(followUpPattern);
 
