@@ -422,10 +422,6 @@ type ContextualQuestionPresentation = Pick<
 function parseContextualQuestionPresentation(
     question: string,
 ): ContextualQuestionPresentation | null {
-    if (!question.includes("/")) {
-        return null;
-    }
-
     const presentation =
         splitStructuredQuestionPrefix(
             question,
@@ -435,9 +431,17 @@ function parseContextualQuestionPresentation(
         return null;
     }
 
+    const hasSlashPlaceholder =
+        question.includes("/");
+
     return {
         ...presentation,
-        contextLabel: "GAP",
+        contextLabel:
+            hasSlashPlaceholder
+                ? "GAP"
+                : presentation.contextLabel === "MATN"
+                  ? "PARCHA"
+                  : presentation.contextLabel,
     };
 }
 
