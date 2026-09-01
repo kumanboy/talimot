@@ -12,6 +12,7 @@ import {
     getCourseBySlugFromDatabase,
 } from "@/features/catalog/server/catalog-repository";
 import { MANUAL_PAYMENT_METHOD } from "@/features/payments/config/manual-payment";
+import { sendManualPaymentAdminNotification } from "@/features/payments/server/send-manual-payment-admin-notification";
 import { tangaPackages } from "@/features/tanga/model/tanga-packages";
 import { db } from "@/lib/database/db";
 import { manualPayments } from "@/lib/database/schema/manual-payments";
@@ -213,6 +214,32 @@ export async function POST(request: NextRequest) {
             createdAt: now,
             updatedAt: now,
         });
+
+        try {
+            const adminNotification = await sendManualPaymentAdminNotification({
+                id,
+                kind,
+                title,
+                amountSom,
+                fullName,
+                phone,
+                telegramUsername,
+            });
+
+            if (!adminNotification.sent) {
+                console.warn("Telegram payment admin notification skipped", {
+                    reason: adminNotification.reason,
+                    paymentId: id,
+                });
+            }
+        } catch (notificationError) {
+            // Payment creation must not fail just because Telegram is temporarily
+            // unavailable. The request remains visible in Admin > To‘lovlar.
+            console.error("Telegram payment admin notification failed", {
+                paymentId: id,
+                notificationError,
+            });
+        }
 
         return NextResponse.json({
             ok: true,

@@ -17,6 +17,7 @@ export type AdminNavigationKey =
     | "products"
     | "tanga"
     | "payments"
+    | "telegram"
     | "essays"
     | "settings";
 
@@ -72,6 +73,11 @@ const adminNavigationItems:
             key: "payments",
             label: "To‘lovlar",
             href: "/admin/payments",
+        },
+        {
+            key: "telegram",
+            label: "Telegram",
+            href: "/admin/telegram",
         },
         {
             key: "essays",

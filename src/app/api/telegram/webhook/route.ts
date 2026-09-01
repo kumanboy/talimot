@@ -6,13 +6,16 @@ import {
 } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
+import { processManualPaymentStatus } from "@/features/payments/server/process-manual-payment-status";
+import { getTelegramAdminUserId } from "@/features/telegram/server/telegram-bot-api";
+import { syncTelegramBotCommands } from "@/features/telegram/server/telegram-bot-commands";
 import {
     createVerificationCode,
     hashVerificationCode,
     normalizeUzbekPhone,
 } from "@/features/auth/server/registration-security";
 import { db } from "@/lib/database/db";
-import { telegramAuthChallenges } from "@/lib/database/schema";
+import { tangaWallets, telegramAuthChallenges } from "@/lib/database/schema";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -163,6 +166,14 @@ function subscriptionKeyboard() {
             ],
         ],
     };
+}
+
+async function ensureBotCommandsSafely() {
+    try {
+        await syncTelegramBotCommands();
+    } catch (error) {
+        console.error("Telegram bot commands update failed", error);
+    }
 }
 
 async function setMenuButtonSafely(
@@ -385,7 +396,261 @@ async function sendContinueMessage(
     );
 }
 
+type PaymentDecisionCallback = {
+    readonly action: "confirm" | "reject";
+    readonly paymentId: string;
+};
+
+function parsePaymentDecisionCallback(
+    data: string | undefined,
+): PaymentDecisionCallback | null {
+    if (!data) return null;
+
+    const match =
+        /^payment_(confirm|reject):([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.exec(
+            data,
+        );
+
+    if (!match) return null;
+
+    return {
+        action: match[1].toLowerCase() as "confirm" | "reject",
+        paymentId: match[2],
+    };
+}
+
+async function updatePaymentAdminMessage(
+    callback: TelegramCallbackQuery,
+    statusText: string,
+) {
+    const chatId = callback.message?.chat.id;
+    const messageId = callback.message?.message_id;
+
+    if (!chatId || !messageId) return;
+
+    const originalText = callback.message?.text?.trim() || "💳 TO‘LOV SO‘ROVI";
+
+    try {
+        await telegramApi("editMessageText", {
+            chat_id: chatId,
+            message_id: messageId,
+            text: `${originalText}\n\n${statusText}`,
+            reply_markup: {
+                inline_keyboard: [],
+            },
+            disable_web_page_preview: true,
+        });
+    } catch (error) {
+        console.error("Telegram payment admin message update failed", error);
+
+        try {
+            await telegramApi("editMessageReplyMarkup", {
+                chat_id: chatId,
+                message_id: messageId,
+                reply_markup: {
+                    inline_keyboard: [],
+                },
+            });
+        } catch (markupError) {
+            console.error("Telegram payment buttons cleanup failed", markupError);
+        }
+    }
+}
+
+async function handlePaymentDecisionCallback(
+    callback: TelegramCallbackQuery,
+    decision: PaymentDecisionCallback,
+) {
+    const adminUserId = getTelegramAdminUserId();
+
+    if (!adminUserId || callback.from.id !== adminUserId) {
+        await answerCallbackQuery(
+            callback.id,
+            "Bu amal faqat TA’LIMOT adminiga ruxsat etilgan.",
+            true,
+        );
+        return;
+    }
+
+    try {
+        const result = await processManualPaymentStatus({
+            paymentId: decision.paymentId,
+            action: decision.action,
+            adminNote:
+                decision.action === "reject"
+                    ? "Telegram bot orqali rad etildi."
+                    : "Telegram bot orqali tasdiqlandi.",
+            processedBy: `telegram:${callback.from.id}`,
+        });
+
+        if (result.outcome === "missing") {
+            await answerCallbackQuery(
+                callback.id,
+                "To‘lov so‘rovi topilmadi.",
+                true,
+            );
+            return;
+        }
+
+        if (result.outcome === "already_processed") {
+            await answerCallbackQuery(
+                callback.id,
+                `Bu to‘lov avval qayta ishlangan: ${result.currentStatus}.`,
+                true,
+            );
+            await updatePaymentAdminMessage(
+                callback,
+                `ℹ️ HOLAT: ${result.currentStatus.toUpperCase()}`,
+            );
+            return;
+        }
+
+        const isConfirmed = result.outcome === "confirmed";
+        await answerCallbackQuery(
+            callback.id,
+            isConfirmed ? "To‘lov tasdiqlandi ✅" : "To‘lov rad etildi ❌",
+        );
+        await updatePaymentAdminMessage(
+            callback,
+            isConfirmed ? "✅ TASDIQLANDI" : "❌ RAD ETILDI",
+        );
+    } catch (error) {
+        console.error("Telegram payment decision failed", {
+            paymentId: decision.paymentId,
+            action: decision.action,
+            error,
+        });
+        await answerCallbackQuery(
+            callback.id,
+            "To‘lovni qayta ishlashda xatolik yuz berdi.",
+            true,
+        );
+    }
+}
+
+async function sendPlatformCommand(message: TelegramMessage) {
+    if (!message.from) return;
+
+    const user = await getUserByTelegramId(message.from.id);
+
+    if (!user || user.status !== "active") {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text:
+                "🔒 /platforma faqat TA’LIMOTda ro‘yxatdan o‘tgan foydalanuvchilar uchun.\n\n" +
+                "Avval /start buyrug‘i orqali ro‘yxatdan o‘tish jarayonini boshlang.",
+        });
+        return;
+    }
+
+    const subscribed = await isTelegramChannelMember(message.from.id);
+
+    if (!subscribed) {
+        await sendSubscriptionPrompt(message.chat.id);
+        return;
+    }
+
+    const entryUrl = createVerifiedEntryUrl(message.from.id, "/");
+
+    await telegramApi("sendMessage", {
+        chat_id: message.chat.id,
+        text: "🌐 TA’LIMOT platformasi tayyor. Quyidagi tugma orqali oching:",
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "🌐 TA’LIMOTni ochish",
+                        web_app: {
+                            url: entryUrl,
+                        },
+                    },
+                ],
+            ],
+        },
+        disable_web_page_preview: true,
+    });
+}
+
+async function sendBalanceCommand(message: TelegramMessage) {
+    if (!message.from) return;
+
+    const user = await getUserByTelegramId(message.from.id);
+
+    if (!user || user.status !== "active") {
+        await telegramApi("sendMessage", {
+            chat_id: message.chat.id,
+            text:
+                "🔒 /balans faqat TA’LIMOTda ro‘yxatdan o‘tgan foydalanuvchilar uchun.\n\n" +
+                "Avval /start buyrug‘i orqali ro‘yxatdan o‘ting.",
+        });
+        return;
+    }
+
+    const [wallet] = await db
+        .select({
+            balance: tangaWallets.balance,
+        })
+        .from(tangaWallets)
+        .where(eq(tangaWallets.userId, user.id))
+        .limit(1);
+
+    const balance = wallet?.balance ?? 0;
+    const entryUrl = createVerifiedEntryUrl(message.from.id, "/packages");
+
+    await telegramApi("sendMessage", {
+        chat_id: message.chat.id,
+        text: `🪙 Tanga balansingiz: ${balance} Tanga`,
+        reply_markup: {
+            inline_keyboard: [
+                [
+                    {
+                        text: "➕ Tanga olish",
+                        web_app: {
+                            url: entryUrl,
+                        },
+                    },
+                ],
+            ],
+        },
+    });
+}
+
+async function sendRegisteredStartMessage(message: TelegramMessage) {
+    if (!message.from) return false;
+
+    const user = await getUserByTelegramId(message.from.id);
+
+    if (!user || user.status !== "active") {
+        return false;
+    }
+
+    const subscribed = await isTelegramChannelMember(message.from.id);
+
+    if (!subscribed) {
+        return false;
+    }
+
+    await telegramApi("sendMessage", {
+        chat_id: message.chat.id,
+        text:
+            "Assalomu alaykum! 👋\n\n" +
+            "TA’LIMOT hisobingiz botga ulangan. Kerakli buyruqni tanlang:\n\n" +
+            "🌐 /platforma — platformani ochish\n" +
+            "🪙 /balans — Tanga balansini ko‘rish\n" +
+            "🔄 /start — botni qayta boshlash",
+    });
+
+    return true;
+}
+
 async function handleCallbackQuery(callback: TelegramCallbackQuery) {
+    const paymentDecision = parsePaymentDecisionCallback(callback.data);
+
+    if (paymentDecision) {
+        await handlePaymentDecisionCallback(callback, paymentDecision);
+        return;
+    }
+
     if (callback.data !== CHECK_SUBSCRIPTIONS_CALLBACK) {
         await answerCallbackQuery(callback.id);
         return;
@@ -677,12 +942,28 @@ async function handleMessage(message: TelegramMessage) {
         return;
     }
 
-    if (text === "/start" || text.startsWith("/start ")) {
-        // Visible reply first. Then remove both the old global Website fallback
-        // and this user's per-chat Website button until verification succeeds.
-        await sendSubscriptionPrompt(message.chat.id);
+    if (text === "/platforma" || text.startsWith("/platforma@")) {
+        await ensureBotCommandsSafely();
+        await sendPlatformCommand(message);
+        return;
+    }
+
+    if (text === "/balans" || text.startsWith("/balans@")) {
+        await ensureBotCommandsSafely();
+        await sendBalanceCommand(message);
+        return;
+    }
+
+    if (text === "/start" || text.startsWith("/start@") || text.startsWith("/start ")) {
+        await ensureBotCommandsSafely();
         await ensureDefaultMenuIsCommandsSafely();
         await hideWebsiteMenuButton(message.chat.id);
+
+        if (await sendRegisteredStartMessage(message)) {
+            return;
+        }
+
+        await sendSubscriptionPrompt(message.chat.id);
     }
 }
 
