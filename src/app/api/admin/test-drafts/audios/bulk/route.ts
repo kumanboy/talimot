@@ -34,7 +34,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_FILES = 60;
+const MAX_FILES = 120;
 const MAX_DECLARED_TOTAL_BYTES = 400 * 1024 * 1024;
 
 function errorResponse(

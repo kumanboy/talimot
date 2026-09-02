@@ -888,7 +888,8 @@ export function AdminMultipleChoiceDraftEditor({
         draft.metadata.format === "standard" ||
         draft.metadata.format === "morphology-standard" ||
         draft.metadata.format === "standard-five" ||
-        draft.metadata.format === "passage-five";
+        draft.metadata.format === "passage-five" ||
+        draft.metadata.format === "mixed";
 
     const audioZipTargets =
         useMemo(
@@ -949,6 +950,115 @@ export function AdminMultipleChoiceDraftEditor({
                         .filter((target) => target.sourceOrder >= 1 && target.sourceOrder <= 44)
                         .sort((left, right) => left.sourceOrder - right.sourceOrder)
                         .map(({ sourceOrder: _sourceOrder, ...target }) => target);
+                }
+
+                if (draft.metadata.format === "mixed") {
+                    const targets: {
+                        questionId: string;
+                        label: string;
+                        audio: AdminDraftMultipleChoiceQuestion["explanation"]["audio"];
+                        zipFileStem: string;
+                        sourceOrder: number;
+                        nestedOrder: number;
+                    }[] = [];
+
+                    for (const question of [...draft.questions].sort(
+                        (left, right) => left.order - right.order,
+                    )) {
+                        if (question.type === "essay") {
+                            continue;
+                        }
+
+                        const sourceOrder =
+                            question.sourceOrder ??
+                            question.order;
+                        const baseStem =
+                            `q${String(sourceOrder).padStart(2, "0")}`;
+
+                        if (question.type === "matching") {
+                            [...question.items]
+                                .sort((left, right) => left.order - right.order)
+                                .forEach((item, itemIndex) => {
+                                    const itemOrder =
+                                        item.sourceOrder ??
+                                        item.order ??
+                                        itemIndex + 1;
+
+                                    targets.push({
+                                        questionId: item.id,
+                                        label: `${sourceOrder}-savol · ${itemOrder}-band`,
+                                        audio: item.explanation?.audio ?? null,
+                                        zipFileStem: `${baseStem}-${String(itemOrder).padStart(2, "0")}`,
+                                        sourceOrder,
+                                        nestedOrder: itemOrder,
+                                    });
+                                });
+                            continue;
+                        }
+
+                        if (question.type === "multipart") {
+                            [...question.parts]
+                                .sort((left, right) => left.order - right.order)
+                                .forEach((part, partIndex) => {
+                                    const partLabel =
+                                        part.label
+                                            .trim()
+                                            .toLocaleLowerCase("uz")
+                                            .replace(/[^a-z0-9]+/giu, "") ||
+                                        String(partIndex + 1);
+
+                                    targets.push({
+                                        questionId: part.id,
+                                        label: `${sourceOrder}-savol · ${part.label})`,
+                                        audio: part.explanation?.audio ?? null,
+                                        zipFileStem: `${baseStem}-${partLabel}`,
+                                        sourceOrder,
+                                        nestedOrder: part.order,
+                                    });
+                                });
+                            continue;
+                        }
+
+                        if (question.type === "passage-group") {
+                            [...question.questions]
+                                .sort((left, right) => left.order - right.order)
+                                .forEach((nestedQuestion, nestedIndex) => {
+                                    const nestedSourceOrder =
+                                        nestedQuestion.sourceOrder ??
+                                        nestedQuestion.order ??
+                                        nestedIndex + 1;
+                                    targets.push({
+                                        questionId: nestedQuestion.id,
+                                        label: `${nestedSourceOrder}-savol`,
+                                        audio: nestedQuestion.explanation.audio,
+                                        zipFileStem: `q${String(nestedSourceOrder).padStart(2, "0")}`,
+                                        sourceOrder: nestedSourceOrder,
+                                        nestedOrder: 0,
+                                    });
+                                });
+                            continue;
+                        }
+
+                        targets.push({
+                            questionId: question.id,
+                            label: `${sourceOrder}-savol`,
+                            audio: question.explanation.audio,
+                            zipFileStem: baseStem,
+                            sourceOrder,
+                            nestedOrder: 0,
+                        });
+                    }
+
+                    return targets
+                        .sort((left, right) =>
+                            left.sourceOrder - right.sourceOrder ||
+                            left.nestedOrder - right.nestedOrder,
+                        )
+                        .map(({
+                            sourceOrder: _sourceOrder,
+                            nestedOrder: _nestedOrder,
+                            ...target
+                        }) => target);
                 }
 
                 if (
@@ -1034,6 +1144,24 @@ export function AdminMultipleChoiceDraftEditor({
                                     },
                                 }
                                 : item;
+                        }),
+                    };
+                }
+
+                if (question.type === "multipart") {
+                    return {
+                        ...question,
+                        parts: question.parts.map((part) => {
+                            const audio = audioByQuestionId.get(part.id);
+                            return audio
+                                ? {
+                                    ...part,
+                                    explanation: {
+                                        text: part.explanation?.text ?? "",
+                                        audio,
+                                    },
+                                }
+                                : part;
                         }),
                     };
                 }

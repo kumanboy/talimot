@@ -29,6 +29,12 @@ export interface AdminAudioZipTarget {
     readonly questionId: string;
     readonly label: string;
     readonly audio: AdminDraftAudioAsset | null;
+    /**
+     * Optional explicit ZIP filename stem (without extension).
+     * Used by mixed tests where one source question can contain
+     * multiple independently explained parts, e.g. q01-a.mp3.
+     */
+    readonly zipFileStem?: string;
 }
 
 interface PreparedAudio {
@@ -99,6 +105,23 @@ function parseQuestionNumber(fileName: string): number | null {
 
     const numeric = Number(match[1]);
     return Number.isInteger(numeric) && numeric > 0 ? numeric : null;
+}
+
+function normalizeZipAudioStem(fileName: string): string | null {
+    const normalized = fileName
+        .trim()
+        .replace(/\.(?:mp3|m4a|wav)$/iu, "")
+        .toLocaleLowerCase("uz")
+        .replace(/[ _]+/gu, "-")
+        .replace(/-{2,}/gu, "-");
+
+    return normalized.length > 0
+        ? normalized
+        : null;
+}
+
+function formatExpectedZipName(stem: string): string {
+    return `${stem}.mp3`;
 }
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -192,6 +215,36 @@ export function AdminAudioZipBulkImporter({
         [targets],
     );
 
+    const explicitStemMode = useMemo(
+        () => targets.some((target) => Boolean(target.zipFileStem)),
+        [targets],
+    );
+
+    const targetByStem = useMemo(
+        () => {
+            const result = new Map<string, AdminAudioZipTarget>();
+
+            targets.forEach((target) => {
+                if (!target.zipFileStem) {
+                    return;
+                }
+
+                const normalizedStem = normalizeZipAudioStem(target.zipFileStem);
+
+                if (!normalizedStem) {
+                    return;
+                }
+
+                if (!result.has(normalizedStem)) {
+                    result.set(normalizedStem, target);
+                }
+            });
+
+            return result;
+        },
+        [targets],
+    );
+
     async function analyze(file: File | null) {
         setAnalysis(null);
         setFeedback(null);
@@ -222,22 +275,53 @@ export function AdminAudioZipBulkImporter({
         try {
             const entries = await readAdminAudioZip(file);
             const foundNumbers = new Set<number>();
+            const foundStems = new Set<string>();
             const prepared: PreparedAudio[] = [];
             const unknownNames: string[] = [];
 
             for (const entry of entries) {
-                const questionNumber = parseQuestionNumber(entry.baseName);
-                const target = questionNumber === null
-                    ? null
-                    : targetByIndex.get(questionNumber) ?? null;
+                let target: AdminAudioZipTarget | null = null;
+                let clientId: string | null = null;
 
-                if (!target || questionNumber === null) {
-                    unknownNames.push(entry.baseName);
-                    continue;
+                if (explicitStemMode) {
+                    const stem = normalizeZipAudioStem(entry.baseName);
+
+                    target = stem
+                        ? targetByStem.get(stem) ?? null
+                        : null;
+
+                    if (target && stem) {
+                        if (foundStems.has(stem)) {
+                            throw new Error(
+                                `${entry.baseName}: bir audio nomi ZIP ichida takrorlangan.`,
+                            );
+                        }
+
+                        foundStems.add(stem);
+                        clientId = `bulk-${stem}`;
+                    }
+                } else {
+                    const questionNumber = parseQuestionNumber(entry.baseName);
+
+                    target = questionNumber === null
+                        ? null
+                        : targetByIndex.get(questionNumber) ?? null;
+
+                    if (target && questionNumber !== null) {
+                        if (foundNumbers.has(questionNumber)) {
+                            throw new Error(
+                                `${entry.baseName}: bir savol raqami ZIP ichida takrorlangan.`,
+                            );
+                        }
+
+                        foundNumbers.add(questionNumber);
+                        clientId = `bulk-${questionNumber}`;
+                    }
                 }
 
-                if (foundNumbers.has(questionNumber)) {
-                    throw new Error(`${entry.baseName}: bir savol raqami ZIP ichida takrorlangan.`);
+                if (!target || !clientId) {
+                    unknownNames.push(entry.baseName);
+                    continue;
                 }
 
                 if (entry.bytes.byteLength > ADMIN_TEST_AUDIO_MAX_BYTES) {
@@ -250,9 +334,8 @@ export function AdminAudioZipBulkImporter({
                     entry.baseName,
                 );
 
-                foundNumbers.add(questionNumber);
                 prepared.push({
-                    clientId: `bulk-${questionNumber}`,
+                    clientId,
                     questionId: target.questionId,
                     label: target.label,
                     fileName: entry.baseName,
@@ -262,19 +345,47 @@ export function AdminAudioZipBulkImporter({
                 });
             }
 
-            const missing = targets
-                .map((_target, index) => index + 1)
-                .filter((number) => !foundNumbers.has(number));
+            const missingNames = explicitStemMode
+                ? targets
+                    .filter((target) => {
+                        const stem = target.zipFileStem
+                            ? normalizeZipAudioStem(target.zipFileStem)
+                            : null;
+
+                        return !stem || !foundStems.has(stem);
+                    })
+                    .map((target) =>
+                        formatExpectedZipName(
+                            target.zipFileStem ?? target.label,
+                        ),
+                    )
+                : targets
+                    .map((_target, index) => index + 1)
+                    .filter((number) => !foundNumbers.has(number))
+                    .map((number) =>
+                        `q${String(number).padStart(2, "0")}.mp3`,
+                    );
 
             if (unknownNames.length > 0) {
+                const namingHint = explicitStemMode
+                    ? targets
+                        .slice(0, 4)
+                        .map((target) =>
+                            formatExpectedZipName(
+                                target.zipFileStem ?? "",
+                            ),
+                        )
+                        .join(", ")
+                    : "q01.mp3, q02.mp3 ...";
+
                 throw new Error(
-                    `ZIP ichida savolga mos kelmagan audio bor: ${unknownNames.slice(0, 5).join(", ")}${unknownNames.length > 5 ? "…" : ""}. Nomi q01.mp3, q02.mp3 ... ko‘rinishida bo‘lsin.`,
+                    `ZIP ichida savolga mos kelmagan audio bor: ${unknownNames.slice(0, 5).join(", ")}${unknownNames.length > 5 ? "…" : ""}. Kutilgan nomlar: ${namingHint}.`,
                 );
             }
 
-            if (missing.length > 0 || prepared.length !== targets.length) {
+            if (missingNames.length > 0 || prepared.length !== targets.length) {
                 throw new Error(
-                    `Audio soni savollar soniga mos emas. Kutilgan: ${targets.length}. Yetishmaydi: ${missing.map((number) => `q${String(number).padStart(2, "0")}`).join(", ") || "yo‘q"}.`,
+                    `Audio soni kutilgan targetlarga mos emas. Kutilgan: ${targets.length}. Yetishmaydi: ${missingNames.slice(0, 12).join(", ") || "yo‘q"}${missingNames.length > 12 ? "…" : ""}.`,
                 );
             }
 
@@ -448,7 +559,30 @@ export function AdminAudioZipBulkImporter({
                     <span className={styles.eyebrow}>AUDIO ZIP BULK IMPORT</span>
                     <h2 id="audio-zip-import-title">Savol izohlarini bitta ZIP bilan yuklash</h2>
                     <p>
-                        Audio nomlari <strong>q01.mp3, q02.mp3 ...</strong> bo‘lsin. Diagnostikada q01–q44 aynan 1–44-savollarga moslanadi; 45-esse uchun audio kutilmaydi. ZIP brauzerda ochiladi va fayllar bevosita Supabase Storage’ga yuklanadi.
+                        {explicitStemMode ? (
+                            <>
+                                Aralash testda audio nomlari savol/qismga mos bo‘lsin:
+                                {" "}
+                                <strong>
+                                    {targets
+                                        .slice(0, 4)
+                                        .map((target) =>
+                                            formatExpectedZipName(
+                                                target.zipFileStem ?? "",
+                                            ),
+                                        )
+                                        .join(", ")}
+                                    {targets.length > 4 ? " ..." : ""}
+                                </strong>
+                                . Masalan, multipart savolda q01-a va q01-b alohida izoh audiosi bo‘ladi.
+                            </>
+                        ) : (
+                            <>
+                                Audio nomlari <strong>q01.mp3, q02.mp3 ...</strong> bo‘lsin. Diagnostikada q01–q44 aynan 1–44-savollarga moslanadi; 45-esse uchun audio kutilmaydi.
+                            </>
+                        )}
+                        {" "}
+                        ZIP brauzerda ochiladi va fayllar bevosita Supabase Storage’ga yuklanadi.
                     </p>
                 </div>
                 <div className={styles.badge}>{targets.length || 0} AUDIO</div>
@@ -540,7 +674,13 @@ export function AdminAudioZipBulkImporter({
             )}
 
             <p className={styles.note}>
-                MP3, M4A yoki WAV · har audio 25 MB gacha · ZIP 250 MB gacha. Diagnostika uchun 44 ta audio to‘liq bo‘lishi kerak. Audio yuklangach “Draftni saqlash” majburiy.
+                MP3, M4A yoki WAV · har audio 25 MB gacha · ZIP 250 MB gacha.
+                {" "}
+                {explicitStemMode
+                    ? "Aralash testda ZIP ichidagi barcha ko‘rsatilgan qism audiosi to‘liq bo‘lishi kerak."
+                    : "Diagnostika uchun 44 ta audio to‘liq bo‘lishi kerak."}
+                {" "}
+                Audio yuklangach “Draftni saqlash” majburiy.
             </p>
         </section>
     );
