@@ -1313,7 +1313,7 @@ export function AdminMixedStructuredQuestionEditor({
                                                 Savol qismlari
                                             </strong>
                                             <span>
-                                                Har bir qism uchun prompt, javob va ballni tekshiring.
+                                                Har bir qism uchun prompt, javob va ballni tekshiring. Audio butun savol uchun bitta.
                                             </span>
                                         </div>
                                         <button
@@ -1362,6 +1362,34 @@ export function AdminMixedStructuredQuestionEditor({
                                             + Qism
                                         </button>
                                     </div>
+
+                                    {draftId &&
+                                        onQueueAudioStorageRemoval && (
+                                        <AdminQuestionAudioUploader
+                                            draftId={draftId}
+                                            questionId={question.id}
+                                            audio={
+                                                question.explanation.audio
+                                            }
+                                            onChange={(audio) =>
+                                                updateQuestion<AdminDraftMultipartQuestion>(
+                                                    question.id,
+                                                    {
+                                                        explanation: {
+                                                            ...question.explanation,
+                                                            audio,
+                                                        },
+                                                    },
+                                                )
+                                            }
+                                            onQueueStorageRemoval={(storagePath) =>
+                                                onQueueAudioStorageRemoval(
+                                                    question.id,
+                                                    storagePath,
+                                                )
+                                            }
+                                        />
+                                    )}
 
                                     <div
                                         className={
@@ -1658,48 +1686,7 @@ export function AdminMixedStructuredQuestionEditor({
                                                         </label>
                                                     </div>
 
-                                                    {draftId &&
-                                                        onQueueAudioStorageRemoval && (
-                                                        <AdminQuestionAudioUploader
-                                                            draftId={draftId}
-                                                            questionId={part.id}
-                                                            audio={
-                                                                part.explanation?.audio ??
-                                                                null
-                                                            }
-                                                            compact
-                                                            onChange={(audio) =>
-                                                                updateQuestion<AdminDraftMultipartQuestion>(
-                                                                    question.id,
-                                                                    {
-                                                                        parts:
-                                                                            question.parts.map(
-                                                                                (candidate) =>
-                                                                                    candidate.id ===
-                                                                                    part.id
-                                                                                        ? {
-                                                                                            ...candidate,
-                                                                                            explanation: {
-                                                                                                ...(candidate.explanation ?? {
-                                                                                                    text: "",
-                                                                                                    audio: null,
-                                                                                                }),
-                                                                                                audio,
-                                                                                            },
-                                                                                        }
-                                                                                        : candidate,
-                                                                            ),
-                                                                    },
-                                                                )
-                                                            }
-                                                            onQueueStorageRemoval={(storagePath) =>
-                                                                onQueueAudioStorageRemoval(
-                                                                    part.id,
-                                                                    storagePath,
-                                                                )
-                                                            }
-                                                        />
-                                                    )}
+
                                                 </div>
                                             ),
                                         )}

@@ -1438,16 +1438,25 @@ function DiagnosticAnswerReview({
 
                                                             <div>
                                                                 <dt>
-                                                                    Qabul
-                                                                    qilinadigan
-                                                                    javob
+                                                                    Platformadagi
+                                                                    to‘g‘ri javob
                                                                 </dt>
                                                                 <dd>
-                                                                    {
-                                                                        part.acceptedAnswers.join(
-                                                                            " / ",
+                                                                    {(
+                                                                        part.comparison ===
+                                                                            "manual-review" ||
+                                                                        (
+                                                                            page.question.order ===
+                                                                                44 &&
+                                                                            part.label ===
+                                                                                "b"
                                                                         )
-                                                                    }
+                                                                    )
+                                                                        ? "Qo‘lda tekshiriladi"
+                                                                        : part.acceptedAnswers.join(
+                                                                            " / ",
+                                                                        ) ||
+                                                                        "—"}
                                                                 </dd>
                                                             </div>
                                                         </dl>

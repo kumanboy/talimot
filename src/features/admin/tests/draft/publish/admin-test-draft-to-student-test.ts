@@ -302,13 +302,14 @@ function toWrittenComparison(
     if (
         value === "exact" ||
         value === "normalized" ||
-        value === "keywords"
+        value === "keywords" ||
+        value === "manual-review"
     ) {
         return value;
     }
 
     return fail(
-        "Manual-review javob rejimi avtomatik student testida nashr qilinmaydi.",
+        "Yozma javobni tekshirish rejimi aniqlanmadi.",
     );
 }
 
@@ -1486,6 +1487,10 @@ function mapMixedQuestion(
             nonEmpty(
                 question.context,
             );
+        const explanation =
+            mapExplanation(
+                question.explanation,
+            );
 
         return {
             type:
@@ -1509,13 +1514,27 @@ function mapMixedQuestion(
                     context,
                 }
                 : {}),
+            ...(explanation
+                ? {
+                    explanation,
+                }
+                : {}),
             parts:
                 question.parts.map(
                     (part) => {
-                        const explanation =
-                            mapExplanation(
-                                part.explanation,
-                            );
+                        const partExplanation =
+                            explanation
+                                ? undefined
+                                : mapExplanation(
+                                    part.explanation,
+                                );
+                        const isManualQuestion44Part =
+                            question.sourceOrder ===
+                                44 &&
+                            toMultipartLabel(
+                                part.label,
+                            ) ===
+                                "b";
 
                         return {
                             id:
@@ -1527,30 +1546,58 @@ function mapMixedQuestion(
                             question:
                                 part.prompt,
                             acceptedAnswers:
-                                part.acceptedAnswers,
+                                isManualQuestion44Part
+                                    ? []
+                                    : part.acceptedAnswers,
                             comparison:
-                                toWrittenComparison(
-                                    part.comparison,
-                                ),
-                            ...(part.requiredKeywords.length >
-                            0
-                                ? {
-                                    requiredKeywords:
-                                        part.requiredKeywords,
-                                }
-                                : {}),
+                                isManualQuestion44Part
+                                    ? "manual-review"
+                                    : toWrittenComparison(
+                                        part.comparison,
+                                    ),
+                            ...(
+                                !isManualQuestion44Part &&
+                                part.requiredKeywords.length >
+                                    0
+                                    ? {
+                                        requiredKeywords:
+                                            part.requiredKeywords,
+                                    }
+                                    : {}
+                            ),
                             score:
-                                part.maximumScore,
-                            ...(explanation
+                                isManualQuestion44Part
+                                    ? 0
+                                    : part.maximumScore,
+                            ...(partExplanation
                                 ? {
-                                    explanation,
+                                    explanation:
+                                        partExplanation,
                                 }
                                 : {}),
                         };
                     },
                 ),
             maximumScore:
-                question.maximumScore,
+                question.sourceOrder ===
+                44
+                    ? question.parts.reduce(
+                        (
+                            total,
+                            part,
+                        ) =>
+                            total +
+                            (
+                                toMultipartLabel(
+                                    part.label,
+                                ) ===
+                                "b"
+                                    ? 0
+                                    : part.maximumScore
+                            ),
+                        0,
+                    )
+                    : question.maximumScore,
         };
     }
 
@@ -1578,6 +1625,65 @@ function findInstruction(
     }
 
     return fallback;
+}
+
+function calculatePublishedMixedMaximumScore(
+    draft:
+        AdminTestDraft,
+): number {
+    const baseScore =
+        calculateAdminDraftMaximumScore(
+            draft,
+        );
+
+    const excludedManualScore =
+        draft.questions.reduce(
+            (
+                total,
+                question,
+            ) => {
+                if (
+                    question.type !==
+                        "multipart" ||
+                    question.sourceOrder !==
+                        44
+                ) {
+                    return total;
+                }
+
+                return (
+                    total +
+                    question.parts.reduce(
+                        (
+                            partTotal,
+                            part,
+                        ) =>
+                            partTotal +
+                            (
+                                toMultipartLabel(
+                                    part.label,
+                                ) ===
+                                "b"
+                                    ? part.maximumScore
+                                    : 0
+                            ),
+                        0,
+                    )
+                );
+            },
+            0,
+        );
+
+    return (
+        Math.round(
+            (
+                baseScore -
+                excludedManualScore
+            ) *
+                100,
+        ) /
+        100
+    );
 }
 
 function convertMixedDraft(
@@ -1609,7 +1715,7 @@ function convertMixedDraft(
                 draft,
             ),
         maximumScore:
-            calculateAdminDraftMaximumScore(
+            calculatePublishedMixedMaximumScore(
                 draft,
             ),
         estimatedMinutes:
@@ -1993,13 +2099,20 @@ function mapDiagnosticQuestion(
                     image,
                 }
                 : {}),
+            ...(explanation
+                ? {
+                    explanation,
+                }
+                : {}),
             parts:
                 question.parts.map(
                     (part) => {
                         const partExplanation =
-                            mapExplanation(
-                                part.explanation,
-                            );
+                            explanation
+                                ? undefined
+                                : mapExplanation(
+                                    part.explanation,
+                                );
 
                         return {
                             id:

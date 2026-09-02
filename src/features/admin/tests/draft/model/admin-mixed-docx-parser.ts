@@ -85,6 +85,7 @@ function comparison(fields: FieldMap): AdminParsedMixedComparison {
     const value = normalizeKey(first(fields, "TAQQOSLASH", "COMPARISON") ?? "NORMALIZED");
     if (value === "EXACT") return "exact";
     if (value === "KEYWORDS" || value === "KALIT SOʻZLAR") return "keywords";
+    if (value === "MANUAL-REVIEW" || value === "MANUAL REVIEW" || value === "QOʻLDA") return "manual-review";
     return "normalized";
 }
 

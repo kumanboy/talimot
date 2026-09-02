@@ -23,7 +23,8 @@ export type MixedMatchingChoiceId =
 export type WrittenAnswerComparison =
     | "exact"
     | "normalized"
-    | "keywords";
+    | "keywords"
+    | "manual-review";
 
 export type WrittenAnswerVerdict =
     | "correct"
@@ -285,6 +286,14 @@ export interface MixedMultipartQuestion {
 
     readonly parts:
         readonly MixedQuestionPart[];
+
+    /**
+     * Multipart savol uchun bitta umumiy audio/izoh.
+     * 33–44 yozma topshiriqlarda har bir a/b qism uchun
+     * alohida audio emas, savolning o‘zi uchun bitta audio ishlatiladi.
+     */
+    readonly explanation?:
+        QuestionExplanation;
 
     readonly maximumScore:
         number;

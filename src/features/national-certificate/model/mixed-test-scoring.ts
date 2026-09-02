@@ -148,6 +148,13 @@ function matchesAcceptedAnswer(
         answer.trim();
 
     if (
+        comparison ===
+        "manual-review"
+    ) {
+        return "needs-review";
+    }
+
+    if (
         trimmedAnswer.length ===
         0
     ) {
@@ -448,27 +455,38 @@ function scoreMultipartPart(
 }
 
 function getMultipartVerdict(
+    question:
+    MixedMultipartQuestion,
     partResults:
     readonly MixedPartScoreResult[],
 ): WrittenAnswerVerdict {
+    const automaticallyCheckedResults =
+        partResults.filter(
+            (
+                result,
+                index,
+            ) =>
+                question.parts[
+                    index
+                ]?.comparison !==
+                "manual-review",
+        );
+
     if (
-        partResults.every(
+        automaticallyCheckedResults.length ===
+        0
+    ) {
+        return "needs-review";
+    }
+
+    if (
+        automaticallyCheckedResults.every(
             (result) =>
                 result.verdict ===
                 "correct",
         )
     ) {
         return "correct";
-    }
-
-    if (
-        partResults.some(
-            (result) =>
-                result.verdict ===
-                "needs-review",
-        )
-    ) {
-        return "needs-review";
     }
 
     return "incorrect";
@@ -536,6 +554,7 @@ function scoreMultipartQuestion(
         maximumScore,
         verdict:
             getMultipartVerdict(
+                question,
                 partResults,
             ),
         parts:
@@ -731,7 +750,13 @@ function countResultUnits(
         return result.parts.filter(
             (part) =>
                 part.verdict ===
-                verdict,
+                    verdict &&
+                (
+                    verdict !==
+                        "needs-review" ||
+                    part.maximumScore >
+                        0
+                ),
         ).length;
     }
 

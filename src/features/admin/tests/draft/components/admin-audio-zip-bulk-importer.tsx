@@ -31,8 +31,8 @@ export interface AdminAudioZipTarget {
     readonly audio: AdminDraftAudioAsset | null;
     /**
      * Optional explicit ZIP filename stem (without extension).
-     * Used by mixed tests where one source question can contain
-     * multiple independently explained parts, e.g. q01-a.mp3.
+     * Mixed tests use the real source question number so q33.mp3,
+     * q40.mp3, q44.mp3 map directly to those questions.
      */
     readonly zipFileStem?: string;
 }
@@ -561,7 +561,7 @@ export function AdminAudioZipBulkImporter({
                     <p>
                         {explicitStemMode ? (
                             <>
-                                Aralash testda audio nomlari savol/qismga mos bo‘lsin:
+                                Aralash testda har bir milliy sertifikat savoliga bitta audio ishlatiladi:
                                 {" "}
                                 <strong>
                                     {targets
@@ -574,7 +574,7 @@ export function AdminAudioZipBulkImporter({
                                         .join(", ")}
                                     {targets.length > 4 ? " ..." : ""}
                                 </strong>
-                                . Masalan, multipart savolda q01-a va q01-b alohida izoh audiosi bo‘ladi.
+                                . Masalan, 40-savolning a/b qismlari uchun alohida q40-a yoki q40-b emas, faqat q40.mp3 yuklanadi.
                             </>
                         ) : (
                             <>
@@ -677,7 +677,7 @@ export function AdminAudioZipBulkImporter({
                 MP3, M4A yoki WAV · har audio 25 MB gacha · ZIP 250 MB gacha.
                 {" "}
                 {explicitStemMode
-                    ? "Aralash testda ZIP ichidagi barcha ko‘rsatilgan qism audiosi to‘liq bo‘lishi kerak."
+                    ? "Aralash testda ZIP ichidagi har bir ko‘rsatilgan savol uchun bitta audio bo‘lishi kerak."
                     : "Diagnostika uchun 44 ta audio to‘liq bo‘lishi kerak."}
                 {" "}
                 Audio yuklangach “Draftni saqlash” majburiy.

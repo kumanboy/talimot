@@ -979,43 +979,32 @@ export function AdminMultipleChoiceDraftEditor({
                             [...question.items]
                                 .sort((left, right) => left.order - right.order)
                                 .forEach((item, itemIndex) => {
-                                    const itemOrder =
+                                    const itemSourceOrder =
                                         item.sourceOrder ??
                                         item.order ??
                                         itemIndex + 1;
 
                                     targets.push({
                                         questionId: item.id,
-                                        label: `${sourceOrder}-savol · ${itemOrder}-band`,
+                                        label: `${itemSourceOrder}-savol`,
                                         audio: item.explanation?.audio ?? null,
-                                        zipFileStem: `${baseStem}-${String(itemOrder).padStart(2, "0")}`,
-                                        sourceOrder,
-                                        nestedOrder: itemOrder,
+                                        zipFileStem: `q${String(itemSourceOrder).padStart(2, "0")}`,
+                                        sourceOrder: itemSourceOrder,
+                                        nestedOrder: 0,
                                     });
                                 });
                             continue;
                         }
 
                         if (question.type === "multipart") {
-                            [...question.parts]
-                                .sort((left, right) => left.order - right.order)
-                                .forEach((part, partIndex) => {
-                                    const partLabel =
-                                        part.label
-                                            .trim()
-                                            .toLocaleLowerCase("uz")
-                                            .replace(/[^a-z0-9]+/giu, "") ||
-                                        String(partIndex + 1);
-
-                                    targets.push({
-                                        questionId: part.id,
-                                        label: `${sourceOrder}-savol · ${part.label})`,
-                                        audio: part.explanation?.audio ?? null,
-                                        zipFileStem: `${baseStem}-${partLabel}`,
-                                        sourceOrder,
-                                        nestedOrder: part.order,
-                                    });
-                                });
+                            targets.push({
+                                questionId: question.id,
+                                label: `${sourceOrder}-savol`,
+                                audio: question.explanation.audio,
+                                zipFileStem: baseStem,
+                                sourceOrder,
+                                nestedOrder: 0,
+                            });
                             continue;
                         }
 
@@ -1149,21 +1138,17 @@ export function AdminMultipleChoiceDraftEditor({
                 }
 
                 if (question.type === "multipart") {
-                    return {
-                        ...question,
-                        parts: question.parts.map((part) => {
-                            const audio = audioByQuestionId.get(part.id);
-                            return audio
-                                ? {
-                                    ...part,
-                                    explanation: {
-                                        text: part.explanation?.text ?? "",
-                                        audio,
-                                    },
-                                }
-                                : part;
-                        }),
-                    };
+                    const audio = audioByQuestionId.get(question.id);
+
+                    return audio
+                        ? {
+                            ...question,
+                            explanation: {
+                                ...question.explanation,
+                                audio,
+                            },
+                        }
+                        : question;
                 }
 
                 if (question.type !== "essay") {
@@ -2309,44 +2294,76 @@ export function AdminMultipleChoiceDraftEditor({
                         context:
                             parsedQuestion.context,
                         maximumScore:
-                            parsedQuestion.maximumScore,
+                            parsedQuestion.sourceOrder ===
+                            44
+                                ? parsedQuestion.parts.reduce(
+                                    (
+                                        total,
+                                        part,
+                                    ) =>
+                                        total +
+                                        (
+                                            part.label ===
+                                            "b"
+                                                ? 0
+                                                : part.maximumScore
+                                        ),
+                                    0,
+                                )
+                                : parsedQuestion.maximumScore,
                         parts:
                             parsedQuestion.parts.map(
                                 (
                                     part,
                                     partIndex,
-                                ) => ({
-                                    id:
-                                        createClientId(
-                                            "multipart-part",
-                                        ),
-                                    order:
-                                        partIndex +
-                                        1,
-                                    label:
-                                        part.label,
-                                    prompt:
-                                        part.question,
-                                    acceptedAnswers:
-                                        part.acceptedAnswers,
-                                    requiredKeywords:
-                                        part.requiredKeywords,
-                                    comparison:
-                                        part.comparison,
-                                    maximumScore:
-                                        part.maximumScore,
-                                    explanation: {
-                                        text:
-                                            "DOCX aralash import orqali qo‘shildi. Ushbu qism uchun audio izohni tekshiring.",
-                                        audio:
-                                            null,
-                                    },
-                                }),
+                                ) => {
+                                    const isManualQuestion44Part =
+                                        parsedQuestion.sourceOrder ===
+                                            44 &&
+                                        part.label ===
+                                            "b";
+
+                                    return {
+                                        id:
+                                            createClientId(
+                                                "multipart-part",
+                                            ),
+                                        order:
+                                            partIndex +
+                                            1,
+                                        label:
+                                            part.label,
+                                        prompt:
+                                            part.question,
+                                        acceptedAnswers:
+                                            isManualQuestion44Part
+                                                ? []
+                                                : part.acceptedAnswers,
+                                        requiredKeywords:
+                                            isManualQuestion44Part
+                                                ? []
+                                                : part.requiredKeywords,
+                                        comparison:
+                                            isManualQuestion44Part
+                                                ? "manual-review"
+                                                : part.comparison,
+                                        maximumScore:
+                                            isManualQuestion44Part
+                                                ? 0
+                                                : part.maximumScore,
+                                        explanation: {
+                                            text:
+                                                "DOCX aralash import orqali qo‘shildi. Qism javobini tekshiring.",
+                                            audio:
+                                                null,
+                                        },
+                                    };
+                                },
                             ),
                         explanation: {
                             ...emptyQuestion.explanation,
                             text:
-                                "DOCX aralash import orqali qo‘shildi. Har bir qism javobi va ballini tekshiring.",
+                                "DOCX aralash import orqali qo‘shildi. Savol uchun bitta audio izoh ishlatiladi.",
                         },
                     } satisfies
                         AdminDraftMultipartQuestion;

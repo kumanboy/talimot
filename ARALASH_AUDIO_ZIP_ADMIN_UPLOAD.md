@@ -1,32 +1,51 @@
-# Aralash test — Audio ZIP Admin upload
+# Aralash test — Audio ZIP Admin upload (v10.7.2)
 
-Added bulk audio ZIP upload support to Milliy sertifikat → Aralash tests.
+Milliy sertifikat → Aralash testlarda audio endi **savol darajasida** ishlaydi.
 
-## 41-savol tipi / multipart naming
+## Naming
 
-For a 20-question test with `a` and `b` parts, use 40 files:
+Bitta savolda `a)` va `b)` qismlar bo‘lsa ham faqat **bitta audio** yuklanadi:
 
-- `q01-a.mp3`
-- `q01-b.mp3`
-- `q02-a.mp3`
-- `q02-b.mp3`
+- `q01.mp3`
+- `q02.mp3`
+- `q03.mp3`
 - ...
-- `q20-a.mp3`
-- `q20-b.mp3`
 
-M4A and WAV are also supported.
+Milliy sertifikatdagi real raqamlar bilan ishlaganda:
 
-The ZIP importer maps each file to the matching multipart part explanation audio. Existing single-audio formats continue to use `q01.mp3`, `q02.mp3`, etc.
+- 33-savol → `q33.mp3`
+- 34-savol → `q34.mp3`
+- 35-savol → `q35.mp3`
+- 39-savol → `q39.mp3`
+- 40-savol → `q40.mp3`
+- 41-savol → `q41.mp3`
+- 42-savol → `q42.mp3`
+- 43-savol → `q43.mp3`
+- 44-savol → `q44.mp3`
 
-Matching questions use `qNN-01`, `qNN-02`, ... for their items. Short-answer and standard questions inside a mixed draft use `qNN`.
+`q40-a.mp3`, `q40-b.mp3` kabi part-level nomlar endi yangi Aralash importda ishlatilmaydi.
 
-## Workflow
+MP3, M4A va WAV qo‘llab-quvvatlanadi.
 
-1. Import/create the Aralash questions.
-2. Save the draft.
-3. Select the Audio ZIP.
-4. Verify the mapping preview.
-5. Upload all audio.
-6. Save the draft again.
+## Admin behavior
+
+- Matching 33–35: har item o‘z real source question raqami bo‘yicha bitta audio oladi.
+- Short-answer savollar: savol uchun bitta audio.
+- Multipart savollar: a/b/c qismlar qancha bo‘lishidan qat’i nazar, savol uchun bitta audio.
+- Multipart editor ichida audio uploader partlarda emas, butun savolda bir marta ko‘rinadi.
+
+## Student result
+
+- Har bir a/b qismda `Sizning javobingiz` va `Platformadagi to‘g‘ri javob` ko‘rsatiladi.
+- Audio barcha qismlarning pastida bir marta chiqadi.
+- Eski published multipart testda faqat part-level audio qolgan bo‘lsa, first legacy audio fallback sifatida ishlaydi.
+
+## Q44 b
+
+- `b)` qism `manual-review`.
+- Platforma uni avtomatik to‘g‘ri/noto‘g‘ri deb baholamaydi.
+- Avtomatik ball og‘irligi 0.
+- Foydalanuvchi erkin javob yozishi mumkin.
+- `a)` qism odatdagidek avtomatik tekshiriladi.
 
 No SQL changes are required.

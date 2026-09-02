@@ -6,7 +6,8 @@ import type {
 export type AdminParsedMixedComparison =
     | "exact"
     | "normalized"
-    | "keywords";
+    | "keywords"
+    | "manual-review";
 
 export interface AdminParsedMixedMetadata {
     readonly title: string | null;

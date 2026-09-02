@@ -418,7 +418,8 @@ export interface DiagnosticPartScoreResult {
     readonly verdict:
         | "correct"
         | "incorrect"
-        | "unanswered";
+        | "unanswered"
+        | "pending";
 }
 
 export interface DiagnosticQuestionScoreResult {

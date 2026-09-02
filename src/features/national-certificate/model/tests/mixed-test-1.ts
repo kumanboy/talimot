@@ -14,7 +14,7 @@ export const mixedTestOne =
         instruction:
             "Har bir topshiriq shartini diqqat bilan o‘qing va javoblarni tegishli shaklda kiriting.",
         taskCount: 14,
-        maximumScore: 26.1,
+        maximumScore: 25.3,
         estimatedMinutes: 35,
         access: "free",
         questions: [
@@ -242,6 +242,11 @@ export const mixedTestOne =
                     "Gapdagi so‘zlarning mazmun va grammatik jihatdan bog‘lanishini tahlil qiling.",
                 context:
                     "Chinakam ma’naviyatli va ma’rifatli inson deyilganda biz inson qadrini biladigan, milliy o‘zligini anglay oladigan, erkin va ozod jamiyatni qurish uchun, mustaqil davlatimizning jahon hamjamiyatida o‘ziga munosib o‘rin egallashi uchun fidoyilik bilan kurasha oladigan insonni tushunamiz.",
+                explanation: {
+                    audio: {
+                        src: "/audio/tests/milliy-sertifikat/aralash/1/question-40.mp3",
+                    },
+                },
                 parts: [
                     {
                         id: "a",
@@ -251,11 +256,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["INSONNI"],
                         comparison: "normalized",
                         score: 1.2,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-40-a.mp3",
-                            },
-                        },
                     },
                     {
                         id: "b",
@@ -265,11 +265,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["MA’RIFATLI"],
                         comparison: "normalized",
                         score: 1.3,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-40-b.mp3",
-                            },
-                        },
                     },
                 ],
                 maximumScore: 2.5,
@@ -283,6 +278,11 @@ export const mixedTestOne =
                     "Berilgan gaplarni grammatik jihatdan to‘g‘ri bog‘lang.",
                 context:
                     "1. Yaxshi ustoz ham hikmatli kitob singaridir.\n2. Har ikkisi inson ruhini tarbiyalaydi.",
+                explanation: {
+                    audio: {
+                        src: "/audio/tests/milliy-sertifikat/aralash/1/question-41.mp3",
+                    },
+                },
                 parts: [
                     {
                         id: "a",
@@ -292,11 +292,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["CHUNKI"],
                         comparison: "normalized",
                         score: 0.8,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-41-a.mp3",
-                            },
-                        },
                     },
                     {
                         id: "b",
@@ -306,11 +301,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["ERGASHGAN QO‘SHMA GAP"],
                         comparison: "normalized",
                         score: 0.9,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-41-b.mp3",
-                            },
-                        },
                     },
                 ],
                 maximumScore: 1.7,
@@ -324,6 +314,11 @@ export const mixedTestOne =
                     "She’riy parchadagi ajratib ko‘rsatilgan so‘z yordamida ifodalangan she’riy san’atlarni aniqlang va yozing.",
                 context:
                     "Solib borma meni, ey Yusuf husn,\nBukun Ya’qubek bayt ul-hazanda.",
+                explanation: {
+                    audio: {
+                        src: "/audio/tests/milliy-sertifikat/aralash/1/question-42.mp3",
+                    },
+                },
                 parts: [
                     {
                         id: "a",
@@ -332,11 +327,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["TALMEH"],
                         comparison: "normalized",
                         score: 0.8,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-42-a.mp3",
-                            },
-                        },
                     },
                     {
                         id: "b",
@@ -345,11 +335,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["TASHBEH"],
                         comparison: "normalized",
                         score: 0.9,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-42-b.mp3",
-                            },
-                        },
                     },
                 ],
                 maximumScore: 1.7,
@@ -363,6 +348,11 @@ export const mixedTestOne =
                     "She’riy parchaning qofiyasini tahlil qiling va yozing.",
                 context:
                     "Kimki falak sori otar toshini,\nTosh ila ozurda etar boshini.",
+                explanation: {
+                    audio: {
+                        src: "/audio/tests/milliy-sertifikat/aralash/1/question-43.mp3",
+                    },
+                },
                 parts: [
                     {
                         id: "a",
@@ -372,11 +362,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["SH"],
                         comparison: "normalized",
                         score: 0.8,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-43-a.mp3",
-                            },
-                        },
                     },
                     {
                         id: "b",
@@ -386,11 +371,6 @@ export const mixedTestOne =
                         acceptedAnswers: ["MUQAYYAD QOFIYA"],
                         comparison: "normalized",
                         score: 0.9,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-43-b.mp3",
-                            },
-                        },
                     },
                 ],
                 maximumScore: 1.7,
@@ -404,6 +384,11 @@ export const mixedTestOne =
                     "Quyidagi qit’a mazmunini tahlil qiling va savollarga javob yozing.",
                 context:
                     "Debon bergan kishi erdur, va lekin\nDemay berganga erlik bil musallam.\nNe deb, ne bersa bilg‘il ani xotun,\nDebon bermasni xotundin dog‘i kam.",
+                explanation: {
+                    audio: {
+                        src: "/audio/tests/milliy-sertifikat/aralash/1/question-44.mp3",
+                    },
+                },
                 parts: [
                     {
                         id: "a",
@@ -413,28 +398,17 @@ export const mixedTestOne =
                         comparison: "keywords",
                         requiredKeywords: ["VA’DABOZLIK"],
                         score: 0.8,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-44-a.mp3",
-                            },
-                        },
                     },
                     {
                         id: "b",
                         label: "b",
                         question: "Qit’ada qanday fazilat ulug‘langan?",
-                        acceptedAnswers: ["SAXOVAT"],
-                        comparison: "keywords",
-                        requiredKeywords: ["SAXOVAT"],
-                        score: 0.8,
-                        explanation: {
-                            audio: {
-                                src: "/audio/tests/milliy-sertifikat/aralash/1/question-44-b.mp3",
-                            },
-                        },
+                        acceptedAnswers: [],
+                        comparison: "manual-review",
+                        score: 0,
                     },
                 ],
-                maximumScore: 1.6,
+                maximumScore: 0.8,
             },
         ],
     } as const satisfies MixedTestDefinition;

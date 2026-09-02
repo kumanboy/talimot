@@ -1296,10 +1296,10 @@ function MultipartBody({
                                 </span>
 
                                 <strong>
-                                    {
-                                        part.score
-                                    }{" "}
-                                    ball
+                                    {part.comparison ===
+                                    "manual-review"
+                                        ? "Qo‘lda tekshiriladi"
+                                        : `${part.score} ball`}
                                 </strong>
                             </header>
 
@@ -1390,6 +1390,28 @@ function getVerdictLabel(
     }
 
     return "Noto‘g‘ri";
+}
+
+function getMultipartAudioExplanation(
+    question:
+        Extract<
+            MixedQuestion,
+            {
+                readonly type:
+                    "multipart";
+            }
+        >,
+) {
+    if (
+        question.explanation?.audio?.src.trim()
+    ) {
+        return question.explanation;
+    }
+
+    return question.parts.find(
+        (part) =>
+            part.explanation?.audio?.src.trim(),
+    )?.explanation;
 }
 
 function MixedAnswerReview({
@@ -1763,14 +1785,13 @@ function MixedAnswerReview({
                                                             </span>
 
                                                             <strong>
-                                                                {
-                                                                    partResult?.awardedScore ??
-                                                                    0
-                                                                }{" "}
-                                                                /{" "}
-                                                                {
-                                                                    part.score
-                                                                }
+                                                                {part.comparison ===
+                                                                "manual-review"
+                                                                    ? "Qo‘lda"
+                                                                    : `${
+                                                                        partResult?.awardedScore ??
+                                                                        0
+                                                                    } / ${part.score}`}
                                                             </strong>
                                                         </header>
 
@@ -1812,30 +1833,38 @@ function MixedAnswerReview({
 
                                                             <p>
                                                                 <span>
-                                                                    Qabul qilinadigan javob
+                                                                    Platformadagi to‘g‘ri javob
                                                                 </span>
 
                                                                 <strong>
-                                                                    {part.acceptedAnswers.join(
-                                                                        " / ",
-                                                                    )}
+                                                                    {part.comparison ===
+                                                                    "manual-review"
+                                                                        ? "Qo‘lda tekshiriladi"
+                                                                        : part.acceptedAnswers.join(
+                                                                            " / ",
+                                                                        ) ||
+                                                                        "—"}
                                                                 </strong>
                                                             </p>
                                                         </div>
 
-                                                        {verdict !==
-                                                        "correct" ? (
-                                                            <QuestionAudioExplanation
-                                                                explanation={
-                                                                    part.explanation
-                                                                }
-                                                            />
-                                                        ) : null}
+
                                                     </article>
                                                 );
                                             },
                                         )}
                                     </div>
+
+                                    {questionResult.verdict !==
+                                    "correct" ? (
+                                        <QuestionAudioExplanation
+                                            explanation={
+                                                getMultipartAudioExplanation(
+                                                    question,
+                                                )
+                                            }
+                                        />
+                                    ) : null}
                                 </article>
                             );
                         }
@@ -2070,7 +2099,7 @@ function MixedAnswerReview({
 
                                     <p>
                                         <span>
-                                            Qabul qilinadigan javob
+                                            Platformadagi to‘g‘ri javob
                                         </span>
 
                                         <strong>

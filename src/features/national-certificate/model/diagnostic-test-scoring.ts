@@ -90,7 +90,47 @@ function applyOfficialDiagnosticWeight(
         };
     }
 
-    if (result.order >= 41 && result.order <= 44 && result.parts?.length === 2) {
+    if (result.order === 44 && result.parts?.length === 2) {
+        const firstPart = result.parts[0];
+        const secondPart = result.parts[1];
+
+        const parts: DiagnosticPartScoreResult[] = [
+            {
+                ...firstPart,
+                maximumScore: 0.8,
+                awardedScore:
+                    firstPart.verdict ===
+                    "correct"
+                        ? 0.8
+                        : 0,
+            },
+            {
+                ...secondPart,
+                maximumScore: 0,
+                awardedScore: 0,
+                verdict: "pending",
+            },
+        ];
+
+        return {
+            ...result,
+            parts,
+            awardedScore:
+                parts[0]?.awardedScore ??
+                0,
+            maximumScore: 0.8,
+            verdict:
+                firstPart.verdict ===
+                "correct"
+                    ? "correct"
+                    : firstPart.verdict ===
+                        "unanswered"
+                        ? "unanswered"
+                        : "incorrect",
+        };
+    }
+
+    if (result.order >= 41 && result.order <= 43 && result.parts?.length === 2) {
         const weights = [0.8, 0.9] as const;
         const parts = result.parts.map((part, index) => ({
             ...part,
@@ -343,6 +383,22 @@ function scoreMultipart(
                     text.trim()
                         .length === 0;
 
+                if (
+                    part.comparison ===
+                    "manual-review"
+                ) {
+                    return {
+                        partId:
+                            part.id,
+                        awardedScore:
+                            0,
+                        maximumScore:
+                            part.score,
+                        verdict:
+                            "pending" as const,
+                    };
+                }
+
                 const correct =
                     !unanswered &&
                     isTextCorrect(
@@ -383,8 +439,22 @@ function scoreMultipart(
             ),
         );
 
+    const automaticallyCheckedParts =
+        parts.filter(
+            (
+                _part,
+                index,
+            ) =>
+                question.parts[
+                    index
+                ]?.comparison !==
+                "manual-review",
+        );
+
     const allUnanswered =
-        parts.every(
+        automaticallyCheckedParts.length >
+            0 &&
+        automaticallyCheckedParts.every(
             (
                 part,
             ) =>
@@ -393,7 +463,9 @@ function scoreMultipart(
         );
 
     const allCorrect =
-        parts.every(
+        automaticallyCheckedParts.length >
+            0 &&
+        automaticallyCheckedParts.every(
             (
                 part,
             ) =>
@@ -412,11 +484,14 @@ function scoreMultipart(
         maximumScore:
         question.maximumScore,
         verdict:
-            allUnanswered
-                ? "unanswered"
-                : allCorrect
-                    ? "correct"
-                    : "incorrect",
+            automaticallyCheckedParts.length ===
+            0
+                ? "pending"
+                : allUnanswered
+                    ? "unanswered"
+                    : allCorrect
+                        ? "correct"
+                        : "incorrect",
         parts,
     };
 }
