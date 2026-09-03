@@ -274,11 +274,13 @@ function NationalTestCard({
                     {collection.title}
                 </h2>
 
-                <p>
-                    {
-                        collection.description
-                    }
-                </p>
+                {collection.topic !== "aralash" ? (
+                    <p>
+                        {
+                            collection.description
+                        }
+                    </p>
+                ) : null}
 
                 <div
                     className={
