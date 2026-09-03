@@ -170,7 +170,7 @@ export function createDiagnosticItemResultRows(
 
             for (const part of question.parts) {
                 const partScore = partScores.get(part.id);
-                if (!partScore) continue;
+                if (!partScore || partScore.verdict === "pending") continue;
 
                 const itemKey = `${question.order}${part.label}`;
                 rows.push(
