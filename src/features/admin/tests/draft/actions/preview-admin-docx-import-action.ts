@@ -658,7 +658,7 @@ export async function previewAdminDocxImportAction(
             status:
                 "success",
             message:
-                "DOCX muvaffaqiyatli o‘qildi. Hozircha faqat xavfsiz preview ko‘rsatilmoqda.",
+                "DOCX muvaffaqiyatli o‘qildi. Parser natijasini tekshiring va import tugmasi orqali draftga qo‘shing.",
             fileName,
             fileSizeBytes:
                 input.size,

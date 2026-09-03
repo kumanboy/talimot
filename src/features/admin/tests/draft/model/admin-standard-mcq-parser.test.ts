@@ -139,6 +139,58 @@ JAVOBLAR
         );
 
         it(
+            "supports a JAVOB line directly after every standard question",
+            () => {
+                const result =
+                    parseStandardMcqDocument(`
+1. Birinchi sintaksis savoli
+Gapning davomiy matni shu qatorda berilgan.
+A) Birinchi variant
+B) Ikkinchi variant
+C) Uchinchi variant
+D) To‘rtinchi variant
+JAVOB: D
+
+2. Ikkinchi sintaksis savoli
+Yana bir uzun gap matni berilgan.
+A) Birinchi variant
+B) Ikkinchi variant
+C) Uchinchi variant
+D) To‘rtinchi variant
+JAVOB: B
+                    `);
+
+                expect(
+                    result.questions,
+                ).toHaveLength(
+                    2,
+                );
+
+                expect(
+                    result.answerKeyCount,
+                ).toBe(
+                    2,
+                );
+
+                expect(
+                    result.invalidCount,
+                ).toBe(
+                    0,
+                );
+
+                expect(
+                    result.questions.map(
+                        (question) =>
+                            question.correctOptionId,
+                    ),
+                ).toEqual([
+                    "D",
+                    "B",
+                ]);
+            },
+        );
+
+        it(
             "marks incomplete options as invalid",
             () => {
                 const result =

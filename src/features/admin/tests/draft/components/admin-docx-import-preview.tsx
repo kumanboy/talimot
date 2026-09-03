@@ -507,99 +507,6 @@ export function AdminDocxImportPreview({
                         </article>
                     </div>
 
-                    <div
-                        className={
-                            styles.previewGrid
-                        }
-                    >
-                        <div
-                            className={
-                                styles.blockPreview
-                            }
-                        >
-                            <div
-                                className={
-                                    styles.previewHeading
-                                }
-                            >
-                                <h3>
-                                    Strukturaviy preview
-                                </h3>
-                                <span>
-                                    Birinchi {
-                                        state.blocks.length
-                                    } ta blok
-                                </span>
-                            </div>
-
-                            <div
-                                className={
-                                    styles.blockList
-                                }
-                            >
-                                {state.blocks.map(
-                                    (
-                                        block,
-                                        index,
-                                    ) => (
-                                        <article
-                                            key={
-                                                block.id
-                                            }
-                                        >
-                                            <div>
-                                                <span>
-                                                    {index +
-                                                        1}
-                                                </span>
-                                                <small>
-                                                    {
-                                                        blockLabels[
-                                                            block.kind
-                                                        ]
-                                                    }
-                                                </small>
-                                            </div>
-
-                                            <p>
-                                                {
-                                                    block.text
-                                                }
-                                            </p>
-                                        </article>
-                                    ),
-                                )}
-                            </div>
-                        </div>
-
-                        <div
-                            className={
-                                styles.rawPreview
-                            }
-                        >
-                            <div
-                                className={
-                                    styles.previewHeading
-                                }
-                            >
-                                <h3>
-                                    Raw text preview
-                                </h3>
-                                <span>
-                                    Maksimal 12 000 belgi
-                                </span>
-                            </div>
-
-                            <pre>
-                                {
-                                    state.rawTextPreview
-                                }
-                            </pre>
-                        </div>
-                    </div>
-
-
-
                     {state.parsedDiagnostic && (
                         <section className={styles.mixedParserSection}>
                             <div className={styles.mixedParserHeader}>
@@ -1546,6 +1453,105 @@ export function AdminDocxImportPreview({
                             </div>
                         </section>
                     )}
+
+                    <details
+                        className={styles.rawInspection}
+                    >
+                        <summary>
+                            DOCX xom preview va strukturani ko‘rish
+                        </summary>
+
+                        <div
+                            className={
+                                styles.previewGrid
+                            }
+                        >
+                            <div
+                                className={
+                                    styles.blockPreview
+                                }
+                            >
+                                <div
+                                    className={
+                                        styles.previewHeading
+                                    }
+                                >
+                                    <h3>
+                                        Strukturaviy preview
+                                    </h3>
+                                    <span>
+                                        Birinchi {
+                                            state.blocks.length
+                                        } ta blok
+                                    </span>
+                                </div>
+
+                                <div
+                                    className={
+                                        styles.blockList
+                                    }
+                                >
+                                    {state.blocks.map(
+                                        (
+                                            block,
+                                            index,
+                                        ) => (
+                                            <article
+                                                key={
+                                                    block.id
+                                                }
+                                            >
+                                                <div>
+                                                    <span>
+                                                        {index +
+                                                            1}
+                                                    </span>
+                                                    <small>
+                                                        {
+                                                            blockLabels[
+                                                                block.kind
+                                                            ]
+                                                        }
+                                                    </small>
+                                                </div>
+
+                                                <p>
+                                                    {
+                                                        block.text
+                                                    }
+                                                </p>
+                                            </article>
+                                        ),
+                                    )}
+                                </div>
+                            </div>
+
+                            <div
+                                className={
+                                    styles.rawPreview
+                                }
+                            >
+                                <div
+                                    className={
+                                        styles.previewHeading
+                                    }
+                                >
+                                    <h3>
+                                        Raw text preview
+                                    </h3>
+                                    <span>
+                                        Maksimal 12 000 belgi
+                                    </span>
+                                </div>
+
+                                <pre>
+                                    {
+                                        state.rawTextPreview
+                                    }
+                                </pre>
+                            </div>
+                        </div>
+                    </details>
 
                     {state.warnings.length >
                         0 && (

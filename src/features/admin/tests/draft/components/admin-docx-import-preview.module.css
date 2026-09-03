@@ -263,6 +263,26 @@
     white-space: pre-wrap;
 }
 
+.rawInspection {
+    margin-top: 16px;
+    padding: 12px 14px 14px;
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    background: var(--app-background);
+    color: var(--app-text);
+}
+
+.rawInspection > summary {
+    cursor: pointer;
+    color: var(--app-text);
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.rawInspection .previewGrid {
+    margin-top: 12px;
+}
+
 .warnings {
     margin-top: 14px;
     padding: 12px 14px;

@@ -91,6 +91,59 @@ BALL: 0.4
         }
     });
 
+
+    it("parses legacy matching items when JAVOB and BALL are on separate lines", () => {
+        const result = parseMixedDocxDocument(`
+TEST TURI: ARALASH
+SARLAVHA: 33–34–35 — legacy
+TOPSHIRIQLAR: 3
+MAKSIMAL BALL: 3
+
+SAVOL 1
+TUR: MATCHING
+SAVOL: Moslashtiring.
+VARIANTLAR:
+A) Undalmali gap
+B) Ajratilgan bo‘lakli gap
+C) So‘z-gap
+D) Atov gap
+E) Shaxsi umumlashgan gap
+F) To‘liqsiz gap
+MOSLASHTIRISH:
+33. Birinchi gap
+JAVOB: A
+BALL: 1
+34. Ikkinchi gap
+JAVOB: B
+BALL: 1
+35. Uchinchi gap
+JAVOB: C
+BALL: 1
+        `);
+
+        expect(result?.confidence).toBe("high");
+        expect(result?.taskCount).toBe(3);
+        const matching = result?.questions[0];
+        expect(matching?.type).toBe("matching");
+        if (matching?.type === "matching") {
+            expect(matching.items.map((item) => item.prompt)).toEqual([
+                "Birinchi gap",
+                "Ikkinchi gap",
+                "Uchinchi gap",
+            ]);
+            expect(matching.items.map((item) => item.correctChoiceId)).toEqual([
+                "A",
+                "B",
+                "C",
+            ]);
+            expect(matching.items.map((item) => item.maximumScore)).toEqual([
+                1,
+                1,
+                1,
+            ]);
+        }
+    });
+
     it("returns null for a non-mixed document", () => {
         expect(parseMixedDocxDocument("1. Oddiy savol")).toBeNull();
     });

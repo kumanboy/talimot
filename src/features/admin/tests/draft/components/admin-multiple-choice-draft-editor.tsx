@@ -1449,6 +1449,14 @@ export function AdminMultipleChoiceDraftEditor({
         parsedQuestions:
             readonly AdminParsedMcqQuestion[],
     ) {
+        const isSyntaxStandardImport =
+            draft.metadata.group ===
+                "grammar" &&
+            draft.metadata.category ===
+                "Sintaksis" &&
+            draft.metadata.topicSlug ===
+                "sintaksis";
+
         const importedQuestions =
             parsedQuestions
                 .filter(
@@ -1509,10 +1517,43 @@ export function AdminMultipleChoiceDraftEditor({
             return;
         }
 
-        replaceQuestions([
-            ...questions,
-            ...importedQuestions,
-        ]);
+        if (
+            isSyntaxStandardImport
+        ) {
+            setDraft(
+                (currentDraft) => ({
+                    ...currentDraft,
+                    source:
+                        "docx-import",
+                    metadata: {
+                        ...currentDraft.metadata,
+                        format:
+                            "standard",
+                    },
+                    questions: [
+                        ...normalizeOrders([
+                            ...questions,
+                            ...importedQuestions,
+                        ]),
+                        ...passageGroups,
+                        ...essayQuestions,
+                        ...unsupportedQuestions,
+                    ],
+                }),
+            );
+
+            setToast({
+                type:
+                    "success",
+                message:
+                    "Sintaksis standart DOCX savollari draftga import qilindi. Draft formati Standartga o‘tkazildi.",
+            });
+        } else {
+            replaceQuestions([
+                ...questions,
+                ...importedQuestions,
+            ]);
+        }
 
         window.setTimeout(
             () => {
@@ -2169,9 +2210,7 @@ export function AdminMultipleChoiceDraftEditor({
             draft.metadata.category ===
                 "Sintaksis" &&
             draft.metadata.topicSlug ===
-                "sintaksis" &&
-            draft.metadata.format ===
-                "mixed";
+                "sintaksis";
 
         const validQuestions =
             parsedMixed.questions.filter(
@@ -2462,9 +2501,7 @@ export function AdminMultipleChoiceDraftEditor({
                     currentDraft.metadata.category ===
                         "Sintaksis" &&
                     currentDraft.metadata.topicSlug ===
-                        "sintaksis" &&
-                    currentDraft.metadata.format ===
-                        "mixed";
+                        "sintaksis";
 
                 return {
                     ...currentDraft,
@@ -2480,6 +2517,8 @@ export function AdminMultipleChoiceDraftEditor({
                                 description:
                                     parsedMixed.metadata.description ??
                                     currentDraft.metadata.description,
+                                format:
+                                    "mixed",
                                 estimatedMinutes:
                                     parsedMixed.metadata.estimatedMinutes ??
                                     currentDraft.metadata.estimatedMinutes,
@@ -4502,11 +4541,15 @@ export function AdminMultipleChoiceDraftEditor({
         );
 
 
-    const isSyntaxMatchingPractice =
+    const isSyntaxRoute =
         draft.metadata.group === "grammar" &&
         draft.metadata.category === "Sintaksis" &&
-        draft.metadata.topicSlug === "sintaksis" &&
-        draft.metadata.format === "mixed";
+        draft.metadata.topicSlug === "sintaksis";
+
+    const isSyntaxMatchingPractice =
+        isSyntaxRoute &&
+        draft.metadata.format ===
+            "mixed";
 
     const isDiagnostic =
         draft.metadata.format ===
@@ -4527,9 +4570,11 @@ export function AdminMultipleChoiceDraftEditor({
         );
 
     const docxParserTarget =
-        draft.metadata.group ===
-            "national-certificate"
-            ? draft.metadata.topicSlug ===
+        isSyntaxRoute
+            ? "auto"
+            : draft.metadata.group ===
+                  "national-certificate"
+              ? draft.metadata.topicSlug ===
                 "ilmiy-matn"
                 ? "scientific-text"
                 : draft.metadata.topicSlug ===
