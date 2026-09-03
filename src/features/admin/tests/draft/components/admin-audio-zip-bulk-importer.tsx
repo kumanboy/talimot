@@ -115,9 +115,20 @@ function normalizeZipAudioStem(fileName: string): string | null {
         .replace(/[ _]+/gu, "-")
         .replace(/-{2,}/gu, "-");
 
-    return normalized.length > 0
-        ? normalized
-        : null;
+    if (normalized.length === 0) {
+        return null;
+    }
+
+    // q1.mp3 and q01.mp3 are the same source question.
+    // Canonicalising here keeps existing admin ZIPs working while the UI
+    // continues to recommend the zero-padded q01.mp3 naming style.
+    const plainQuestionStem = normalized.match(/^q0*([1-9]\d*)$/u);
+
+    if (plainQuestionStem?.[1]) {
+        return `q${String(Number(plainQuestionStem[1])).padStart(2, "0")}`;
+    }
+
+    return normalized;
 }
 
 function formatExpectedZipName(stem: string): string {
@@ -561,7 +572,7 @@ export function AdminAudioZipBulkImporter({
                     <p>
                         {explicitStemMode ? (
                             <>
-                                Aralash testda har bir milliy sertifikat savoliga bitta audio ishlatiladi:
+                                <strong>1 SAVOL = 1 AUDIO.</strong>{" "}Aralash testda audio fayl savolning barcha a/b/c qismlari uchun umumiy ishlatiladi:
                                 {" "}
                                 <strong>
                                     {targets
@@ -574,7 +585,7 @@ export function AdminAudioZipBulkImporter({
                                         .join(", ")}
                                     {targets.length > 4 ? " ..." : ""}
                                 </strong>
-                                . Masalan, 40-savolning a/b qismlari uchun alohida q40-a yoki q40-b emas, faqat q40.mp3 yuklanadi.
+                                . Masalan, 40-savol uchun faqat q40.mp3 yuklanadi; q40-a.mp3 va q40-b.mp3 qabul qilinmaydi. q1.mp3 va q01.mp3 bir xil savol sifatida qabul qilinadi.
                             </>
                         ) : (
                             <>
