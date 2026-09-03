@@ -72,7 +72,7 @@ const categoryRecommendations:
                 value: "Sintaksis",
                 label: "Sintaksis",
                 topicSlug: "sintaksis",
-                format: "standard",
+                format: "mixed",
             },
             {
                 value: "Punktuatsiya",

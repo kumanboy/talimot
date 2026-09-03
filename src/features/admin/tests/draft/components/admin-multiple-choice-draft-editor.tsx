@@ -2169,9 +2169,7 @@ export function AdminMultipleChoiceDraftEditor({
             draft.metadata.category ===
                 "Sintaksis" &&
             draft.metadata.topicSlug ===
-                "sintaksis" &&
-            draft.metadata.format ===
-                "mixed";
+                "sintaksis";
 
         const validQuestions =
             parsedMixed.questions.filter(
@@ -2462,9 +2460,7 @@ export function AdminMultipleChoiceDraftEditor({
                     currentDraft.metadata.category ===
                         "Sintaksis" &&
                     currentDraft.metadata.topicSlug ===
-                        "sintaksis" &&
-                    currentDraft.metadata.format ===
-                        "mixed";
+                        "sintaksis";
 
                 return {
                     ...currentDraft,
@@ -2480,6 +2476,8 @@ export function AdminMultipleChoiceDraftEditor({
                                 description:
                                     parsedMixed.metadata.description ??
                                     currentDraft.metadata.description,
+                                format:
+                                    "mixed",
                                 estimatedMinutes:
                                     parsedMixed.metadata.estimatedMinutes ??
                                     currentDraft.metadata.estimatedMinutes,
@@ -4505,8 +4503,7 @@ export function AdminMultipleChoiceDraftEditor({
     const isSyntaxMatchingPractice =
         draft.metadata.group === "grammar" &&
         draft.metadata.category === "Sintaksis" &&
-        draft.metadata.topicSlug === "sintaksis" &&
-        draft.metadata.format === "mixed";
+        draft.metadata.topicSlug === "sintaksis";
 
     const isDiagnostic =
         draft.metadata.format ===
@@ -4527,9 +4524,11 @@ export function AdminMultipleChoiceDraftEditor({
         );
 
     const docxParserTarget =
-        draft.metadata.group ===
-            "national-certificate"
-            ? draft.metadata.topicSlug ===
+        isSyntaxMatchingPractice
+            ? "mixed"
+            : draft.metadata.group ===
+                  "national-certificate"
+              ? draft.metadata.topicSlug ===
                 "ilmiy-matn"
                 ? "scientific-text"
                 : draft.metadata.topicSlug ===

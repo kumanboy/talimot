@@ -184,53 +184,109 @@ function parseMatching(sourceOrder: number, order: number, heading: string, line
             ? [{ id: match[1] as ChoiceId, text: match[2].trim() }]
             : [];
     });
-    const items: AdminParsedMixedMatchingItem[] = (
-        fields.get(
-            normalizeKey("MOSLASHTIRISH"),
-        ) ?? []
-    ).flatMap((line, index) => {
-        const segments = line
-            .split(/\s*\|\s*/u)
-            .map((segment) => segment.trim())
-            .filter(Boolean);
+    const matchingMarkerIndex = lines.findIndex(
+        (line) =>
+            /^MOSLASHTIRISH\s*:\s*$/iu.test(
+                normalizeAdminDocxLine(line),
+            ),
+    );
 
-        const promptMatch = /^(\d{1,3})\s*[\)\.\-:]\s*(.*)$/u.exec(
-            segments[0] ?? "",
-        );
+    const items: AdminParsedMixedMatchingItem[] = [];
+    let pendingItem: {
+        sourceOrder: number;
+        promptParts: string[];
+        correctChoiceId: ChoiceId | null;
+        maximumScore: number;
+    } | null = null;
 
-        if (!promptMatch?.[1] || !promptMatch[2]) {
-            return [];
+    function pushPendingItem() {
+        if (!pendingItem) return;
+
+        const prompt = pendingItem.promptParts
+            .join(" ")
+            .replace(/\s+/gu, " ")
+            .trim();
+
+        if (prompt) {
+            items.push({
+                id: `mixed-${sourceOrder}-item-${items.length + 1}`,
+                order: items.length + 1,
+                sourceOrder: pendingItem.sourceOrder,
+                prompt,
+                correctChoiceId: pendingItem.correctChoiceId,
+                maximumScore: pendingItem.maximumScore,
+            });
         }
 
-        const answerSegment = segments.find(
-            (segment) =>
-                /^JAVOB\s*[:=]/iu.test(segment),
-        );
-        const scoreSegment = segments.find(
-            (segment) =>
-                /^BALL\s*[:=]/iu.test(segment),
-        );
+        pendingItem = null;
+    }
 
-        const answerMatch = answerSegment
-            ? /^JAVOB\s*[:=]\s*([A-F])$/iu.exec(answerSegment)
-            : null;
-        const scoreMatch = scoreSegment
-            ? /^BALL\s*[:=]\s*([0-9]+(?:[\.,][0-9]+)?)$/iu.exec(scoreSegment)
-            : null;
+    if (matchingMarkerIndex >= 0) {
+        for (const rawLine of lines.slice(matchingMarkerIndex + 1)) {
+            const line = normalizeAdminDocxLine(rawLine).trim();
+            if (!line) continue;
 
-        return [{
-            id: `mixed-${sourceOrder}-item-${index + 1}`,
-            order: index + 1,
-            sourceOrder: Number(promptMatch[1]),
-            prompt: promptMatch[2].trim(),
-            correctChoiceId: answerMatch?.[1]
-                ? answerMatch[1].toUpperCase() as ChoiceId
-                : null,
-            maximumScore: parseNumber(
-                scoreMatch?.[1] ?? null,
-            ),
-        }];
-    });
+            const segments = line
+                .split(/\s*\|\s*/u)
+                .map((segment) => segment.trim())
+                .filter(Boolean);
+
+            const promptMatch = /^(\d{1,3})\s*[\)\.\-:]\s*(.*)$/u.exec(
+                segments[0] ?? "",
+            );
+
+            if (promptMatch?.[1] && promptMatch[2]) {
+                pushPendingItem();
+
+                const answerSegment = segments.find(
+                    (segment) =>
+                        /^JAVOB\s*[:=]/iu.test(segment),
+                );
+                const scoreSegment = segments.find(
+                    (segment) =>
+                        /^BALL\s*[:=]/iu.test(segment),
+                );
+                const answerMatch = answerSegment
+                    ? /^JAVOB\s*[:=]\s*([A-F])$/iu.exec(answerSegment)
+                    : null;
+                const scoreMatch = scoreSegment
+                    ? /^BALL\s*[:=]\s*([0-9]+(?:[\.,][0-9]+)?)$/iu.exec(scoreSegment)
+                    : null;
+
+                pendingItem = {
+                    sourceOrder: Number(promptMatch[1]),
+                    promptParts: [promptMatch[2].trim()],
+                    correctChoiceId: answerMatch?.[1]
+                        ? answerMatch[1].toUpperCase() as ChoiceId
+                        : null,
+                    maximumScore: parseNumber(
+                        scoreMatch?.[1] ?? null,
+                    ),
+                };
+                continue;
+            }
+
+            if (!pendingItem) continue;
+
+            const answerMatch = /^JAVOB\s*[:=]\s*([A-F])$/iu.exec(line);
+            if (answerMatch?.[1]) {
+                pendingItem.correctChoiceId =
+                    answerMatch[1].toUpperCase() as ChoiceId;
+                continue;
+            }
+
+            const scoreMatch = /^BALL\s*[:=]\s*([0-9]+(?:[\.,][0-9]+)?)$/iu.exec(line);
+            if (scoreMatch?.[1]) {
+                pendingItem.maximumScore =
+                    parseNumber(scoreMatch[1]);
+                continue;
+            }
+
+            pendingItem.promptParts.push(line);
+        }
+
+        pushPendingItem();
+    }
     const issues: string[] = [];
     const expectedChoiceIds: readonly ChoiceId[] = ["A", "B", "C", "D", "E", "F"];
     const choiceIds = choices.map((choice) => choice.id);
