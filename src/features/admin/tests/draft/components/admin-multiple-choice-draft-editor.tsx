@@ -887,7 +887,12 @@ export function AdminMultipleChoiceDraftEditor({
 
 
     const supportsImageZipImport =
-        draft.metadata.format === "mixed";
+        draft.metadata.group ===
+            "national-certificate" &&
+        draft.metadata.topicSlug ===
+            "aralash" &&
+        draft.metadata.format ===
+            "mixed";
 
     const imageZipTargets =
         useMemo(
@@ -1017,18 +1022,23 @@ export function AdminMultipleChoiceDraftEditor({
                             `q${String(sourceOrder).padStart(2, "0")}`;
 
                         if (question.type === "matching") {
-                            // 33–34–35 matching is one displayed block, so it owns one
-                            // shared explanation audio. The ZIP name follows the block
-                            // number (q01.mp3 ... q20.mp3), not the repeated item labels
-                            // 33/34/35.
-                            targets.push({
-                                questionId: question.id,
-                                label: `${sourceOrder}-matching blok (33–35)`,
-                                audio: question.explanation.audio,
-                                zipFileStem: baseStem,
-                                sourceOrder,
-                                nestedOrder: 0,
-                            });
+                            [...question.items]
+                                .sort((left, right) => left.order - right.order)
+                                .forEach((item, itemIndex) => {
+                                    const itemSourceOrder =
+                                        item.sourceOrder ??
+                                        item.order ??
+                                        itemIndex + 1;
+
+                                    targets.push({
+                                        questionId: item.id,
+                                        label: `${itemSourceOrder}-savol`,
+                                        audio: item.explanation?.audio ?? null,
+                                        zipFileStem: `q${String(itemSourceOrder).padStart(2, "0")}`,
+                                        sourceOrder: itemSourceOrder,
+                                        nestedOrder: 0,
+                                    });
+                                });
                             continue;
                         }
 
@@ -1156,21 +1166,8 @@ export function AdminMultipleChoiceDraftEditor({
                 }
 
                 if (question.type === "matching") {
-                    const groupAudio = audioByQuestionId.get(question.id);
-
                     return {
                         ...question,
-                        ...(groupAudio
-                            ? {
-                                explanation: {
-                                    ...question.explanation,
-                                    audio: groupAudio,
-                                },
-                            }
-                            : {}),
-                        // Keep item-id support for existing diagnostic drafts and
-                        // legacy matching audio. Mixed 33–34–35 bulk import now
-                        // targets only question.id, so new uploads are group-level.
                         items: question.items.map((item) => {
                             const audio = audioByQuestionId.get(item.id);
                             return audio
@@ -2158,6 +2155,16 @@ export function AdminMultipleChoiceDraftEditor({
         parsedMixed:
             AdminMixedDocxParseResult,
     ) {
+        const isSyntaxMatchingImport =
+            draft.metadata.group ===
+                "grammar" &&
+            draft.metadata.category ===
+                "Sintaksis" &&
+            draft.metadata.topicSlug ===
+                "sintaksis" &&
+            draft.metadata.format ===
+                "mixed";
+
         const validQuestions =
             parsedMixed.questions.filter(
                 (question) =>
@@ -2172,14 +2179,34 @@ export function AdminMultipleChoiceDraftEditor({
             setToast({
                 type: "error",
                 message:
-                    "Import uchun yaroqli aralash savol topilmadi.",
+                    isSyntaxMatchingImport
+                        ? "Import uchun yaroqli 33–34–35 matching bloki topilmadi."
+                        : "Import uchun yaroqli aralash savol topilmadi.",
+            });
+            return;
+        }
+
+        if (
+            isSyntaxMatchingImport &&
+            validQuestions.some(
+                (question) =>
+                    question.type !==
+                    "matching",
+            )
+        ) {
+            setToast({
+                type: "error",
+                message:
+                    "Sintaksis 33–34–35 importida faqat MATCHING bloklari bo‘lishi kerak. Draft route o‘zgartirilmadi.",
             });
             return;
         }
 
         const firstOrder =
-            draft.questions.length +
-            1;
+            isSyntaxMatchingImport
+                ? 1
+                : draft.questions.length +
+                  1;
 
         const importedQuestions:
             AdminDraftQuestion[] =
@@ -2420,45 +2447,79 @@ export function AdminMultipleChoiceDraftEditor({
             );
 
         setDraft(
-            (currentDraft) => ({
-                ...currentDraft,
-                source:
-                    "docx-import",
-                metadata: {
-                    ...currentDraft.metadata,
-                    title:
-                        parsedMixed.metadata.title ??
-                        currentDraft.metadata.title,
-                    description:
-                        parsedMixed.metadata.description ??
-                        currentDraft.metadata.description,
-                    format:
-                        "mixed",
-                    group:
-                        "national-certificate",
-                    category:
-                        "Aralash",
-                    topicSlug:
-                        "aralash",
-                    estimatedMinutes:
-                        parsedMixed.metadata.estimatedMinutes ??
-                        currentDraft.metadata.estimatedMinutes,
-                    access:
-                        parsedMixed.metadata.access ??
-                        currentDraft.metadata.access,
-                },
-                questions: [
-                    ...currentDraft.questions,
-                    ...importedQuestions,
-                ],
-            }),
+            (currentDraft) => {
+                const preserveSyntaxMatchingRoute =
+                    currentDraft.metadata.group ===
+                        "grammar" &&
+                    currentDraft.metadata.category ===
+                        "Sintaksis" &&
+                    currentDraft.metadata.topicSlug ===
+                        "sintaksis" &&
+                    currentDraft.metadata.format ===
+                        "mixed";
+
+                return {
+                    ...currentDraft,
+                    source:
+                        "docx-import",
+                    metadata:
+                        preserveSyntaxMatchingRoute
+                            ? {
+                                ...currentDraft.metadata,
+                                title:
+                                    parsedMixed.metadata.title ??
+                                    currentDraft.metadata.title,
+                                description:
+                                    parsedMixed.metadata.description ??
+                                    currentDraft.metadata.description,
+                                estimatedMinutes:
+                                    parsedMixed.metadata.estimatedMinutes ??
+                                    currentDraft.metadata.estimatedMinutes,
+                                access:
+                                    parsedMixed.metadata.access ??
+                                    currentDraft.metadata.access,
+                            }
+                            : {
+                                ...currentDraft.metadata,
+                                title:
+                                    parsedMixed.metadata.title ??
+                                    currentDraft.metadata.title,
+                                description:
+                                    parsedMixed.metadata.description ??
+                                    currentDraft.metadata.description,
+                                format:
+                                    "mixed",
+                                group:
+                                    "national-certificate",
+                                category:
+                                    "Aralash",
+                                topicSlug:
+                                    "aralash",
+                                estimatedMinutes:
+                                    parsedMixed.metadata.estimatedMinutes ??
+                                    currentDraft.metadata.estimatedMinutes,
+                                access:
+                                    parsedMixed.metadata.access ??
+                                    currentDraft.metadata.access,
+                            },
+                    questions:
+                        preserveSyntaxMatchingRoute
+                            ? importedQuestions
+                            : [
+                                ...currentDraft.questions,
+                                ...importedQuestions,
+                            ],
+                };
+            },
         );
 
         setToast({
             type:
                 "success",
             message:
-                `${importedQuestions.length} ta aralash savol draftga qo‘shildi. Saqlashdan oldin tekshiring.`,
+                isSyntaxMatchingImport
+                    ? `${importedQuestions.length} ta 33–34–35 matching bloki Sintaksis draftiga import qilindi. Route: Grammatika → Sintaksis saqlandi.`
+                    : `${importedQuestions.length} ta aralash savol draftga qo‘shildi. Saqlashdan oldin tekshiring.`,
         });
     }
 
@@ -5770,8 +5831,7 @@ export function AdminMultipleChoiceDraftEditor({
                         : []
                 }
                 allowImageUploadForAll={
-                    draft.metadata.format ===
-                    "mixed"
+                    supportsImageZipImport
                 }
                 onQuestionImageChange={(
                     questionId,
@@ -5843,6 +5903,8 @@ export function AdminMultipleChoiceDraftEditor({
                     }
                 />
 
+                {!isSyntaxMatchingPractice && (
+                    <>
                 <div
                     className={
                         styles.toolbar
@@ -6380,6 +6442,8 @@ export function AdminMultipleChoiceDraftEditor({
                         </div>
                     )}
                 </div>
+                    </>
+                )}
 
                 <div
                     className={

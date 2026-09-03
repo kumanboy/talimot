@@ -31,10 +31,8 @@ export interface AdminAudioZipTarget {
     readonly audio: AdminDraftAudioAsset | null;
     /**
      * Optional explicit ZIP filename stem (without extension).
-     * Mixed tests use the real displayed question/block number. For
-     * 33–34–35 matching practice this means q01.mp3 ... q20.mp3, one
-     * shared audio per matching block; ordinary mixed questions can still
-     * use stems such as q40.mp3 or q44.mp3.
+     * Mixed tests use the real source question number so q33.mp3,
+     * q40.mp3, q44.mp3 map directly to those questions.
      */
     readonly zipFileStem?: string;
 }
@@ -574,7 +572,7 @@ export function AdminAudioZipBulkImporter({
                     <p>
                         {explicitStemMode ? (
                             <>
-                                <strong>1 SAVOL / MATCHING BLOK = 1 AUDIO.</strong>{" "}Aralash testda audio fayl savolning barcha a/b/c qismlari yoki bitta 33–34–35 matching blokining uchala bandi uchun umumiy ishlatiladi:
+                                <strong>1 SAVOL = 1 AUDIO.</strong>{" "}Aralash testda audio fayl savolning barcha a/b/c qismlari uchun umumiy ishlatiladi:
                                 {" "}
                                 <strong>
                                     {targets
@@ -587,7 +585,7 @@ export function AdminAudioZipBulkImporter({
                                         .join(", ")}
                                     {targets.length > 4 ? " ..." : ""}
                                 </strong>
-                                . 33–34–35 matching testida 20 blok bo‘lsa q01.mp3 ... q20.mp3 yuklanadi. Masalan, 40-savol uchun faqat q40.mp3 yuklanadi; q40-a.mp3 va q40-b.mp3 qabul qilinmaydi. q1.mp3 va q01.mp3 bir xil savol sifatida qabul qilinadi.
+                                . Masalan, 40-savol uchun faqat q40.mp3 yuklanadi; q40-a.mp3 va q40-b.mp3 qabul qilinmaydi. q1.mp3 va q01.mp3 bir xil savol sifatida qabul qilinadi.
                             </>
                         ) : (
                             <>

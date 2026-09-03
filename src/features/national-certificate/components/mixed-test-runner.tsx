@@ -1465,18 +1465,6 @@ function MixedAnswerReview({
                                 )
                                     ? answer as MixedMatchingAnswers
                                     : {};
-                            const hasGroupAudio =
-                                Boolean(
-                                    question.explanation?.audio?.src.trim(),
-                                );
-                            const hasIncorrectMatchingItem =
-                                questionResult.parts?.some(
-                                    (part) =>
-                                        part.verdict !==
-                                        "correct",
-                                ) ??
-                                questionResult.verdict !==
-                                    "correct";
 
                             return (
                                 <article
@@ -1658,8 +1646,7 @@ function MixedAnswerReview({
                                                         </div>
 
                                                         {verdict !==
-                                                        "correct" &&
-                                                        !hasGroupAudio ? (
+                                                        "correct" ? (
                                                             <QuestionAudioExplanation
                                                                 explanation={
                                                                     item.explanation
@@ -1671,14 +1658,6 @@ function MixedAnswerReview({
                                             },
                                         )}
                                     </div>
-
-                                    {hasIncorrectMatchingItem ? (
-                                        <QuestionAudioExplanation
-                                            explanation={
-                                                question.explanation
-                                            }
-                                        />
-                                    ) : null}
                                 </article>
                             );
                         }

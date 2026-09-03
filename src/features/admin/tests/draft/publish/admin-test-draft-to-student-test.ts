@@ -1339,12 +1339,6 @@ function mapMixedQuestion(
             nonEmpty(
                 question.title,
             );
-        const groupExplanation =
-            question.explanation.audio
-                ? mapExplanation(
-                    question.explanation,
-                )
-                : undefined;
 
         return {
             type:
@@ -1366,20 +1360,13 @@ function mapMixedQuestion(
                     image,
                 }
                 : {}),
-            ...(groupExplanation
-                ? {
-                    explanation: groupExplanation,
-                }
-                : {}),
             items:
                 question.items.map(
                     (item) => {
                         const explanation =
-                            groupExplanation
-                                ? undefined
-                                : mapExplanation(
-                                    item.explanation,
-                                );
+                            mapExplanation(
+                                item.explanation,
+                            );
 
                         return {
                             id:
