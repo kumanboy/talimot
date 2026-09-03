@@ -40,6 +40,9 @@ import {
     AdminAudioZipBulkImporter,
 } from "./admin-audio-zip-bulk-importer";
 import {
+    AdminImageZipBulkImporter,
+} from "./admin-image-zip-bulk-importer";
+import {
     createEmptyMatchingQuestion,
     createEmptyMultipartQuestion,
     createEmptyMultipleChoiceQuestion,
@@ -882,6 +885,44 @@ export function AdminMultipleChoiceDraftEditor({
             ],
         );
 
+
+    const supportsImageZipImport =
+        draft.metadata.format === "mixed";
+
+    const imageZipTargets =
+        useMemo(
+            () => {
+                if (!supportsImageZipImport) return [];
+                return [...draft.questions]
+                    .filter((question) => question.type !== "essay" && question.type !== "passage-group")
+                    .sort((left, right) => left.order - right.order)
+                    .map((question) => {
+                        const sourceOrder = question.sourceOrder ?? question.order;
+                        return {
+                            questionId: question.id,
+                            label: `${sourceOrder}-savol`,
+                            image: question.image,
+                            zipFileStem: `q${String(sourceOrder).padStart(2, "0")}`,
+                            defaultAlt: `${sourceOrder}-savol diagrammasi`,
+                        };
+                    });
+            },
+            [draft.metadata.format, draft.questions, supportsImageZipImport],
+        );
+
+    function applyImageZipUpdates(
+        updates: readonly { readonly questionId: string; readonly image: AdminDraftMultipleChoiceQuestion["image"] }[],
+    ) {
+        const imageByQuestionId = new Map(updates.map((update) => [update.questionId, update.image]));
+        setDraft((currentDraft) => ({
+            ...currentDraft,
+            questions: currentDraft.questions.map((question) => {
+                if (question.type === "essay" || question.type === "passage-group") return question;
+                const image = imageByQuestionId.get(question.id);
+                return image ? { ...question, image } : question;
+            }),
+        }));
+    }
 
     const supportsAudioZipImport =
         draft.metadata.format === "diagnostic" ||
@@ -5054,6 +5095,25 @@ export function AdminMultipleChoiceDraftEditor({
                     onImportDiagnostic={
                         importParsedDiagnostic
                     }
+                />
+            )}
+
+            {supportsImageZipImport && (
+                <AdminImageZipBulkImporter
+                    draftId={draft.id}
+                    targets={imageZipTargets}
+                    disabled={isLocked || hasUnsavedChanges || imageZipTargets.length === 0}
+                    disabledReason={
+                        isLocked
+                            ? "Nashr qilingan yoki arxivlangan testga rasm ZIP yuklab bo‘lmaydi."
+                            : hasUnsavedChanges
+                              ? "Rasm ZIP’dan oldin savollarni “Draftni saqlash” orqali saqlang."
+                              : imageZipTargets.length === 0
+                                ? "Avval Aralash test savollarini DOCX orqali import qiling va draftni saqlang."
+                                : null
+                    }
+                    onApply={applyImageZipUpdates}
+                    onQueueStorageRemoval={queueImageStorageRemoval}
                 />
             )}
 
