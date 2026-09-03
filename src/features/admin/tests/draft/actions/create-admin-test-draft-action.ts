@@ -195,6 +195,14 @@ export async function createAdminTestDraftAction(
         rawValues.format ===
             "morphology-standard";
 
+    const isSyntaxMatching =
+        rawValues.group ===
+            "grammar" &&
+        rawValues.category ===
+            "Sintaksis" &&
+        rawValues.topicSlug ===
+            "sintaksis";
+
     const nationalCategoryRoute =
         rawValues.group ===
             "national-certificate" &&
@@ -232,6 +240,18 @@ export async function createAdminTestDraftAction(
                         "Morfologiya",
                     format:
                         "morphology-standard",
+                }
+              : isSyntaxMatching
+                ? {
+                    ...rawValues,
+                    group:
+                        "grammar",
+                    category:
+                        "Sintaksis",
+                    topicSlug:
+                        "sintaksis",
+                    format:
+                        "mixed",
                 }
               : nationalCategoryRoute
                 ? {
