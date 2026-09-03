@@ -1091,58 +1091,44 @@ export function AdminMixedStructuredQuestionEditor({
                                                         ×
                                                     </button>
 
-                                                    {draftId &&
-                                                        onQueueAudioStorageRemoval && (
-                                                        <div
-                                                            className={
-                                                                styles.itemAudio
-                                                            }
-                                                        >
-                                                            <AdminQuestionAudioUploader
-                                                                draftId={draftId}
-                                                                questionId={item.id}
-                                                                audio={
-                                                                    item.explanation?.audio ??
-                                                                    null
-                                                                }
-                                                                compact
-                                                                onChange={(audio) =>
-                                                                    updateQuestion<AdminDraftMatchingQuestion>(
-                                                                        question.id,
-                                                                        {
-                                                                            items:
-                                                                                question.items.map(
-                                                                                    (candidate) =>
-                                                                                        candidate.id ===
-                                                                                        item.id
-                                                                                            ? {
-                                                                                                ...candidate,
-                                                                                                explanation: {
-                                                                                                    ...(candidate.explanation ?? {
-                                                                                                        text: "",
-                                                                                                        audio: null,
-                                                                                                    }),
-                                                                                                    audio,
-                                                                                                },
-                                                                                            }
-                                                                                            : candidate,
-                                                                                ),
-                                                                        },
-                                                                    )
-                                                                }
-                                                                onQueueStorageRemoval={(storagePath) =>
-                                                                    onQueueAudioStorageRemoval(
-                                                                        item.id,
-                                                                        storagePath,
-                                                                    )
-                                                                }
-                                                            />
-                                                        </div>
-                                                    )}
                                                 </div>
                                             ),
                                         )}
                                     </div>
+
+                                    {draftId &&
+                                        onQueueAudioStorageRemoval && (
+                                        <div
+                                            className={
+                                                styles.itemAudio
+                                            }
+                                        >
+                                            <AdminQuestionAudioUploader
+                                                draftId={draftId}
+                                                questionId={question.id}
+                                                audio={
+                                                    question.explanation.audio
+                                                }
+                                                onChange={(audio) =>
+                                                    updateQuestion<AdminDraftMatchingQuestion>(
+                                                        question.id,
+                                                        {
+                                                            explanation: {
+                                                                ...question.explanation,
+                                                                audio,
+                                                            },
+                                                        },
+                                                    )
+                                                }
+                                                onQueueStorageRemoval={(storagePath) =>
+                                                    onQueueAudioStorageRemoval(
+                                                        question.id,
+                                                        storagePath,
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

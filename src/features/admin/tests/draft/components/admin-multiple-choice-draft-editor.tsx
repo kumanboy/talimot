@@ -1017,23 +1017,18 @@ export function AdminMultipleChoiceDraftEditor({
                             `q${String(sourceOrder).padStart(2, "0")}`;
 
                         if (question.type === "matching") {
-                            [...question.items]
-                                .sort((left, right) => left.order - right.order)
-                                .forEach((item, itemIndex) => {
-                                    const itemSourceOrder =
-                                        item.sourceOrder ??
-                                        item.order ??
-                                        itemIndex + 1;
-
-                                    targets.push({
-                                        questionId: item.id,
-                                        label: `${itemSourceOrder}-savol`,
-                                        audio: item.explanation?.audio ?? null,
-                                        zipFileStem: `q${String(itemSourceOrder).padStart(2, "0")}`,
-                                        sourceOrder: itemSourceOrder,
-                                        nestedOrder: 0,
-                                    });
-                                });
+                            // 33–34–35 matching is one displayed block, so it owns one
+                            // shared explanation audio. The ZIP name follows the block
+                            // number (q01.mp3 ... q20.mp3), not the repeated item labels
+                            // 33/34/35.
+                            targets.push({
+                                questionId: question.id,
+                                label: `${sourceOrder}-matching blok (33–35)`,
+                                audio: question.explanation.audio,
+                                zipFileStem: baseStem,
+                                sourceOrder,
+                                nestedOrder: 0,
+                            });
                             continue;
                         }
 
@@ -1161,8 +1156,21 @@ export function AdminMultipleChoiceDraftEditor({
                 }
 
                 if (question.type === "matching") {
+                    const groupAudio = audioByQuestionId.get(question.id);
+
                     return {
                         ...question,
+                        ...(groupAudio
+                            ? {
+                                explanation: {
+                                    ...question.explanation,
+                                    audio: groupAudio,
+                                },
+                            }
+                            : {}),
+                        // Keep item-id support for existing diagnostic drafts and
+                        // legacy matching audio. Mixed 33–34–35 bulk import now
+                        // targets only question.id, so new uploads are group-level.
                         items: question.items.map((item) => {
                             const audio = audioByQuestionId.get(item.id);
                             return audio

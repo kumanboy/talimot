@@ -180,6 +180,12 @@ export interface MixedMatchingGroup {
         MixedQuestionImage;
 
     /**
+     * 33–34–35 matching bloki uchun bitta umumiy audio izoh.
+     */
+    readonly explanation?:
+        QuestionExplanation;
+
+    /**
      * Masalan:
      * 33, 34 va 35-savollar.
      */
