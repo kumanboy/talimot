@@ -507,6 +507,53 @@ export function AdminDocxImportPreview({
                         </article>
                     </div>
 
+                    {state.parsedMcq &&
+                        !state.parsedMixed &&
+                        !state.parsedPassage &&
+                        !state.parsedGhazal &&
+                        !state.parsedLiteraryWorks &&
+                        !state.parsedDiagnostic && (
+                        <div className={styles.importToolbar}>
+                            <div>
+                                <strong>
+                                    {selectedQuestionNumbers.size} ta savol importga tayyor
+                                </strong>
+                                <span>
+                                    {unresolvedSelectedCount > 0
+                                        ? `${unresolvedSelectedCount} ta savolda to‘g‘ri javobni belgilang, so‘ng import qiling`
+                                        : "DOCX tahlili tugadi. Endi savollarni draftga import qilishingiz mumkin."}
+                                </span>
+                            </div>
+
+                            <div className={styles.importToolbarActions}>
+                                <button
+                                    type="button"
+                                    onClick={selectAllImportable}
+                                    className={styles.secondaryImportButton}
+                                >
+                                    Barchasini tanlash
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={clearSelection}
+                                    className={styles.secondaryImportButton}
+                                >
+                                    Tanlovni tozalash
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={importSelectedQuestions}
+                                    disabled={importableQuestions.length === 0}
+                                    className={styles.importButton}
+                                >
+                                    DOCX ni draftga import qilish
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     {state.parsedDiagnostic && (
                         <section className={styles.mixedParserSection}>
                             <div className={styles.mixedParserHeader}>
@@ -1288,46 +1335,6 @@ export function AdminDocxImportPreview({
                                         <strong>{state.parsedMcq.invalidCount}</strong>
                                         <span>Qizil</span>
                                     </article>
-                                </div>
-                            </div>
-
-                            <div className={styles.importToolbar}>
-                                <div>
-                                    <strong>
-                                        {selectedQuestionNumbers.size} ta tanlandi
-                                    </strong>
-                                    <span>
-                                        {unresolvedSelectedCount > 0
-                                            ? `${unresolvedSelectedCount} ta savolda to‘g‘ri javob belgilanmagan`
-                                            : "Barcha tanlangan savollarda to‘g‘ri javob mavjud"}
-                                    </span>
-                                </div>
-
-                                <div className={styles.importToolbarActions}>
-                                    <button
-                                        type="button"
-                                        onClick={selectAllImportable}
-                                        className={styles.secondaryImportButton}
-                                    >
-                                        Barchasini tanlash
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={clearSelection}
-                                        className={styles.secondaryImportButton}
-                                    >
-                                        Tanlovni tozalash
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={importSelectedQuestions}
-                                        disabled={importableQuestions.length === 0}
-                                        className={styles.importButton}
-                                    >
-                                        Draftga import qilish
-                                    </button>
                                 </div>
                             </div>
 
