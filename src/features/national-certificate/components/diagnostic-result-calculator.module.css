@@ -9,14 +9,14 @@
     width: min(720px, 100%);
     margin: 0 auto;
     display: grid;
-    gap: 18px;
+    gap: 16px;
 }
 
 .header {
     display: grid;
     grid-template-columns: 44px 1fr;
     gap: 14px;
-    align-items: start;
+    align-items: center;
 }
 
 .header > button {
@@ -39,21 +39,18 @@
 }
 
 .header h1 {
-    margin: 4px 0 6px;
+    margin: 4px 0 0;
     font-size: clamp(28px, 6vw, 40px);
 }
 
-.header p,
-.resultCard p,
-.formula p {
+.resultCard p {
     margin: 0;
     color: #687789;
     line-height: 1.55;
 }
 
 .card,
-.resultCard,
-.formula {
+.resultCard {
     border: 1px solid #dce7f3;
     border-radius: 24px;
     background: #fff;
@@ -149,14 +146,6 @@
     font-size: 24px;
 }
 
-.formula {
-    padding: 18px 20px;
-}
-
-.formula strong {
-    display: block;
-    margin-bottom: 4px;
-}
 
 @media (max-width: 480px) {
     .page { padding-inline: 12px; }
@@ -171,7 +160,6 @@
 
 :global(html[data-theme="dark"]) .card,
 :global(html[data-theme="dark"]) .resultCard,
-:global(html[data-theme="dark"]) .formula,
 :global(html[data-theme="dark"]) .header > button {
     background: #182630;
     border-color: #314553;

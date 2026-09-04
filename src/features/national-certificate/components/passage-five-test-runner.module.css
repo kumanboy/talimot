@@ -895,8 +895,7 @@
 
 /* Literary passage blocks */
 
-.passageParagraph,
-.dialogue {
+.passageParagraph {
     margin: 0;
     color: var(--app-text);
     font-family:
@@ -904,25 +903,94 @@
             "Times New Roman",
             serif;
     font-size: 12px;
-    line-height: 1.72;
+    line-height: 1.78;
     text-align: justify;
 }
 
-.dialogue {
-    padding-left: 12px;
-    border-left:
-            2px solid
+.dialogueCard {
+    display: grid;
+    gap: 10px;
+    padding: 14px 15px;
+    border:
+            1px solid
             color-mix(
                     in srgb,
-                    var(--app-primary) 55%,
+                    var(--app-primary) 19%,
+                    var(--app-border)
+            );
+    border-radius: 18px;
+    background:
+            linear-gradient(
+                    145deg,
+                    color-mix(
+                            in srgb,
+                            var(--app-primary) 8%,
+                            var(--app-surface)
+                    ),
+                    color-mix(
+                            in srgb,
+                            var(--app-surface) 92%,
+                            transparent
+                    )
+            );
+    box-shadow:
+            0 10px 26px
+            color-mix(
+                    in srgb,
+                    #000 5%,
                     transparent
             );
 }
 
-.speaker {
-    margin-right: 5px;
+.dialogueMeta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.dialogueText {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 8px;
+    margin: 0;
+    color: var(--app-text);
+    font-family:
+            Georgia,
+            "Times New Roman",
+            serif;
+    font-size: 12px;
+    line-height: 1.75;
+    text-align: justify;
+}
+
+.dialogueQuote {
     color: var(--app-primary);
-    font-style: normal;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    transform: translateY(1px);
+}
+
+.speakerChip {
+    display: inline-flex;
+    min-height: 26px;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 999px;
+    background:
+            color-mix(
+                    in srgb,
+                    var(--app-primary) 12%,
+                    transparent
+            );
+    color: var(--app-primary);
+    font-family:
+            Arial,
+            sans-serif;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: 0.02em;
 }
 
 .inlineMarker {

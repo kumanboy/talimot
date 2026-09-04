@@ -323,6 +323,58 @@ function createResultFromAttempt(
     };
 }
 
+const dialoguePrefixPattern =
+    /^[—–-]\s*/u;
+
+function getDialoguePresentation(
+    block: PassageBlock,
+): {
+    readonly marker?: string;
+    readonly speaker?: string;
+    readonly text: string;
+} | null {
+    if (
+        block.type ===
+        "dialogue"
+    ) {
+        return {
+            marker: block.marker,
+            speaker: block.speaker,
+            text:
+                block.text.replace(
+                    dialoguePrefixPattern,
+                    "",
+                ).trim(),
+        };
+    }
+
+    if (
+        block.type ===
+        "paragraph"
+    ) {
+        const trimmed =
+            block.text.trim();
+
+        if (
+            dialoguePrefixPattern.test(
+                trimmed,
+            )
+        ) {
+            return {
+                marker: block.marker,
+                text: trimmed
+                    .replace(
+                        dialoguePrefixPattern,
+                        "",
+                    )
+                    .trim(),
+            };
+        }
+    }
+
+    return null;
+}
+
 function PassageBlockContent({
                                  block,
                              }: {
@@ -365,40 +417,72 @@ function PassageBlockContent({
         );
     }
 
-    if (
-        block.type ===
-        "dialogue"
-    ) {
+    const dialoguePresentation =
+        getDialoguePresentation(
+            block,
+        );
+
+    if (dialoguePresentation) {
         return (
-            <p
+            <section
                 className={
-                    styles.dialogue
+                    styles.dialogueCard
                 }
             >
-                {block.marker ? (
-                    <strong
+                {dialoguePresentation.marker ||
+                dialoguePresentation.speaker ? (
+                    <div
                         className={
-                            styles.inlineMarker
+                            styles.dialogueMeta
                         }
                     >
-                        [{block.marker}]
-                    </strong>
+                        {dialoguePresentation.marker ? (
+                            <strong
+                                className={
+                                    styles.inlineMarker
+                                }
+                            >
+                                [{
+                                    dialoguePresentation.marker
+                                }]
+                            </strong>
+                        ) : null}
+
+                        {dialoguePresentation.speaker ? (
+                            <strong
+                                className={
+                                    styles.speakerChip
+                                }
+                            >
+                                {
+                                    dialoguePresentation.speaker
+                                }
+                            </strong>
+                        ) : null}
+                    </div>
                 ) : null}
 
-                {block.speaker ? (
-                    <strong
+                <p
+                    className={
+                        styles.dialogueText
+                    }
+                >
+                    <span
+                        aria-hidden="true"
                         className={
-                            styles.speaker
+                            styles.dialogueQuote
                         }
                     >
-                        {block.speaker}.
-                    </strong>
-                ) : null}
+                        —
+                    </span>
 
-                <span>
-                    {block.text}
-                </span>
-            </p>
+                    <span>
+                        {
+                            dialoguePresentation.text
+                        }
+                    </span>
+                </p>
+            </section>
         );
     }
 

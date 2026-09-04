@@ -41,6 +41,9 @@ const taggedBlockPattern =
 const speakerPattern =
     /^([^:]{2,80})\s*:\s*(\S.*)$/u;
 
+const dashDialoguePattern =
+    /^[—–-]\s*(\S.*)$/u;
+
 function topicFromText(
     value: string,
 ): AdminPassageDocxTopic | null {
@@ -317,6 +320,20 @@ function parseLiteraryPassage(
                 type: "dialogue",
                 speaker: speakerMatch[1].trim(),
                 text: speakerMatch[2].trim(),
+            });
+            continue;
+        }
+
+        const dashDialogueMatch =
+            dashDialoguePattern.exec(
+                line,
+            );
+
+        if (dashDialogueMatch?.[1]) {
+            createBlock({
+                blocks,
+                type: "dialogue",
+                text: dashDialogueMatch[1].trim(),
             });
             continue;
         }

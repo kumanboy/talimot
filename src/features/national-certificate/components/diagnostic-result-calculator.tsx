@@ -39,7 +39,6 @@ export function DiagnosticResultCalculator() {
                     <div>
                         <span>TA’LIMOT</span>
                         <h1>Natija hisoblagich</h1>
-                        <p>Test va esse ballaringizni kiriting. Hisoblagich hech qanday ma’lumotni saqlamaydi.</p>
                     </div>
                 </header>
 
@@ -98,10 +97,6 @@ export function DiagnosticResultCalculator() {
                     )}
                 </section>
 
-                <section className={styles.formula}>
-                    <strong>Hisoblash formulasi</strong>
-                    <p>(Test qismi + Esse qismi) ÷ 2</p>
-                </section>
             </div>
             <MobileNavigation />
         </main>
