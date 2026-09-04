@@ -1,8 +1,8 @@
 import { connection } from "next/server";
 
 import {
-    adminTestDraftService,
-} from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
+    getCachedPublishedTestDraftSummaries,
+} from "@/features/tests/server/get-cached-published-test-drafts";
 import type {
     AdminTestDraftSummary,
 } from "@/features/admin/tests/draft/model/admin-test-draft-types";
@@ -57,12 +57,8 @@ export async function getStudentMorphologyTestsBySubtopic(
     await connection();
 
     const publishedDrafts =
-        await adminTestDraftService.listPublished(
+        await getCachedPublishedTestDraftSummaries(
             "morphology",
-            {
-                topicSlug: subtopic,
-                format: "morphology-standard",
-            },
         );
 
     const drafts = publishedDrafts.filter(

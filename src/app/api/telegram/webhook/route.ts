@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
     createTelegramAccessToken,
+    createTelegramGateToken,
 } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
 import { processManualPaymentStatus } from "@/features/payments/server/process-manual-payment-status";
 import { isTelegramAdminIdentity } from "@/features/telegram/server/telegram-bot-api";
-import { syncTelegramBotCommands } from "@/features/telegram/server/telegram-bot-commands";
 import {
     createVerificationCode,
     hashVerificationCode,
@@ -168,14 +168,6 @@ function subscriptionKeyboard() {
     };
 }
 
-async function ensureBotCommandsSafely() {
-    try {
-        await syncTelegramBotCommands();
-    } catch (error) {
-        console.error("Telegram bot commands update failed", error);
-    }
-}
-
 async function setMenuButtonSafely(
     chatId: number,
     menuButton: Record<string, unknown>,
@@ -200,25 +192,10 @@ async function hideWebsiteMenuButton(chatId: number) {
     });
 }
 
-async function ensureDefaultMenuIsCommandsSafely() {
-    try {
-        // The project previously configured a global Web Site menu button.
-        // Reset the global fallback to commands. Existing verified per-chat
-        // Web App buttons are not affected because per-chat settings override
-        // the default menu button.
-        await telegramApi("setChatMenuButton", {
-            menu_button: {
-                type: "commands",
-            },
-        });
-    } catch (error) {
-        console.error("Telegram default menu reset failed", error);
-    }
-}
-
 function createVerifiedEntryUrl(
     telegramUserId: number,
     destination: string,
+    membershipVerified = false,
 ) {
     const appUrl = getAppUrl();
     const token = createTelegramAccessToken(telegramUserId);
@@ -226,6 +203,16 @@ function createVerifiedEntryUrl(
         token,
         next: destination,
     });
+
+    // Only mint the short-lived membership proof in flows that have just
+    // completed a live Telegram membership check. Other entry links (for
+    // example payment/balance notifications) continue to re-check membership.
+    if (membershipVerified) {
+        params.set(
+            "gate",
+            createTelegramGateToken(telegramUserId),
+        );
+    }
 
     return `${appUrl}/api/telegram/access?${params.toString()}`;
 }
@@ -378,15 +365,20 @@ async function sendVerifiedAccessMessage(
     });
 }
 
+type ResolvedDestination = Awaited<
+    ReturnType<typeof resolveDestinationSafely>
+>;
+
 async function sendContinueMessage(
     chatId: number,
     messageId: number,
     telegramUserId: number,
+    resolvedDestination?: ResolvedDestination,
 ) {
-    const { destination, registered } = await resolveDestinationSafely(
-        telegramUserId,
-    );
-    const entryUrl = createVerifiedEntryUrl(telegramUserId, destination);
+    const { destination, registered } =
+        resolvedDestination ??
+        await resolveDestinationSafely(telegramUserId);
+    const entryUrl = createVerifiedEntryUrl(telegramUserId, destination, true);
 
     await sendVerifiedAccessMessage(
         chatId,
@@ -529,7 +521,10 @@ async function handlePaymentDecisionCallback(
 async function sendPlatformCommand(message: TelegramMessage) {
     if (!message.from) return;
 
-    const user = await getUserByTelegramId(message.from.id);
+    const [user, subscribed] = await Promise.all([
+        getUserByTelegramId(message.from.id),
+        isTelegramChannelMember(message.from.id),
+    ]);
 
     if (!user || user.status !== "active") {
         await telegramApi("sendMessage", {
@@ -541,14 +536,15 @@ async function sendPlatformCommand(message: TelegramMessage) {
         return;
     }
 
-    const subscribed = await isTelegramChannelMember(message.from.id);
-
     if (!subscribed) {
-        await sendSubscriptionPrompt(message.chat.id);
+        await Promise.allSettled([
+            sendSubscriptionPrompt(message.chat.id),
+            hideWebsiteMenuButton(message.chat.id),
+        ]);
         return;
     }
 
-    const entryUrl = createVerifiedEntryUrl(message.from.id, "/");
+    const entryUrl = createVerifiedEntryUrl(message.from.id, "/", true);
 
     await telegramApi("sendMessage", {
         chat_id: message.chat.id,
@@ -616,6 +612,9 @@ async function sendBalanceCommand(message: TelegramMessage) {
 async function sendRegisteredStartMessage(message: TelegramMessage) {
     if (!message.from) return false;
 
+    // New users should see the subscription prompt after only the fast DB
+    // lookup. Do not make them wait for Telegram getChatMember before they have
+    // even had a chance to subscribe.
     const user = await getUserByTelegramId(message.from.id);
 
     if (!user || user.status !== "active") {
@@ -665,26 +664,34 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
         return;
     }
 
-    const subscribed = await isTelegramChannelMember(callback.from.id);
+    // Start the real checks immediately and acknowledge the callback in
+    // parallel. This stops Telegram's button spinner quickly without delaying
+    // the membership/database work that produces the access button.
+    const verificationPromise = Promise.all([
+        isTelegramChannelMember(callback.from.id),
+        resolveDestinationSafely(callback.from.id),
+    ]);
+
+    try {
+        await answerCallbackQuery(callback.id, "Tekshirilmoqda…");
+    } catch (error) {
+        console.error("Telegram callback acknowledgement failed", error);
+    }
+
+    const [subscribed, resolvedDestination] = await verificationPromise;
 
     if (!subscribed) {
-        // Explicitly remove the Website button for this private chat.
-        await hideWebsiteMenuButton(chatId);
-
-        await answerCallbackQuery(
-            callback.id,
-            "Telegram kanalga hali obuna bo‘lmagansiz.",
-            true,
-        );
-
-        await telegramApi("sendMessage", {
-            chat_id: chatId,
-            text:
-                "❌ Telegram kanalga obuna aniqlanmadi.\n\n" +
-                "Avval Instagramga, keyin Telegram kanalga obuna bo‘ling va yana tekshiring.",
-            reply_markup: subscriptionKeyboard(),
-            disable_web_page_preview: true,
-        });
+        await Promise.allSettled([
+            hideWebsiteMenuButton(chatId),
+            telegramApi("sendMessage", {
+                chat_id: chatId,
+                text:
+                    "❌ Telegram kanalga obuna aniqlanmadi.\n\n" +
+                    "Avval Instagramga, keyin Telegram kanalga obuna bo‘ling va yana tekshiring.",
+                reply_markup: subscriptionKeyboard(),
+                disable_web_page_preview: true,
+            }),
+        ]);
         return;
     }
 
@@ -693,6 +700,7 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
             chatId,
             callback.message!.message_id,
             callback.from.id,
+            resolvedDestination,
         );
     } catch (error) {
         console.error("Could not create TA’LIMOT access link", {
@@ -703,20 +711,11 @@ async function handleCallbackQuery(callback: TelegramCallbackQuery) {
             hasWebhookSecret: Boolean(process.env.TELEGRAM_WEBHOOK_SECRET?.trim()),
             hasBotToken: Boolean(process.env.TELEGRAM_VERIFICATION_BOT_TOKEN?.trim()),
         });
-        await answerCallbackQuery(
-            callback.id,
-            "Sayt havolasini yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.",
-            true,
-        );
-        return;
-    }
-
-    // The callback confirmation is best-effort. The actual success state is
-    // now visible in the edited bot message itself.
-    try {
-        await answerCallbackQuery(callback.id, "Obuna tasdiqlandi ✅");
-    } catch (error) {
-        console.error("Telegram callback confirmation failed", error);
+        await telegramApi("sendMessage", {
+            chat_id: chatId,
+            text: "Sayt havolasini yaratishda xatolik yuz berdi. Qayta urinib ko‘ring.",
+            disable_web_page_preview: true,
+        });
     }
 }
 
@@ -941,22 +940,16 @@ async function handleMessage(message: TelegramMessage) {
     }
 
     if (text === "/platforma" || text.startsWith("/platforma@")) {
-        await ensureBotCommandsSafely();
         await sendPlatformCommand(message);
         return;
     }
 
     if (text === "/balans" || text.startsWith("/balans@")) {
-        await ensureBotCommandsSafely();
         await sendBalanceCommand(message);
         return;
     }
 
     if (text === "/start" || text.startsWith("/start@") || text.startsWith("/start ")) {
-        await ensureBotCommandsSafely();
-        await ensureDefaultMenuIsCommandsSafely();
-        await hideWebsiteMenuButton(message.chat.id);
-
         if (await sendRegisteredStartMessage(message)) {
             return;
         }

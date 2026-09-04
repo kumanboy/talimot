@@ -7,6 +7,7 @@ import { HomeHeaderShell } from "@/features/home/components/home-header-shell";
 import { HomeHeroCarousel } from "@/features/home/components/home-hero-carousel";
 import { MobileNavigation } from "@/features/home/components/mobile-navigation";
 import { ScrollToTop } from "@/features/home/components/scroll-to-top";
+import { StudentModuleWarmup } from "@/features/home/components/student-module-warmup";
 
 import styles from "./page.module.css";
 
@@ -48,6 +49,7 @@ export default function Home() {
             <DiagnosticBanner />
             <HomeFooter />
             <ScrollToTop />
+            <StudentModuleWarmup />
             <MobileNavigation />
         </main>
     );

@@ -1,8 +1,8 @@
 import "server-only";
 
 import {
-    adminTestDraftService,
-} from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
+    getPublishedTestDraftByRoute,
+} from "@/features/tests/server/get-published-test-draft-by-route";
 import {
     convertAdminTestDraftToStudentTest,
 } from "@/features/admin/tests/draft/publish/admin-test-draft-to-student-test";
@@ -13,25 +13,18 @@ import type {
     MixedTestDefinition,
 } from "@/features/national-certificate/model/mixed-test-types";
 
-async function getPublishedDraft(
+function getPublishedDraft(
     topicSlug: string,
     testSlug: string,
     group:
         "grammar" |
         "morphology",
 ) {
-    const draft =
-        await adminTestDraftService.getByRoute({
-            group,
-            topicSlug,
-            slug:
-                testSlug,
-        });
-
-    return draft?.status ===
-        "published"
-        ? draft
-        : null;
+    return getPublishedTestDraftByRoute(
+        group,
+        topicSlug,
+        testSlug,
+    );
 }
 
 /**

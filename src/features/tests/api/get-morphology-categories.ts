@@ -1,8 +1,8 @@
 import { connection } from "next/server";
 
 import {
-    adminTestDraftService,
-} from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
+    getCachedPublishedTestDraftSummaries,
+} from "@/features/tests/server/get-cached-published-test-drafts";
 import {
     isMorphologySubtopicSlug,
     morphologyCategories,
@@ -22,7 +22,7 @@ export async function getStudentMorphologyCategories(): Promise<
     await connection();
 
     const publishedDrafts =
-        await adminTestDraftService.listPublished(
+        await getCachedPublishedTestDraftSummaries(
             "morphology",
         );
     const testSlugsBySubtopic =

@@ -1,8 +1,8 @@
 import { connection } from "next/server";
 
 import {
-    adminTestDraftService,
-} from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
+    getCachedPublishedTestDraftSummaries,
+} from "@/features/tests/server/get-cached-published-test-drafts";
 import type {
     AdminTestDraftSummary,
 } from "@/features/admin/tests/draft/model/admin-test-draft-types";
@@ -54,35 +54,12 @@ export async function getStandardTestsByTopic(
 ): Promise<readonly StandardTestSummary[]> {
     await connection();
 
-    const standardPromise =
-        adminTestDraftService.listPublished(
+    const publishedDrafts =
+        await getCachedPublishedTestDraftSummaries(
             "grammar",
-            {
-                topicSlug,
-                format: "standard",
-            },
         );
 
-    const mixedPromise =
-        topicSlug === "sintaksis"
-            ? adminTestDraftService.listPublished(
-                "grammar",
-                {
-                    topicSlug,
-                    format: "mixed",
-                },
-            )
-            : Promise.resolve([] as readonly AdminTestDraftSummary[]);
-
-    const [standardDrafts, mixedDrafts] = await Promise.all([
-        standardPromise,
-        mixedPromise,
-    ]);
-
-    const drafts = [
-        ...standardDrafts,
-        ...mixedDrafts,
-    ].filter(
+    const drafts = publishedDrafts.filter(
         (draft) =>
             draft.topicSlug === topicSlug &&
             (

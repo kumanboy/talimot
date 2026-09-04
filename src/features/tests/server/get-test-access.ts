@@ -3,8 +3,8 @@ import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 
 import {
-    adminTestDraftService,
-} from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
+    getPublishedTestDraftByRoute,
+} from "@/features/tests/server/get-published-test-draft-by-route";
 import { db } from "@/lib/database/db";
 import { testPurchases } from "@/lib/database/schema/test-purchases";
 
@@ -50,13 +50,14 @@ export async function getStudentTestAccessByRoute(
     route: TestRoute,
     userId: string | null,
 ): Promise<StudentTestAccess | null> {
-    const draft = await adminTestDraftService.getByRoute({
-        group: route.group,
-        topicSlug: route.topicSlug,
-        slug: route.testSlug,
-    });
+    const draft =
+        await getPublishedTestDraftByRoute(
+            route.group,
+            route.topicSlug,
+            route.testSlug,
+        );
 
-    if (!draft || draft.status !== "published") {
+    if (!draft) {
         return null;
     }
 

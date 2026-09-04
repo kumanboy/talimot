@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { IntentPrefetchLink } from "@/components/ui/intent-prefetch-link";
+
 import styles from "./topic-grid.module.css";
 
 type Topic = {
@@ -245,11 +247,10 @@ export function TopicGrid() {
 
             <div className={styles.grid}>
                 {topics.map((topic) => (
-                    <Link
+                    <IntentPrefetchLink
                         key={topic.id}
                         className={styles.card}
                         href={topic.href}
-                        prefetch={false}
                     >
             <span className={`${styles.icon} ${styles[topic.icon]}`}>
               <TopicIcon type={topic.icon} />
@@ -263,7 +264,7 @@ export function TopicGrid() {
                         <span className={styles.arrow} aria-hidden="true">
               ›
             </span>
-                    </Link>
+                    </IntentPrefetchLink>
                 ))}
             </div>
         </section>

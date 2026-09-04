@@ -12,6 +12,7 @@ import {
     telegramAccessCookieOptions,
     telegramGateCookieOptions,
     verifyTelegramAccessToken,
+    verifyTelegramGateToken,
 } from "@/features/auth/model/telegram-access";
 import { getUserByTelegramId } from "@/features/auth/server/get-user-by-telegram-id";
 import { isTelegramChannelMember } from "@/features/auth/server/is-telegram-channel-member";
@@ -45,11 +46,23 @@ export async function GET(request: NextRequest) {
         return response;
     }
 
-    // These two operations do not depend on each other, so do not serialize
-    // them. This path is the first server hop when the Telegram Mini App opens.
+    // A button created immediately after a successful bot membership check
+    // carries a short-lived signed gate token. Trust that proof for this first
+    // launch so the user does not wait for Telegram getChatMember twice in a
+    // row. Old/expired buttons still fall back to a live membership check.
+    const gateToken = request.nextUrl.searchParams.get("gate") ?? undefined;
+    const gate = verifyTelegramGateToken(gateToken);
+    const hasFreshMembershipProof =
+        gate?.telegramUserId === access.telegramUserId;
+
+    const userPromise = getUserByTelegramId(access.telegramUserId);
+    const membershipPromise = hasFreshMembershipProof
+        ? Promise.resolve(true)
+        : isTelegramChannelMember(access.telegramUserId);
+
     const [subscribed, registeredUser] = await Promise.all([
-        isTelegramChannelMember(access.telegramUserId),
-        getUserByTelegramId(access.telegramUserId),
+        membershipPromise,
+        userPromise,
     ]);
 
     if (!subscribed) {

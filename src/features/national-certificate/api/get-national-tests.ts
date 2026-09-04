@@ -4,8 +4,8 @@ import { getActiveStudentUserId } from "@/features/auth/server/get-active-studen
 import { getPurchasedTestIds } from "@/features/tests/server/get-test-access";
 
 import {
-    adminTestDraftService,
-} from "@/features/admin/tests/draft/repository/admin-test-draft-service-instance";
+    getCachedPublishedTestDraftSummaries,
+} from "@/features/tests/server/get-cached-published-test-drafts";
 import type {
     AdminTestDraftSummary,
 } from "@/features/admin/tests/draft/model/admin-test-draft-types";
@@ -107,11 +107,8 @@ export async function getNationalTestsByTopic(
             ),
         );
     const publishedDrafts =
-        await adminTestDraftService.listPublished(
+        await getCachedPublishedTestDraftSummaries(
             "national-certificate",
-            {
-                topicSlug: topic,
-            },
         );
 
     const userId = await getActiveStudentUserId();

@@ -59,13 +59,14 @@ export async function POST(request: NextRequest) {
     }
 
     const telegramUserId = telegramData.user.id;
-    const subscribed = await isTelegramChannelMember(telegramUserId);
+    const [subscribed, user] = await Promise.all([
+        isTelegramChannelMember(telegramUserId),
+        getUserByTelegramId(telegramUserId),
+    ]);
 
     if (!subscribed) {
         return unauthorized("subscription", 403);
     }
-
-    const user = await getUserByTelegramId(telegramUserId);
 
     if (user?.status === "blocked") {
         return unauthorized("blocked", 403);
