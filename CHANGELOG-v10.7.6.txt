@@ -1,0 +1,9 @@
+TA’LIMOT v10.7.6
+
+- Badiiy matn dialogue parser now recognizes dash-led dialogue before generic colon speaker parsing.
+- Prevents dialogue such as “Hammasi tushunarli: murdaga aylanibsan.” from being misclassified as a speaker label.
+- Student badiiy matn dialogue cards now render the speaker naturally inline instead of a pill/chip.
+- Existing incorrectly classified dialogue blocks remain readable because speaker text is rendered inline with the utterance.
+- Added parser regression coverage for the Shifokor huzurida case.
+- Previous v10.7.5 calculator cleanup and badiiy dialogue card design are preserved.
+- No SQL required.

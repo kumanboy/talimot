@@ -972,25 +972,13 @@
     transform: translateY(1px);
 }
 
-.speakerChip {
-    display: inline-flex;
-    min-height: 26px;
-    align-items: center;
-    padding: 0 10px;
-    border-radius: 999px;
-    background:
-            color-mix(
-                    in srgb,
-                    var(--app-primary) 12%,
-                    transparent
-            );
+.speakerInline {
     color: var(--app-primary);
     font-family:
-            Arial,
-            sans-serif;
-    font-size: 9px;
-    font-weight: 850;
-    letter-spacing: 0.02em;
+            Georgia,
+            "Times New Roman",
+            serif;
+    font-weight: 800;
 }
 
 .inlineMarker {

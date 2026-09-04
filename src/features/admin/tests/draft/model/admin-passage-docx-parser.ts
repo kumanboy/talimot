@@ -312,18 +312,6 @@ function parseLiteraryPassage(
             continue;
         }
 
-        const speakerMatch = speakerPattern.exec(line);
-
-        if (speakerMatch?.[1] && speakerMatch[2]) {
-            createBlock({
-                blocks,
-                type: "dialogue",
-                speaker: speakerMatch[1].trim(),
-                text: speakerMatch[2].trim(),
-            });
-            continue;
-        }
-
         const dashDialogueMatch =
             dashDialoguePattern.exec(
                 line,
@@ -334,6 +322,18 @@ function parseLiteraryPassage(
                 blocks,
                 type: "dialogue",
                 text: dashDialogueMatch[1].trim(),
+            });
+            continue;
+        }
+
+        const speakerMatch = speakerPattern.exec(line);
+
+        if (speakerMatch?.[1] && speakerMatch[2]) {
+            createBlock({
+                blocks,
+                type: "dialogue",
+                speaker: speakerMatch[1].trim(),
+                text: speakerMatch[2].trim(),
             });
             continue;
         }

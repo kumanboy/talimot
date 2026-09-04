@@ -126,6 +126,30 @@ JAVOBLAR
         expect(result?.confidence).toBe("review");
     });
 
+    it("keeps colon inside dash-led literary dialogue instead of treating the utterance as a speaker", () => {
+        const result = parsePassageDocxDocument(`
+TEST TURI: BADIIY MATN
+SARLAVHA: Shifokor huzurida
+MATN
+– Hammasi tushunarli: murdaga aylanibsan.
+– Murda deysanmi? Qanaqa murda?
+SAVOLLAR
+1. Savol?
+A) A
+B) B
+C) C
+D) D
+JAVOBLAR
+1=A
+        `);
+
+        expect(result?.passage[0]?.type).toBe("dialogue");
+        expect(result?.passage[0]?.speaker).toBeNull();
+        expect(result?.passage[0]?.text).toBe(
+            "Hammasi tushunarli: murdaga aylanibsan.",
+        );
+    });
+
     it("returns null for a normal MCQ-only document", () => {
         expect(parsePassageDocxDocument(`
 1. Savol?

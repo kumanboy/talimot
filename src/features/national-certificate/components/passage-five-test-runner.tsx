@@ -339,7 +339,14 @@ function getDialoguePresentation(
     ) {
         return {
             marker: block.marker,
-            speaker: block.speaker,
+            speaker:
+                block.speaker
+                    ?.replace(
+                        dialoguePrefixPattern,
+                        "",
+                    )
+                    .trim() ||
+                undefined,
             text:
                 block.text.replace(
                     dialoguePrefixPattern,
@@ -429,36 +436,21 @@ function PassageBlockContent({
                     styles.dialogueCard
                 }
             >
-                {dialoguePresentation.marker ||
-                dialoguePresentation.speaker ? (
+                {dialoguePresentation.marker ? (
                     <div
                         className={
                             styles.dialogueMeta
                         }
                     >
-                        {dialoguePresentation.marker ? (
-                            <strong
-                                className={
-                                    styles.inlineMarker
-                                }
-                            >
-                                [{
-                                    dialoguePresentation.marker
-                                }]
-                            </strong>
-                        ) : null}
-
-                        {dialoguePresentation.speaker ? (
-                            <strong
-                                className={
-                                    styles.speakerChip
-                                }
-                            >
-                                {
-                                    dialoguePresentation.speaker
-                                }
-                            </strong>
-                        ) : null}
+                        <strong
+                            className={
+                                styles.inlineMarker
+                            }
+                        >
+                            [{
+                                dialoguePresentation.marker
+                            }]
+                        </strong>
                     </div>
                 ) : null}
 
@@ -477,6 +469,21 @@ function PassageBlockContent({
                     </span>
 
                     <span>
+                        {dialoguePresentation.speaker ? (
+                            <>
+                                <strong
+                                    className={
+                                        styles.speakerInline
+                                    }
+                                >
+                                    {
+                                        dialoguePresentation.speaker
+                                    }
+                                    :
+                                </strong>{" "}
+                            </>
+                        ) : null}
+
                         {
                             dialoguePresentation.text
                         }
