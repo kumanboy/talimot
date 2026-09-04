@@ -57,85 +57,69 @@ export function TestAccessFilter({
         freeCount > 0 &&
         premiumCount > 0;
 
-    if (
-        totalCount <= 1 &&
-        !hasMixedAccess
-    ) {
+    if (!hasMixedAccess) {
         return null;
     }
 
     return (
         <div
             className={styles.toolbar}
-            aria-label="Testlar tartibi va filtri"
+            aria-label="Testlarni kirish turiga ko‘ra filtrlash"
         >
-            <span
+            <div
                 className={
-                    styles.orderHint
+                    styles.filters
                 }
+                role="group"
+                aria-label="Testlarni kirish turiga ko‘ra filtrlash"
             >
-                <span aria-hidden="true">
-                    1 → 2 → 3
-                </span>
-                Variant tartibida
-            </span>
-
-            {hasMixedAccess ? (
-                <div
-                    className={
-                        styles.filters
-                    }
-                    role="group"
-                    aria-label="Testlarni kirish turiga ko‘ra filtrlash"
-                >
-                    {filters.map(
-                        (filter) => (
-                            <button
-                                key={
-                                    filter.value
+                {filters.map(
+                    (filter) => (
+                        <button
+                            key={
+                                filter.value
+                            }
+                            type="button"
+                            className={[
+                                styles.filterButton,
+                                value ===
+                                filter.value
+                                    ? styles.activeFilter
+                                    : "",
+                            ]
+                                .filter(
+                                    Boolean,
+                                )
+                                .join(
+                                    " ",
+                                )}
+                            aria-pressed={
+                                value ===
+                                filter.value
+                            }
+                            onClick={() =>
+                                onChange(
+                                    filter.value,
+                                )
+                            }
+                        >
+                            <span>
+                                {
+                                    filter.label
                                 }
-                                type="button"
-                                className={[
-                                    styles.filterButton,
-                                    value ===
-                                    filter.value
-                                        ? styles.activeFilter
-                                        : "",
-                                ]
-                                    .filter(
-                                        Boolean,
-                                    )
-                                    .join(
-                                        " ",
-                                    )}
-                                aria-pressed={
-                                    value ===
-                                    filter.value
+                            </span>
+                            <strong>
+                                {
+                                    counts[
+                                        filter
+                                            .value
+                                    ]
                                 }
-                                onClick={() =>
-                                    onChange(
-                                        filter.value,
-                                    )
-                                }
-                            >
-                                <span>
-                                    {
-                                        filter.label
-                                    }
-                                </span>
-                                <strong>
-                                    {
-                                        counts[
-                                            filter
-                                                .value
-                                        ]
-                                    }
-                                </strong>
-                            </button>
-                        ),
-                    )}
-                </div>
-            ) : null}
+                            </strong>
+                        </button>
+                    ),
+                )}
+            </div>
         </div>
     );
 }
