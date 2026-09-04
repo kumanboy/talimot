@@ -18,6 +18,9 @@ import type {
 import {
     getPurchasedTestIds,
 } from "@/features/tests/server/get-test-access";
+import {
+    sortTestCollectionsByVariant,
+} from "@/features/tests/model/sort-test-collections";
 
 function publishedMorphologySummary(
     draft: AdminTestDraftSummary,
@@ -75,11 +78,13 @@ export async function getStudentMorphologyTestsBySubtopic(
         drafts.map((draft) => draft.id),
     );
 
-    return drafts.map((draft) =>
-        publishedMorphologySummary(
-            draft,
-            subtopic,
-            purchasedIds,
+    return sortTestCollectionsByVariant(
+        drafts.map((draft) =>
+            publishedMorphologySummary(
+                draft,
+                subtopic,
+                purchasedIds,
+            ),
         ),
     );
 }

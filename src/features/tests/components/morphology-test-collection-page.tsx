@@ -1,5 +1,9 @@
 "use client";
 
+import {
+    useState,
+} from "react";
+
 import type {
     MorphologyCategory,
 } from "@/features/tests/model/morphology-categories";
@@ -15,6 +19,10 @@ import {
 import {
     TestPurchaseButton,
 } from "@/features/tests/components/test-purchase-button";
+import {
+    TestAccessFilter,
+    type TestAccessFilterValue,
+} from "@/features/tests/components/test-access-filter";
 
 import {
     TEST_ROUTES,
@@ -197,6 +205,31 @@ export function MorphologyTestCollectionPage({
                                                  category,
                                                  collections,
                                              }: MorphologyTestCollectionPageProps) {
+    const [
+        accessFilter,
+        setAccessFilter,
+    ] = useState<TestAccessFilterValue>(
+        "all",
+    );
+
+    const freeCount =
+        collections.filter(
+            (collection) =>
+                collection.access ===
+                "free",
+        ).length;
+    const premiumCount =
+        collections.length -
+        freeCount;
+    const visibleCollections =
+        accessFilter === "all"
+            ? collections
+            : collections.filter(
+                (collection) =>
+                    collection.access ===
+                    accessFilter,
+            );
+
     return (
         <main
             className={
@@ -282,12 +315,29 @@ export function MorphologyTestCollectionPage({
 
                     {collections.length >
                     0 ? (
-                        <div
-                            className={
-                                styles.list
-                            }
-                        >
-                            {collections.map(
+                        <>
+                            <TestAccessFilter
+                                value={accessFilter}
+                                onChange={
+                                    setAccessFilter
+                                }
+                                totalCount={
+                                    collections.length
+                                }
+                                freeCount={
+                                    freeCount
+                                }
+                                premiumCount={
+                                    premiumCount
+                                }
+                            />
+
+                            <div
+                                className={
+                                    styles.list
+                                }
+                            >
+                            {visibleCollections.map(
                                 (
                                     collection,
                                 ) => (
@@ -444,7 +494,8 @@ export function MorphologyTestCollectionPage({
                                     </article>
                                 ),
                             )}
-                        </div>
+                            </div>
+                        </>
                     ) : (
                         <section
                             className={

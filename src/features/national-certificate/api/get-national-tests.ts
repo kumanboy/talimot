@@ -14,6 +14,9 @@ import type {
     NationalTestSummary,
     NationalTestTopic,
 } from "@/features/national-certificate/model/national-test-types";
+import {
+    sortTestCollectionsByVariant,
+} from "@/features/tests/model/sort-test-collections";
 
 function expectedFormats(
     topic:
@@ -117,22 +120,24 @@ export async function getNationalTestsByTopic(
         publishedDrafts.map((draft) => draft.id),
     );
 
-    return publishedDrafts
-        .filter(
-            (draft) =>
-                draft.topicSlug ===
-                    topic &&
-                requiredFormats.has(
-                    draft.format as
-                        NationalTestFormat,
-                ),
-        )
-        .map(
-            (draft) =>
-                publishedNationalSummary(
-                    draft,
-                    topic,
-                    purchasedIds,
-                ),
-        );
+    return sortTestCollectionsByVariant(
+        publishedDrafts
+            .filter(
+                (draft) =>
+                    draft.topicSlug ===
+                        topic &&
+                    requiredFormats.has(
+                        draft.format as
+                            NationalTestFormat,
+                    ),
+            )
+            .map(
+                (draft) =>
+                    publishedNationalSummary(
+                        draft,
+                        topic,
+                        purchasedIds,
+                    ),
+            ),
+    );
 }

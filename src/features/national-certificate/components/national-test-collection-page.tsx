@@ -1,11 +1,19 @@
 "use client";
 
 import {
+    useState,
+} from "react";
+
+import {
     MobileNavigation,
 } from "@/features/home/components/mobile-navigation";
 import {
     TestPurchaseButton,
 } from "@/features/tests/components/test-purchase-button";
+import {
+    TestAccessFilter,
+    type TestAccessFilterValue,
+} from "@/features/tests/components/test-access-filter";
 import { PendingNavigationButton } from "@/components/ui/pending-navigation-button";
 
 import type {
@@ -364,6 +372,31 @@ export function NationalTestCollectionPage({
                                                description,
                                                collections,
                                            }: NationalTestCollectionPageProps) {
+    const [
+        accessFilter,
+        setAccessFilter,
+    ] = useState<TestAccessFilterValue>(
+        "all",
+    );
+
+    const freeCount =
+        collections.filter(
+            (collection) =>
+                collection.access ===
+                "free",
+        ).length;
+    const premiumCount =
+        collections.length -
+        freeCount;
+    const visibleCollections =
+        accessFilter === "all"
+            ? collections
+            : collections.filter(
+                (collection) =>
+                    collection.access ===
+                    accessFilter,
+            );
+
     const availableCount =
         collections.filter(
             (collection) =>
@@ -500,12 +533,24 @@ export function NationalTestCollectionPage({
                         </p>
                     </header>
 
+                    <TestAccessFilter
+                        value={accessFilter}
+                        onChange={setAccessFilter}
+                        totalCount={
+                            collections.length
+                        }
+                        freeCount={freeCount}
+                        premiumCount={
+                            premiumCount
+                        }
+                    />
+
                     <div
                         className={
                             styles.collectionGrid
                         }
                     >
-                        {collections.map(
+                        {visibleCollections.map(
                             (
                                 collection,
                             ) => (

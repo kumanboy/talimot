@@ -1,0 +1,21 @@
+TA’LIMOT v10.7.7 — Student test ordering + access filter
+
+FIXED
+- Student test lists no longer inherit the Admin repository's latest-updated-first order.
+- Explicit variants are naturally sorted ascending: 1-variant, 2-variant, 3-variant, ... 10-variant.
+- Sorting supports common title/slug forms such as "Variant 2", "2 variant", "2-variant" and "ravish_2_variant_20".
+- Question-count numbers such as "20 ta savol" are not mistaken for variant numbers.
+- Tests without an explicit variant marker remain stable and use natural numeric title/slug ordering.
+
+APPLIES TO
+- Grammar topic collections: Imlo, Morfemika, Leksikologiya, Uslubiyat, Sintaksis, Punktuatsiya.
+- Morphology subtopics: Ot, Sifat, Son, Olmosh, Ravish, Fe’l and other morphology categories.
+- Milliy sertifikat collections: G‘azal, Badiiy matn, Ilmiy matn, Badiiy asarlar, Aralash, Diagnostika.
+
+UI
+- Added a compact order indicator (1 → 2 → 3).
+- Added Barchasi / Bepul / Premium filtering when both access types exist.
+- Default remains Barchasi, preserving ascending variant order on first visit.
+
+ADMIN
+- Admin test catalogue ordering remains unchanged (latest updated first).

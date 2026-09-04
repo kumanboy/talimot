@@ -15,6 +15,9 @@ import {
 import type {
     StandardTestSummary,
 } from "@/features/tests/model/test-summary";
+import {
+    sortTestCollectionsByVariant,
+} from "@/features/tests/model/sort-test-collections";
 
 function publishedStandardSummary(
     draft: AdminTestDraftSummary,
@@ -101,7 +104,12 @@ export async function getStandardTestsByTopic(
         drafts.map((draft) => draft.id),
     );
 
-    return drafts.map((draft) =>
-        publishedStandardSummary(draft, purchasedIds),
+    return sortTestCollectionsByVariant(
+        drafts.map((draft) =>
+            publishedStandardSummary(
+                draft,
+                purchasedIds,
+            ),
+        ),
     );
 }
