@@ -2,7 +2,6 @@
 
 import {
     useEffect,
-    useMemo,
     useRef,
     useState,
 } from "react";
@@ -142,449 +141,126 @@ function pauseOtherExplanationAudios(
     );
 }
 
-export function QuestionAudioExplanation({
-                                             explanation,
-                                             visible = true,
-                                         }: QuestionAudioExplanationProps) {
-    const audioRef =
-        useRef<HTMLAudioElement | null>(
-            null,
-        );
+export function QuestionAudioExplanation({ explanation, visible = true }: QuestionAudioExplanationProps) {
+    if (!visible || !hasQuestionAudioExplanation(explanation)) return null;
+    // Remount when the source changes so events and pending play promises from
+    // the previous recording cannot change the new player's state.
+    return <AudioPlayer key={explanation.audio.src.trim()} audio={explanation.audio} />;
+}
 
-    const [
-        isPlaying,
-        setIsPlaying,
-    ] = useState(
-        false,
-    );
+function AudioPlayer({ audio }: { audio: NonNullable<QuestionExplanation["audio"]> }) {
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const mounted = useRef(false);
+    const pending = useRef(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [error, setError] = useState<string | null>(null);
+    const [hasEnded, setHasEnded] = useState(false);
+    const title = audio.title?.trim() || DEFAULT_AUDIO_EXPLANATION_TITLE;
 
-    const [
-        currentTime,
-        setCurrentTime,
-    ] = useState(
-        0,
-    );
-
-    const [
-        duration,
-        setDuration,
-    ] = useState(
-        0,
-    );
-
-    const [
-        hasError,
-        setHasError,
-    ] = useState(
-        false,
-    );
-
-    const [
-        hasEnded,
-        setHasEnded,
-    ] = useState(
-        false,
-    );
-
-    const audio =
-        explanation?.audio;
-
-    const title =
-        audio?.title?.trim() ||
-        DEFAULT_AUDIO_EXPLANATION_TITLE;
-
-    const durationText =
-        useMemo(
-            () =>
-                duration > 0
-                    ? formatAudioTime(
-                        duration,
-                    )
-                    : audio?.durationLabel ??
-                    "00:00",
-            [
-                audio?.durationLabel,
-                duration,
-            ],
-        );
-
-    useEffect(
-        () => {
-            const element =
-                audioRef.current;
-
-            if (element) {
-                element.pause();
-                element.currentTime =
-                    0;
-            }
-
-            setIsPlaying(
-                false,
-            );
-            setCurrentTime(
-                0,
-            );
-            setDuration(
-                0,
-            );
-            setHasError(
-                false,
-            );
-            setHasEnded(
-                false,
-            );
-        },
-        [
-            audio?.src,
-        ],
-    );
-
-    useEffect(
-        () => {
-            return () => {
-                audioRef.current?.pause();
-            };
-        },
-        [],
-    );
-
-    if (
-        !visible ||
-        !hasQuestionAudioExplanation(
-            explanation,
-        )
-    ) {
-        return null;
-    }
+    useEffect(() => {
+        mounted.current = true;
+        const element = audioRef.current;
+        return () => {
+            mounted.current = false;
+            element?.pause();
+        };
+    }, []);
 
     async function togglePlayback() {
-        const element =
-            audioRef.current;
-
-        if (
-            !element ||
-            hasError
-        ) {
-            return;
-        }
-
-        if (
-            !element.paused
-        ) {
+        const element = audioRef.current;
+        if (!element || pending.current) return;
+        if (!element.paused) {
             element.pause();
             return;
         }
-
-        pauseOtherExplanationAudios(
-            element,
-        );
-
+        pauseOtherExplanationAudios(element);
+        pending.current = true;
+        setIsLoading(true);
         try {
-            if (
-                hasEnded ||
-                (
-                    Number.isFinite(
-                        element.duration,
-                    ) &&
-                    element.currentTime >=
-                    element.duration
-                )
-            ) {
-                element.currentTime =
-                    0;
-
-                setCurrentTime(
-                    0,
-                );
+            // A failed request can be retried without refreshing the results.
+            if (error || element.error) element.load();
+            setError(null);
+            if (hasEnded) {
+                element.currentTime = 0;
+                setCurrentTime(0);
             }
-
-            setHasEnded(
-                false,
-            );
-
+            setHasEnded(false);
             await element.play();
-        } catch {
-            setHasError(
-                true,
-            );
-            setIsPlaying(
-                false,
-            );
+        } catch (reason) {
+            // Switching players or leaving the page may abort play normally.
+            if (mounted.current && !(reason instanceof DOMException && reason.name === "AbortError")) {
+                setError("Audio ijro etilmadi. Qayta urinib ko‘ring.");
+            }
+        } finally {
+            pending.current = false;
+            if (mounted.current) setIsLoading(false);
         }
     }
 
-    function handleSeek(
-        value: number,
-    ) {
-        const element =
-            audioRef.current;
-
-        if (
-            !element ||
-            !Number.isFinite(
-                element.duration,
-            )
-        ) {
-            return;
-        }
-
-        const safeValue =
-            Math.min(
-                Math.max(
-                    value,
-                    0,
-                ),
-                element.duration,
-            );
-
-        element.currentTime =
-            safeValue;
-
-        setCurrentTime(
-            safeValue,
-        );
-
-        setHasEnded(
-            false,
-        );
+    function updateDuration(element: HTMLAudioElement) {
+        if (Number.isFinite(element.duration)) setDuration(element.duration);
     }
 
     return (
-        <section
-            className={
-                styles.card
-            }
-            aria-label={
-                title
-            }
-        >
-            <audio
-                ref={
-                    audioRef
-                }
-                src={
-                    explanation
-                        .audio
-                        .src
-                }
-                preload="metadata"
+        <section className={styles.card} aria-label={title}>
+            <audio ref={audioRef} src={audio.src.trim()} preload="none"
                 data-question-explanation-audio="true"
-                onLoadedMetadata={(
-                    event,
-                ) => {
-                    const nextDuration =
-                        event
-                            .currentTarget
-                            .duration;
-
-                    setDuration(
-                        Number.isFinite(
-                            nextDuration,
-                        )
-                            ? nextDuration
-                            : 0,
-                    );
+                onLoadedMetadata={event => updateDuration(event.currentTarget)}
+                onDurationChange={event => updateDuration(event.currentTarget)}
+                onTimeUpdate={event => setCurrentTime(event.currentTarget.currentTime)}
+                onPlay={event => {
+                    pauseOtherExplanationAudios(event.currentTarget);
+                    setIsPlaying(true);
+                    setHasEnded(false);
+                    setError(null);
                 }}
-                onDurationChange={(
-                    event,
-                ) => {
-                    const nextDuration =
-                        event
-                            .currentTarget
-                            .duration;
-
-                    if (
-                        Number.isFinite(
-                            nextDuration,
-                        )
-                    ) {
-                        setDuration(
-                            nextDuration,
-                        );
-                    }
-                }}
-                onTimeUpdate={(
-                    event,
-                ) => {
-                    setCurrentTime(
-                        event
-                            .currentTarget
-                            .currentTime,
-                    );
-                }}
-                onPlay={() => {
-                    setIsPlaying(
-                        true,
-                    );
-
-                    setHasEnded(
-                        false,
-                    );
-                }}
-                onPause={() => {
-                    setIsPlaying(
-                        false,
-                    );
-                }}
-                onEnded={(
-                    event,
-                ) => {
-                    setIsPlaying(
-                        false,
-                    );
-
-                    setHasEnded(
-                        true,
-                    );
-
-                    const element =
-                        event.currentTarget;
-
-                    if (
-                        Number.isFinite(
-                            element.duration,
-                        )
-                    ) {
-                        setCurrentTime(
-                            element.duration,
-                        );
-                    }
-                }}
+                onPlaying={() => setIsLoading(false)}
+                onWaiting={() => setIsLoading(true)}
+                onCanPlay={() => setIsLoading(false)}
+                onPause={() => { setIsPlaying(false); setIsLoading(false); }}
+                onEnded={() => { setIsPlaying(false); setHasEnded(true); setIsLoading(false); }}
                 onError={() => {
-                    setHasError(
-                        true,
-                    );
-
-                    setIsPlaying(
-                        false,
-                    );
+                    setError("Audio yuklanmadi. Qayta urinib ko‘ring.");
+                    setIsPlaying(false);
+                    setIsLoading(false);
                 }}
             />
-
-            <header
-                className={
-                    styles.header
-                }
-            >
-                <span
-                    className={
-                        styles.icon
-                    }
-                    aria-hidden="true"
-                >
-                    <HeadphonesIcon />
-                </span>
-
+            <header className={styles.header}>
+                <span className={styles.icon} aria-hidden="true"><HeadphonesIcon /></span>
                 <div>
-                    <strong>
-                        {title}
-                    </strong>
-
-                    <small>
-                        {hasError
-                            ? "Audio fayl topilmadi"
-                            : hasEnded
-                                ? "Izoh tinglandi"
-                                : isPlaying
-                                    ? "Ustozning izohi tinglanmoqda"
-                                    : "Savol yechimini ustoz izohlaydi"}
-                    </small>
+                    <strong>{title}</strong>
+                    <small aria-live="polite">{error || (isLoading ? "Audio yuklanmoqda…" : hasEnded
+                        ? "Izoh tinglandi" : isPlaying ? "Ustozning izohi tinglanmoqda"
+                            : "Savol yechimini ustoz izohlaydi")}</small>
                 </div>
             </header>
-
-            <div
-                className={
-                    styles.player
-                }
-            >
-                <button
-                    type="button"
-                    className={
-                        styles.playButton
-                    }
-                    disabled={
-                        hasError
-                    }
-                    aria-label={
-                        isPlaying
-                            ? "Ovozli izohni pauza qilish"
-                            : hasEnded
-                                ? "Ovozli izohni qayta tinglash"
-                                : "Ovozli izohni tinglash"
-                    }
-                    onClick={
-                        togglePlayback
-                    }
-                >
-                    {isPlaying ? (
-                        <PauseIcon />
-                    ) : (
-                        <PlayIcon />
-                    )}
+            <div className={styles.player}>
+                <button type="button" className={styles.playButton}
+                    aria-busy={isLoading || undefined}
+                    aria-label={error ? "Audioni qayta yuklash" : isPlaying
+                        ? "Ovozli izohni pauza qilish" : hasEnded
+                            ? "Ovozli izohni qayta tinglash" : "Ovozli izohni tinglash"}
+                    onClick={togglePlayback}>
+                    {isPlaying ? <PauseIcon /> : <PlayIcon />}
                 </button>
-
-                <div
-                    className={
-                        styles.timeline
-                    }
-                >
-                    <input
-                        type="range"
-                        min={
-                            0
-                        }
-                        max={
-                            duration >
-                            0
-                                ? duration
-                                : 0
-                        }
-                        step={
-                            0.1
-                        }
-                        value={
-                            Math.min(
-                                currentTime,
-                                duration >
-                                0
-                                    ? duration
-                                    : 0,
-                            )
-                        }
-                        disabled={
-                            hasError ||
-                            duration <=
-                            0
-                        }
+                <div className={styles.timeline}>
+                    <input type="range" min={0} max={duration} step={0.1}
+                        value={Math.min(currentTime, duration)} disabled={!!error || duration <= 0}
                         aria-label="Audio davomiyligi"
-                        onChange={(
-                            event,
-                        ) => {
-                            handleSeek(
-                                Number(
-                                    event
-                                        .target
-                                        .value,
-                                ),
-                            );
-                        }}
-                    />
-
-                    <div
-                        className={
-                            styles.timeRow
-                        }
-                    >
-                        <span>
-                            {formatAudioTime(
-                                currentTime,
-                            )}
-                        </span>
-
-                        <span>
-                            {durationText}
-                        </span>
+                        onChange={event => {
+                            const element = audioRef.current;
+                            if (!element || !Number.isFinite(element.duration) || element.duration <= 0) return;
+                            const value = Math.min(Math.max(Number(event.target.value), 0), element.duration);
+                            element.currentTime = value;
+                            setCurrentTime(value);
+                            setHasEnded(false);
+                        }} />
+                    <div className={styles.timeRow}>
+                        <span>{formatAudioTime(currentTime)}</span>
+                        <span>{duration > 0 ? formatAudioTime(duration) : audio.durationLabel ?? "00:00"}</span>
                     </div>
                 </div>
             </div>

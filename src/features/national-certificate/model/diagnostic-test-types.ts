@@ -179,6 +179,7 @@ export interface DiagnosticMatchingItem {
 }
 
 export interface DiagnosticMatchingGroup {
+    readonly explanation?: QuestionExplanation;
     readonly type:
         "matching-group";
 

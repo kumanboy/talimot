@@ -102,10 +102,21 @@
 
 .timeline input {
     width: 100%;
-    height: 5px;
+    height: 24px;
     margin: 0;
     accent-color: var(--app-primary);
     cursor: pointer;
+}
+
+.playButton:focus-visible,
+.timeline input:focus-visible {
+    outline: 2px solid var(--app-focus);
+    outline-offset: 3px;
+}
+
+:global(html[data-theme="dark"]) .playButton,
+:global(html[data-theme="dark"]) .icon {
+    color: #102033;
 }
 
 .timeline input:disabled {

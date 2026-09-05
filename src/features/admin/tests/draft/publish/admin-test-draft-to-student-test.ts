@@ -1536,7 +1536,7 @@ function mapMixedQuestion(
                 question.parts.map(
                     (part) => {
                         const partExplanation =
-                            explanation
+                            explanation?.audio
                                 ? undefined
                                 : mapExplanation(
                                     part.explanation,
@@ -1932,7 +1932,10 @@ function mapDiagnosticQuestion(
                 question.image,
             );
 
+        const groupExplanation = mapExplanation(question.explanation);
+
         return {
+            ...(groupExplanation ? { explanation: groupExplanation } : {}),
             type:
                 "matching-group",
             id:
@@ -1960,9 +1963,11 @@ function mapDiagnosticQuestion(
                 question.items.map(
                     (item) => {
                         const explanation =
-                            mapExplanation(
-                                item.explanation,
-                            );
+                            groupExplanation?.audio
+                                ? undefined
+                                : mapExplanation(
+                                    item.explanation,
+                                );
 
                         return {
                             id:
@@ -2121,7 +2126,7 @@ function mapDiagnosticQuestion(
                 question.parts.map(
                     (part) => {
                         const partExplanation =
-                            explanation
+                            explanation?.audio
                                 ? undefined
                                 : mapExplanation(
                                     part.explanation,

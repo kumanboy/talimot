@@ -72,6 +72,8 @@ import type {
     QuestionExplanation,
 } from "@/features/tests/model/question-explanation";
 
+import { QuestionNavigation } from "@/features/tests/components/question-navigation";
+
 import styles from "./diagnostic-test-runner.module.css";
 
 type DiagnosticTestRunnerProps = {
@@ -1290,6 +1292,10 @@ function DiagnosticAnswerReview({
                                             },
                                         )}
                                     </div>
+                                    <QuestionAudioExplanation
+                                        explanation={page.question.explanation}
+                                        visible={page.question.items.some(item => values[item.id] !== item.correctChoiceId)}
+                                    />
                                 </article>
                             );
                         }
@@ -2692,11 +2698,11 @@ export function DiagnosticTestRunner({
                     </div>
                 </section>
 
-                <nav
+                <QuestionNavigation
+                    currentIndex={currentIndex}
                     className={
                         styles.questionNavigation
                     }
-                    aria-label="Savollar"
                 >
                     {pages.map(
                         (
@@ -2704,6 +2710,7 @@ export function DiagnosticTestRunner({
                             index,
                         ) => (
                             <button
+                                aria-current={index === currentIndex ? "step" : undefined}
                                 key={`${getPageLabel(
                                     page,
                                 )}-${index}`}
@@ -2740,7 +2747,7 @@ export function DiagnosticTestRunner({
                             </button>
                         ),
                     )}
-                </nav>
+                </QuestionNavigation>
 
                 <section
                     className={
