@@ -37,6 +37,8 @@ export interface AdminAudioZipTarget {
      * use stems such as q40.mp3 or q44.mp3.
      */
     readonly zipFileStem?: string;
+    /** Optional alternate ZIP filename stems that map to this same audio target. */
+    readonly zipFileAliases?: readonly string[];
 }
 
 interface PreparedAudio {
@@ -63,6 +65,7 @@ interface Feedback {
 
 interface AdminAudioZipBulkImporterProps {
     readonly draftId: string;
+    readonly format?: string;
     readonly targets: readonly AdminAudioZipTarget[];
     readonly disabled?: boolean;
     readonly disabledReason?: string | null;
@@ -209,6 +212,7 @@ async function runWithConcurrency<T>(
 
 export function AdminAudioZipBulkImporter({
     draftId,
+    format,
     targets,
     disabled = false,
     disabledReason = null,
@@ -238,19 +242,26 @@ export function AdminAudioZipBulkImporter({
             const result = new Map<string, AdminAudioZipTarget>();
 
             targets.forEach((target) => {
-                if (!target.zipFileStem) {
-                    return;
-                }
+                const stems = [
+                    target.zipFileStem,
+                    ...(target.zipFileAliases ?? []),
+                ];
 
-                const normalizedStem = normalizeZipAudioStem(target.zipFileStem);
+                stems.forEach((rawStem) => {
+                    if (!rawStem) {
+                        return;
+                    }
 
-                if (!normalizedStem) {
-                    return;
-                }
+                    const normalizedStem = normalizeZipAudioStem(rawStem);
 
-                if (!result.has(normalizedStem)) {
-                    result.set(normalizedStem, target);
-                }
+                    if (!normalizedStem) {
+                        return;
+                    }
+
+                    if (!result.has(normalizedStem)) {
+                        result.set(normalizedStem, target);
+                    }
+                });
             });
 
             return result;
@@ -288,7 +299,7 @@ export function AdminAudioZipBulkImporter({
         try {
             const entries = await readAdminAudioZip(file);
             const foundNumbers = new Set<number>();
-            const foundStems = new Set<string>();
+            const foundTargetIds = new Set<string>();
             const prepared: PreparedAudio[] = [];
             const unknownNames: string[] = [];
 
@@ -304,13 +315,13 @@ export function AdminAudioZipBulkImporter({
                         : null;
 
                     if (target && stem) {
-                        if (foundStems.has(stem)) {
+                        if (foundTargetIds.has(target.questionId)) {
                             throw new Error(
-                                `${entry.baseName}: bir audio nomi ZIP ichida takrorlangan.`,
+                                `${entry.baseName}: shu savol/matching blok uchun audio ZIP ichida takrorlangan.`,
                             );
                         }
 
-                        foundStems.add(stem);
+                        foundTargetIds.add(target.questionId);
                         clientId = `bulk-${stem}`;
                     }
                 } else {
@@ -365,7 +376,7 @@ export function AdminAudioZipBulkImporter({
                             ? normalizeZipAudioStem(target.zipFileStem)
                             : null;
 
-                        return !stem || !foundStems.has(stem);
+                        return !stem || !foundTargetIds.has(target.questionId);
                     })
                     .map((target) =>
                         formatExpectedZipName(
@@ -573,22 +584,32 @@ export function AdminAudioZipBulkImporter({
                     <h2 id="audio-zip-import-title">Savol izohlarini bitta ZIP bilan yuklash</h2>
                     <p>
                         {explicitStemMode ? (
-                            <>
-                                <strong>1 SAVOL / MATCHING BLOK = 1 AUDIO.</strong>{" "}Aralash testda audio fayl savolning barcha a/b/c qismlari yoki bitta 33–34–35 matching blokining uchala bandi uchun umumiy ishlatiladi:
-                                {" "}
-                                <strong>
-                                    {targets
-                                        .slice(0, 4)
-                                        .map((target) =>
-                                            formatExpectedZipName(
-                                                target.zipFileStem ?? "",
-                                            ),
-                                        )
-                                        .join(", ")}
-                                    {targets.length > 4 ? " ..." : ""}
-                                </strong>
-                                . 33–34–35 matching testida 20 blok bo‘lsa q01.mp3 ... q20.mp3 yuklanadi. Masalan, 40-savol uchun faqat q40.mp3 yuklanadi; q40-a.mp3 va q40-b.mp3 qabul qilinmaydi. q1.mp3 va q01.mp3 bir xil savol sifatida qabul qilinadi.
-                            </>
+                            format === "diagnostic" ? (
+                                <>
+                                    <strong>DIAGNOSTIKA: 33–34–35 = 1 AUDIO.</strong>{" "}
+                                    Audio nomlari q01–q32, <strong>q33.mp3</strong>, keyin q36–q44 bo‘ladi.
+                                    33–35 matching bloki uchun faqat bitta umumiy audio ishlatiladi;
+                                    <strong> q33-34-35.mp3</strong> nomi ham q33 bilan bir xil sifatida qabul qilinadi.
+                                    45-esse uchun audio kutilmaydi.
+                                </>
+                            ) : (
+                                <>
+                                    <strong>1 SAVOL / MATCHING BLOK = 1 AUDIO.</strong>{" "}Aralash testda audio fayl savolning barcha a/b/c qismlari yoki bitta 33–34–35 matching blokining uchala bandi uchun umumiy ishlatiladi:
+                                    {" "}
+                                    <strong>
+                                        {targets
+                                            .slice(0, 4)
+                                            .map((target) =>
+                                                formatExpectedZipName(
+                                                    target.zipFileStem ?? "",
+                                                ),
+                                            )
+                                            .join(", ")}
+                                        {targets.length > 4 ? " ..." : ""}
+                                    </strong>
+                                    . 33–34–35 matching testida 20 blok bo‘lsa q01.mp3 ... q20.mp3 yuklanadi. Masalan, 40-savol uchun faqat q40.mp3 yuklanadi; q40-a.mp3 va q40-b.mp3 qabul qilinmaydi. q1.mp3 va q01.mp3 bir xil savol sifatida qabul qilinadi.
+                                </>
+                            )
                         ) : (
                             <>
                                 Audio nomlari <strong>q01.mp3, q02.mp3 ...</strong> bo‘lsin. Diagnostikada q01–q44 aynan 1–44-savollarga moslanadi; 45-esse uchun audio kutilmaydi.
@@ -689,9 +710,11 @@ export function AdminAudioZipBulkImporter({
             <p className={styles.note}>
                 MP3, M4A yoki WAV · har audio 25 MB gacha · ZIP 250 MB gacha.
                 {" "}
-                {explicitStemMode
-                    ? "Aralash testda ZIP ichidagi har bir ko‘rsatilgan savol uchun bitta audio bo‘lishi kerak."
-                    : "Diagnostika uchun 44 ta audio to‘liq bo‘lishi kerak."}
+                {format === "diagnostic"
+                    ? "Diagnostika uchun jami 42 ta audio: q01–q32, q33 (33–35 uchun umumiy), q36–q44."
+                    : explicitStemMode
+                      ? "Aralash testda ZIP ichidagi har bir ko‘rsatilgan savol uchun bitta audio bo‘lishi kerak."
+                      : "ZIP ichidagi har bir savol uchun bitta audio bo‘lishi kerak."}
                 {" "}
                 Audio yuklangach “Draftni saqlash” majburiy.
             </p>

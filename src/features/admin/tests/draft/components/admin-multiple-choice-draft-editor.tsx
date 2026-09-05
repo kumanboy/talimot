@@ -949,6 +949,8 @@ export function AdminMultipleChoiceDraftEditor({
                         questionId: string;
                         label: string;
                         audio: AdminDraftMultipleChoiceQuestion["explanation"]["audio"];
+                        zipFileStem: string;
+                        zipFileAliases?: readonly string[];
                         sourceOrder: number;
                     }[] = [];
 
@@ -964,6 +966,7 @@ export function AdminMultipleChoiceDraftEditor({
                                     questionId: nestedQuestion.id,
                                     label: `${sourceOrder}-savol`,
                                     audio: nestedQuestion.explanation.audio,
+                                    zipFileStem: `q${String(sourceOrder).padStart(2, "0")}`,
                                     sourceOrder,
                                 });
                             }
@@ -971,15 +974,35 @@ export function AdminMultipleChoiceDraftEditor({
                         }
 
                         if (question.type === "matching") {
-                            for (const item of question.items) {
-                                const sourceOrder = item.sourceOrder ?? item.order;
-                                targets.push({
-                                    questionId: item.id,
-                                    label: `${sourceOrder}-savol`,
-                                    audio: item.explanation?.audio ?? null,
-                                    sourceOrder,
-                                });
-                            }
+                            const itemSourceOrders = question.items
+                                .map((item) => item.sourceOrder ?? item.order)
+                                .filter((value) => Number.isFinite(value));
+                            const firstSourceOrder =
+                                question.sourceOrder ??
+                                (itemSourceOrders.length > 0
+                                    ? Math.min(...itemSourceOrders)
+                                    : question.order);
+                            const lastSourceOrder =
+                                itemSourceOrders.length > 0
+                                    ? Math.max(...itemSourceOrders)
+                                    : firstSourceOrder;
+
+                            // Diagnostika 33–34–35 is one matching block and must have
+                            // exactly one shared explanation audio. The canonical file is
+                            // q33.mp3; q33-34-35.mp3 is accepted as a friendly alias.
+                            targets.push({
+                                questionId: question.id,
+                                label:
+                                    lastSourceOrder > firstSourceOrder
+                                        ? `${firstSourceOrder}–${lastSourceOrder}-savollar (bitta umumiy audio)`
+                                        : `${firstSourceOrder}-matching blok`,
+                                audio: question.explanation.audio,
+                                zipFileStem: `q${String(firstSourceOrder).padStart(2, "0")}`,
+                                ...(firstSourceOrder === 33 && lastSourceOrder === 35
+                                    ? { zipFileAliases: ["q33-34-35"] as const }
+                                    : {}),
+                                sourceOrder: firstSourceOrder,
+                            });
                             continue;
                         }
 
@@ -988,6 +1011,7 @@ export function AdminMultipleChoiceDraftEditor({
                             questionId: question.id,
                             label: `${sourceOrder}-savol`,
                             audio: question.explanation.audio,
+                            zipFileStem: `q${String(sourceOrder).padStart(2, "0")}`,
                             sourceOrder,
                         });
                     }
@@ -1142,6 +1166,23 @@ export function AdminMultipleChoiceDraftEditor({
             updates.map((update) => [update.questionId, update.audio]),
         );
 
+        // When a diagnostic/mixed matching group receives its shared audio,
+        // retire any legacy per-item audio (q33/q34/q35) so only one asset is
+        // stored and published for the whole block.
+        draft.questions.forEach((question) => {
+            if (
+                question.type === "matching" &&
+                audioByQuestionId.has(question.id)
+            ) {
+                question.items.forEach((item) => {
+                    const storagePath = item.explanation?.audio?.storagePath;
+                    if (storagePath) {
+                        queueAudioStorageRemoval(item.id, storagePath);
+                    }
+                });
+            }
+        });
+
         setDraft((currentDraft) => ({
             ...currentDraft,
             questions: currentDraft.questions.map((question) => {
@@ -1177,6 +1218,16 @@ export function AdminMultipleChoiceDraftEditor({
                         // legacy matching audio. Mixed 33–34–35 bulk import now
                         // targets only question.id, so new uploads are group-level.
                         items: question.items.map((item) => {
+                            if (groupAudio && item.explanation?.audio) {
+                                return {
+                                    ...item,
+                                    explanation: {
+                                        ...item.explanation,
+                                        audio: null,
+                                    },
+                                };
+                            }
+
                             const audio = audioByQuestionId.get(item.id);
                             return audio
                                 ? {
@@ -5242,6 +5293,7 @@ export function AdminMultipleChoiceDraftEditor({
             {supportsAudioZipImport && (
                 <AdminAudioZipBulkImporter
                     draftId={draft.id}
+                    format={draft.metadata.format}
                     targets={audioZipTargets}
                     disabled={
                         isLocked ||

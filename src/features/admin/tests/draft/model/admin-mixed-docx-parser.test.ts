@@ -144,6 +144,31 @@ BALL: 1
         }
     });
 
+
+    it("preserves a literal semicolon in punctuation replacement answers", () => {
+        const result = parseMixedDocxDocument(`
+TEST TURI: ARALASH
+
+SAVOL 37
+TUR: SHORT-ANSWER
+SAVOL: Xato tinish belgisini to‘g‘ri belgi bilan almashtiring.
+QABUL JAVOBLAR: : -> ; | :->; | : → ;
+TAQQOSLASH: normalized
+BALL: 2.5
+        `);
+
+        const question = result?.questions[0];
+        expect(question?.type).toBe("short-answer");
+
+        if (question?.type === "short-answer") {
+            expect(question.acceptedAnswers).toEqual([
+                ": -> ;",
+                ":->;",
+                ": → ;",
+            ]);
+        }
+    });
+
     it("returns null for a non-mixed document", () => {
         expect(parseMixedDocxDocument("1. Oddiy savol")).toBeNull();
     });

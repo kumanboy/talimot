@@ -76,9 +76,23 @@ function first(fields: FieldMap, ...keys: string[]): string | null {
 
 function list(fields: FieldMap, ...keys: string[]): readonly string[] {
     const value = first(fields, ...keys);
+
+    if (!value) {
+        return [];
+    }
+
+    // A punctuation-replacement answer such as ": -> ;" contains a literal
+    // semicolon. In that case semicolon must not be treated as a list separator.
+    // Multiple accepted spellings can still be separated safely with "|".
+    const separators =
+        /(?:->|→)/u.test(value)
+            ? /\s*\|\s*/gu
+            : /\s*[;|]\s*/gu;
+
     return value
-        ? value.split(/\s*[;|]\s*/gu).map((item) => item.trim()).filter(Boolean)
-        : [];
+        .split(separators)
+        .map((item) => item.trim())
+        .filter(Boolean);
 }
 
 function comparison(fields: FieldMap): AdminParsedMixedComparison {
