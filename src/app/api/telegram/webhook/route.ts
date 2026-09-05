@@ -263,12 +263,108 @@ async function resolveDestinationSafely(telegramUserId: number) {
     } as const;
 }
 
+function getRegistrationTutorialVideo() {
+    // Preferred production path: once the tutorial has been uploaded to
+    // Telegram, set its reusable file_id in Vercel. Until then, the bundled
+    // optimized MP4 is served publicly by TA’LIMOT and Telegram fetches it by
+    // HTTPS URL. This keeps first-launch onboarding working immediately.
+    const telegramFileId =
+        process.env.TELEGRAM_ONBOARDING_VIDEO_FILE_ID?.trim();
+
+    if (telegramFileId) {
+        return telegramFileId;
+    }
+
+    return `${getAppUrl()}/telegram/registration-tutorial.mp4`;
+}
+
+function accessButtonMarkup(entryUrl: string) {
+    return {
+        inline_keyboard: [
+            [
+                {
+                    text: "🚀 TA’LIMOTni ochish",
+                    web_app: {
+                        url: entryUrl,
+                    },
+                },
+            ],
+        ],
+    };
+}
+
+async function sendRegistrationTutorialAccessMessage(
+    chatId: number,
+    messageId: number,
+    entryUrl: string,
+) {
+    // Remove the old subscription buttons so repeated taps cannot send the
+    // tutorial multiple times after the user has already passed the gate.
+    try {
+        await telegramApi("editMessageText", {
+            chat_id: chatId,
+            message_id: messageId,
+            text: "✅ Obuna tasdiqlandi!",
+            reply_markup: {
+                inline_keyboard: [],
+            },
+            disable_web_page_preview: true,
+        });
+    } catch (error) {
+        console.error(
+            "Telegram subscription confirmation edit failed",
+            error,
+        );
+    }
+
+    const caption =
+        "🎓 TA’LIMOT platformasiga xush kelibsiz!\n\n" +
+        "Platformada ro‘yxatdan o‘tish jarayonini ushbu qisqa videoda ko‘rib chiqing. " +
+        "Videodagi bosqichlarni bajaring va TA’LIMOT imkoniyatlaridan foydalanishni boshlang.\n\n" +
+        "Tayyor bo‘lsangiz, quyidagi tugma orqali platformaga kiring 👇";
+
+    try {
+        await telegramApi("sendVideo", {
+            chat_id: chatId,
+            video: getRegistrationTutorialVideo(),
+            caption,
+            supports_streaming: true,
+            reply_markup: accessButtonMarkup(entryUrl),
+        });
+        return;
+    } catch (error) {
+        // The user must never lose access just because Telegram could not fetch
+        // the tutorial media. Fall back to the same instructions + Web App
+        // button so registration can continue immediately.
+        console.error(
+            "Telegram registration tutorial video failed; using text fallback",
+            error,
+        );
+    }
+
+    await telegramApi("sendMessage", {
+        chat_id: chatId,
+        text: caption,
+        reply_markup: accessButtonMarkup(entryUrl),
+        disable_web_page_preview: true,
+    });
+}
+
 async function sendVerifiedAccessMessage(
     chatId: number,
     messageId: number,
     entryUrl: string,
     registered: boolean,
 ) {
+    if (!registered) {
+        await sendRegistrationTutorialAccessMessage(
+            chatId,
+            messageId,
+            entryUrl,
+        );
+        return;
+    }
+
     const text = registered
         ? `✅ Obuna tasdiqlandi!\n\nTA’LIMOTga kirishni davom ettiring.`
         : `✅ Obuna tasdiqlandi!\n\nTA’LIMOT platformasini ochishingiz mumkin.`;
