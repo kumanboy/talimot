@@ -36,6 +36,35 @@ function telegramLabel(
     return "Ulanmagan";
 }
 
+
+function paginationHref(options: {
+    page: number;
+    search: string;
+    status: AdminUserStatusFilter;
+    role: AdminUserRoleFilter;
+}): string {
+    const params = new URLSearchParams();
+
+    if (options.search) {
+        params.set("q", options.search);
+    }
+
+    if (options.status !== "all") {
+        params.set("status", options.status);
+    }
+
+    if (options.role !== "all") {
+        params.set("role", options.role);
+    }
+
+    if (options.page > 1) {
+        params.set("page", String(options.page));
+    }
+
+    const query = params.toString();
+    return query ? `/admin/users?${query}` : "/admin/users";
+}
+
 interface AdminUsersPageProps {
     readonly overview: AdminUsersOverview;
     readonly search: string;
@@ -128,8 +157,20 @@ export function AdminUsersPage({
                 </form>
 
                 <div className={styles.resultBar}>
-                    <strong>{overview.records.length}</strong>
-                    <span>ta foydalanuvchi ko‘rsatildi</span>
+                    <strong>{overview.filteredCount}</strong>
+                    <span>ta foydalanuvchi topildi</span>
+
+                    {overview.filteredCount > 0 ? (
+                        <span className={styles.pageRange}>
+                            {((overview.page - 1) * overview.pageSize) + 1}
+                            –
+                            {Math.min(
+                                overview.page * overview.pageSize,
+                                overview.filteredCount,
+                            )}
+                            {" "}ko‘rsatilmoqda
+                        </span>
+                    ) : null}
                 </div>
 
                 <div className={styles.tableWrap}>
@@ -267,9 +308,50 @@ export function AdminUsersPage({
                     </table>
                 </div>
 
+                {overview.pageCount > 1 ? (
+                    <nav
+                        className={styles.pagination}
+                        aria-label="Foydalanuvchilar sahifalari"
+                    >
+                        {overview.page > 1 ? (
+                            <a
+                                href={paginationHref({
+                                    page: overview.page - 1,
+                                    search,
+                                    status,
+                                    role,
+                                })}
+                            >
+                                ← Oldingi
+                            </a>
+                        ) : (
+                            <span className={styles.disabledPage}>← Oldingi</span>
+                        )}
+
+                        <strong>
+                            {overview.page} / {overview.pageCount}
+                        </strong>
+
+                        {overview.page < overview.pageCount ? (
+                            <a
+                                href={paginationHref({
+                                    page: overview.page + 1,
+                                    search,
+                                    status,
+                                    role,
+                                })}
+                            >
+                                Keyingi →
+                            </a>
+                        ) : (
+                            <span className={styles.disabledPage}>Keyingi →</span>
+                        )}
+                    </nav>
+                ) : null}
+
                 <p className={styles.catalogNote}>
-                    Tanga balansi, testlar soni va sertifikat statistikasi keyingi
-                    modullar database’ga ulangach shu jadvalga avtomatik qo‘shiladi.
+                    Foydalanuvchilar soni database’dan to‘liq hisoblanadi; jadval
+                    tez ishlashi uchun foydalanuvchilar sahifalab ko‘rsatiladi.
                 </p>
             </section>
         </>

@@ -16,6 +16,7 @@ interface AdminUsersRouteProps {
         q?: string | string[];
         status?: string | string[];
         role?: string | string[];
+        page?: string | string[];
     }>;
 }
 
@@ -31,6 +32,11 @@ function parseRole(value: string): AdminUserRoleFilter {
     return value === "student" || value === "admin" ? value : "all";
 }
 
+function parsePage(value: string): number {
+    const page = Number.parseInt(value, 10);
+    return Number.isFinite(page) && page > 0 ? page : 1;
+}
+
 export default async function AdminUsersRoute({
     searchParams,
 }: AdminUsersRouteProps) {
@@ -42,7 +48,8 @@ export default async function AdminUsersRoute({
     const search = first(params.q).trim().slice(0, 80);
     const status = parseStatus(first(params.status));
     const role = parseRole(first(params.role));
-    const overview = await getAdminUsersOverview({ search, status, role });
+    const page = parsePage(first(params.page));
+    const overview = await getAdminUsersOverview({ search, status, role, page });
 
     return (
         <AdminShell activeItem="users">
